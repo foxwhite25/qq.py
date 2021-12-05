@@ -7,7 +7,6 @@ from typing import Optional, Any
 
 import aiohttp
 
-from .aiorequests import *
 from .guild import Guild
 from .http import HTTPClient
 from .iterators import GuildIterator

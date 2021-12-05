@@ -5,5 +5,9 @@ __version__ = '0.0.4'
 
 __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
+import logging
+
 from .client import *
 from .guild import *
+
+logging.getLogger(__name__).addHandler(logging.NullHandler())
