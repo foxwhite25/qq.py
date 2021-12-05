@@ -6,6 +6,15 @@
 
 - 使用 ``async`` 和 ``await`` 的现代 Pythonic API。
 
+## 安装
+
+**需要 Python 3.8或以上的版本**
+
+要安装库，你只需运行以下命令：
+```
+pip3 install -U qq.py
+```
+
 ## 快速示例
 ```python
 import asyncio
