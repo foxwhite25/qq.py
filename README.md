@@ -32,4 +32,7 @@ async def main():
 if __name__ == '__main__':
     asyncio.run(main())
 ```
-输出Bot当前加入的所有频道的名字
+输出Bot当前加入的所有频道的名字，以及所有的频道
+
+## 链接
+* [QQ API](https://bot.q.qq.com/wiki/develop/api/)
