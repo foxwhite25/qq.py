@@ -51,8 +51,6 @@ class Asset(AssetMixin):
         '_key',
     )
 
-    BASE = 'https://cdn.discordapp.com'
-
     def __init__(self, state, *, url: str, key: str, animated: bool = False):
         self._state = state
         self._url = url

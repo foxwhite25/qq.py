@@ -2,7 +2,7 @@ from typing import Any, TYPE_CHECKING, Optional, Type, TypeVar, Dict, List
 
 from . import Guild, abc
 from .asset import Asset
-from .color import Colour
+from .colour import Colour
 from .state import ConnectionState
 from .types.user import User as UserPayload
 
