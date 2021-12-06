@@ -5,6 +5,8 @@ import io
 import re
 from os import PathLike
 from typing import Union, Optional, TYPE_CHECKING, ClassVar, Tuple, List, Callable, overload
+
+from .embeds import Embed
 from .guild import Guild, GuildChannel
 from . import utils
 from .file import File
@@ -224,7 +226,7 @@ class Message(Hashable):
             else:
                 r.append(Member._try_upgrade(data=mention, guild=guild, state=state))
 
-    def _rebind_cached_references(self, new_guild: Guild, new_channel: Union[TextChannel, Thread]) -> None:
+    def _rebind_cached_references(self, new_guild: Guild, new_channel: TextChannel) -> None:
         self.guild = new_guild
         self.channel = new_channel
 
