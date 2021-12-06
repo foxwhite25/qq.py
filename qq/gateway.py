@@ -15,7 +15,7 @@ EventListener = namedtuple('EventListener', 'predicate event result future')
 _log = logging.getLogger(__name__)
 
 __all__ = (
-    'QQdWebSocket',
+    'QQWebSocket',
     'KeepAliveHandler',
     'QQClientWebSocketResponse',
     'ReconnectWebSocket',
@@ -105,7 +105,7 @@ class GatewayRatelimiter:
                 await asyncio.sleep(delta)
 
 
-class QQdWebSocket:
+class QQWebSocket:
     DISPATCH = 0
     HEARTBEAT = 1
     IDENTIFY = 2

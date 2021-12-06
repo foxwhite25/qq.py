@@ -1,4 +1,64 @@
-from typing import Callable
+import asyncio
+import inspect
+import logging
+import os
+from collections import deque
+from typing import Callable, TYPE_CHECKING, Dict, Any, Optional, List, Union, Deque, Tuple
+
+from qq import Client, utils, Guild
+from qq.gateway import QQWebSocket
+from qq.http import HTTPClient
+
+
+class ChunkRequest:
+    def __init__(
+        self,
+        guild_id: int,
+        loop: asyncio.AbstractEventLoop,
+        resolver: Callable[[int], Any],
+        *,
+        cache: bool = True,
+    ) -> None:
+        self.guild_id: int = guild_id
+        self.resolver: Callable[[int], Any] = resolver
+        self.loop: asyncio.AbstractEventLoop = loop
+        self.cache: bool = cache
+        self.nonce: str = os.urandom(16).hex()
+        self.buffer: List[Member] = []
+        self.waiters: List[asyncio.Future[List[Member]]] = []
+
+    def add_members(self, members: List[Member]) -> None:
+        self.buffer.extend(members)
+        if self.cache:
+            guild = self.resolver(self.guild_id)
+            if guild is None:
+                return
+
+            for member in members:
+                existing = guild.get_member(member.id)
+                if existing is None or existing.joined_at is None:
+                    guild._add_member(member)
+
+    async def wait(self) -> List[Member]:
+        future = self.loop.create_future()
+        self.waiters.append(future)
+        try:
+            return await future
+        finally:
+            self.waiters.remove(future)
+
+    def get_future(self) -> asyncio.Future[List[Member]]:
+        future = self.loop.create_future()
+        self.waiters.append(future)
+        return future
+
+    def done(self) -> None:
+        for future in self.waiters:
+            if not future.done():
+                future.set_result(self.buffer)
+
+
+_log = logging.getLogger(__name__)
 
 
 class ConnectionState:
@@ -28,67 +88,13 @@ class ConnectionState:
         self.hooks: Dict[str, Callable] = hooks
         self.shard_count: Optional[int] = None
         self._ready_task: Optional[asyncio.Task] = None
-        self.application_id: Optional[int] = utils._get_as_snowflake(options, 'application_id')
+        self.application_id: Optional[int] = options.get('application_id')
         self.heartbeat_timeout: float = options.get('heartbeat_timeout', 60.0)
         self.guild_ready_timeout: float = options.get('guild_ready_timeout', 2.0)
         if self.guild_ready_timeout < 0:
             raise ValueError('guild_ready_timeout cannot be negative')
 
-        allowed_mentions = options.get('allowed_mentions')
-
-        if allowed_mentions is not None and not isinstance(allowed_mentions, AllowedMentions):
-            raise TypeError('allowed_mentions parameter must be AllowedMentions')
-
-        self.allowed_mentions: Optional[AllowedMentions] = allowed_mentions
         self._chunk_requests: Dict[Union[int, str], ChunkRequest] = {}
-
-        activity = options.get('activity', None)
-        if activity:
-            if not isinstance(activity, BaseActivity):
-                raise TypeError('activity parameter must derive from BaseActivity.')
-
-            activity = activity.to_dict()
-
-        status = options.get('status', None)
-        if status:
-            if status is Status.offline:
-                status = 'invisible'
-            else:
-                status = str(status)
-
-        intents = options.get('intents', None)
-        if intents is not None:
-            if not isinstance(intents, Intents):
-                raise TypeError(f'intents parameter must be Intent not {type(intents)!r}')
-        else:
-            intents = Intents.default()
-
-        if not intents.guilds:
-            _log.warning('Guilds intent seems to be disabled. This may cause state related issues.')
-
-        self._chunk_guilds: bool = options.get('chunk_guilds_at_startup', intents.members)
-
-        # Ensure these two are set properly
-        if not intents.members and self._chunk_guilds:
-            raise ValueError('Intents.members must be enabled to chunk guilds at startup.')
-
-        cache_flags = options.get('member_cache_flags', None)
-        if cache_flags is None:
-            cache_flags = MemberCacheFlags.from_intents(intents)
-        else:
-            if not isinstance(cache_flags, MemberCacheFlags):
-                raise TypeError(f'member_cache_flags parameter must be MemberCacheFlags not {type(cache_flags)!r}')
-
-            cache_flags._verify_intents(intents)
-
-        self.member_cache_flags: MemberCacheFlags = cache_flags
-        self._activity: Optional[ActivityPayload] = activity
-        self._status: Optional[str] = status
-        self._intents: Intents = intents
-
-        if not intents.members or cache_flags._empty:
-            self.store_user = self.create_user  # type: ignore
-            self.deref_user = self.deref_user_no_intents  # type: ignore
 
         self.parsers = parsers = {}
         for attr, func in inspect.getmembers(self):
