@@ -5,7 +5,7 @@ with open('README.md', encoding='utf-8') as f:
 
 setup(
     name='qq.py',
-    version='0.0.4',
+    version='0.0.5',
     description='A Python wrapper for the QQ Channel API',
     py_modules=["qq"],
     packages=['qq', "qq.types"],
