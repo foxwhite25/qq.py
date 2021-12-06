@@ -1,17 +1,7 @@
 from typing import (
-    Any,
-    ClassVar,
     Dict,
     List,
-    NamedTuple,
-    Sequence,
-    Set,
-    Literal,
-    Optional,
-    TYPE_CHECKING,
-    Tuple,
     Union,
-    overload,
 )
 
 
@@ -80,5 +70,3 @@ class Guild:
     def channels(self) -> List[GuildChannel]:
         """List[:class:`abc.GuildChannel`]: A list of channels that belongs to this guild."""
         return list(self._channels.values())
-
-

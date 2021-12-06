@@ -1,16 +1,22 @@
+from __future__ import annotations
+
 import asyncio
 import inspect
 import logging
 import os
 from collections import deque
-from typing import Callable, TYPE_CHECKING, Dict, Any, Optional, List, Union, Deque, Tuple
+from typing import Callable, TYPE_CHECKING, Dict, Any, Optional, List, Union, Deque
 
-from . import Client, Guild
-from .member import Member
-from .gateway import QQWebSocket
-from .http import HTTPClient
-from .types.user import User as UserPayload
-from .user import User, ClientUser
+
+if TYPE_CHECKING:
+    from .member import Member
+    from .http import HTTPClient
+    from .client import Client
+    from .guild import Guild
+    from .gateway import QQWebSocket
+    from .message import Message
+    from .types.user import User as UserPayload
+    from .user import User, ClientUser
 
 
 class ChunkRequest:
@@ -108,8 +114,8 @@ class ConnectionState:
 
     def clear(self) -> None:
         self.user: Optional[ClientUser] = None
-        self._users: Dict[str, User] = {}
-        self._guilds: Dict[str, Guild] = {}
+        self._users: Dict[int, User] = {}
+        self._guilds: Dict[int, Guild] = {}
 
         if self.max_messages is not None:
             self._messages: Optional[Deque[Message]] = deque(maxlen=self.max_messages)
@@ -117,7 +123,7 @@ class ConnectionState:
             self._messages: Optional[Deque[Message]] = None
 
     def store_user(self, data: UserPayload) -> User:
-        user_id = str(data['id'])
+        user_id = data['id']
         try:
             return self._users[user_id]
         except KeyError:
@@ -126,15 +132,15 @@ class ConnectionState:
             user._stored = True
             return user
 
-    def deref_user(self, user_id: str) -> None:
+    def deref_user(self, user_id: int) -> None:
         self._users.pop(user_id, None)
 
     def create_user(self, data: UserPayload) -> User:
         return User(state=self, data=data)
 
-    def deref_user_no_intents(self, user_id: str) -> None:
+    def deref_user_no_intents(self, user_id: int) -> None:
         return
 
-    def get_user(self, id: Optional[str]) -> Optional[User]:
+    def get_user(self, id: Optional[int]) -> Optional[User]:
         # the keys of self._users are strs
         return self._users.get(id)  # type: ignore

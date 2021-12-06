@@ -1,25 +1,30 @@
+from __future__ import annotations
+
 import datetime
 import inspect
 import itertools
-from array import array
 from operator import attrgetter
 from typing import TypeVar, TYPE_CHECKING, Optional, List, Dict, Tuple, Any, Type, Literal, Union
 
-from . import utils, abc, Guild
-from .asset import Asset
-from .colour import Colour
-from .object import Object
-from .state import ConnectionState
-from .user import *
-from .user import _UserTag, BaseUser
-from .types.member import (
-    MemberWithUser as MemberWithUserPayload,
-    Member as MemberPayload,
-    UserWithMember as UserWithMemberPayload, Member,
-)
-from .types.user import User as UserPayload
-from .role import Role
-from .utils import MISSING
+from . import utils
+from .user import _UserTag, BaseUser, User
+from .abc import Messageable
+
+if TYPE_CHECKING:
+    from .guild import Guild
+    from .asset import Asset
+    from .colour import Colour
+    from .message import Message
+    from .object import Object
+    from .state import ConnectionState
+    from .user import *
+    from .types.member import (
+        MemberWithUser as MemberWithUserPayload,
+        Member as MemberPayload,
+        UserWithMember as UserWithMemberPayload,
+    )
+    from .types.user import User as UserPayload
+    from .role import Role
 
 
 def flatten_user(cls):
@@ -68,7 +73,7 @@ M = TypeVar('M', bound='Member')
 
 
 @flatten_user
-class Member(abc.Messageable, _UserTag):
+class Member(Messageable, _UserTag):
     __slots__ = (
         '_roles',
         'joined_at',
@@ -83,7 +88,7 @@ class Member(abc.Messageable, _UserTag):
 
     if TYPE_CHECKING:
         name: str
-        id: str
+        id: int
         bot: bool
         avatar: Optional[Asset]
         mutual_guilds: List[Guild]

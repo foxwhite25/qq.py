@@ -1,22 +1,18 @@
-from typing import overload, Optional, Union, List
+from __future__ import annotations
+
+from typing import overload, Optional, Union, List, TYPE_CHECKING
 
 from .error import InvalidArgument
 from .mention import AllowedMentions
-from .state import ConnectionState
+
+if TYPE_CHECKING:
+    from .state import ConnectionState
+    from .message import Message
+
+__all__ = ('Messageable',)
 
 
 class Messageable:
-    """An ABC that details the common operations on a model that can send messages.
-    The following implement this ABC:
-    - :class:`~discord.TextChannel`
-    - :class:`~discord.DMChannel`
-    - :class:`~discord.GroupChannel`
-    - :class:`~discord.User`
-    - :class:`~discord.Member`
-    - :class:`~discord.ext.commands.Context`
-    - :class:`~discord.Thread`
-    """
-
     __slots__ = ()
     _state: ConnectionState
 
@@ -25,26 +21,26 @@ class Messageable:
 
     @overload
     async def send(
-        self,
-        content: Optional[str] = ...,
-        *,
-        tts: bool = ...,
-        nonce: Union[str, int] = ...,
-        allowed_mentions: AllowedMentions = ...,
-        reference: Union[Message, MessageReference, PartialMessage] = ...,
-        mention_author: bool = ...,
+            self,
+            content: Optional[str] = ...,
+            *,
+            tts: bool = ...,
+            nonce: Union[str, int] = ...,
+            allowed_mentions: AllowedMentions = ...,
+            reference: Union[Message] = ...,
+            mention_author: bool = ...,
     ) -> Message:
         ...
 
     async def send(
-        self,
-        content=None,
-        *,
-        tts=None,
-        nonce=None,
-        allowed_mentions=None,
-        reference=None,
-        mention_author=None,
+            self,
+            content=None,
+            *,
+            tts=None,
+            nonce=None,
+            allowed_mentions=None,
+            reference=None,
+            mention_author=None,
     ):
 
         channel = await self._get_channel()
@@ -67,7 +63,8 @@ class Messageable:
             try:
                 reference = reference.to_message_reference_dict()
             except AttributeError:
-                raise InvalidArgument('reference parameter must be Message, MessageReference, or PartialMessage') from None
+                raise InvalidArgument(
+                    'reference parameter must be Message, MessageReference, or PartialMessage') from None
 
         data = await state.http.send_message(
             channel.id,
@@ -101,7 +98,7 @@ class Messageable:
         :class:`~discord.Message`
             The message asked for.
         """
-        id = str(id)
+        id = id
         channel = await self._get_channel()
         data = await self._state.http.get_message(channel.id, id)
         return self._state.create_message(channel=channel, data=data)

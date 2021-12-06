@@ -5,7 +5,8 @@ import io
 import re
 from os import PathLike
 from typing import Union, Optional, TYPE_CHECKING, ClassVar, Tuple, List, Callable, overload
-from . import Guild, utils, GuildChannel
+from .guild import Guild, GuildChannel
+from . import utils
 from .file import File
 from .member import Member
 from .mixins import Hashable
@@ -199,12 +200,6 @@ class Message(Hashable):
                 self.author = found
 
     def _handle_member(self, member: MemberPayload) -> None:
-        # The gateway now gives us full Member objects sometimes with the following keys
-        # deaf, mute, joined_at, roles
-        # For the sake of performance I'm going to assume that the only
-        # field that needs *updating* would be the joined_at field.
-        # If there is no Member object (for some strange reason), then we can upgrade
-        # ourselves to a more "partial" member object.
         author = self.author
         try:
             # Update member reference

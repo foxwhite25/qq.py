@@ -65,7 +65,7 @@ class Client:
         self.http: HTTPClient = HTTPClient(connector, proxy=proxy, proxy_auth=proxy_auth, unsync_clock=unsync_clock,
                                            loop=self.loop)
 
-    async def get_guild(self, guild_id: str) -> Optional[Guild]:
+    async def get_guild(self, guild_id: int) -> Optional[Guild]:
         data = await self.http.get_guild(guild_id)
         channels = await self.http.get_guild_channels(guild_id)
         return Guild(data=data, channels=channels)
@@ -78,7 +78,3 @@ class Client:
             after: datetime.datetime = None
     ):
         return GuildIterator(self, limit=limit, before=before, after=after)
-
-    def _cleanup_loop(loop: asyncio.AbstractEventLoop) -> None:
-        _log.info('Closing the event loop.')
-        loop.close()

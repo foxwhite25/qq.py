@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import logging
 import sys
@@ -5,12 +7,12 @@ import weakref
 from types import TracebackType
 from typing import ClassVar, Any, Optional, Sequence, Iterable, Dict, Union, TypeVar, Type, Coroutine, List
 from urllib.parse import quote as _uriquote
-
 import aiohttp
 
 from . import __version__, utils, role
 from .error import HTTPException, Forbidden, NotFound, QQServerError, LoginFailure
 from .gateway import QQClientWebSocketResponse
+from .message import Message
 from .types import user, guild
 from .utils import MISSING
 
@@ -232,68 +234,68 @@ class HTTPClient:
 
         return self.request(Route('GET', '/users/@me/guilds'), params=params)
 
-    def get_guild(self, guild_id: str) -> Response[guild.Guild]:
+    def get_guild(self, guild_id: int) -> Response[guild.Guild]:
         return self.request(Route('GET', '/guilds/{guild_id}', guild_id=guild_id))
 
-    def get_guild_channels(self, guild_id: str) -> Response[guild.Guild]:
+    def get_guild_channels(self, guild_id: int) -> Response[guild.Guild]:
         return self.request(Route('GET', '/guilds/{guild_id}/channels', guild_id=guild_id))
 
-    def get_message(self, channel_id: str, message_id: str) -> Response[message.Message]:
-        r = Route('GET', '/channels/{channel_id}/messages/{message_id}', channel_id=channel_id, message_id=message_id)
-        return self.request(r)
-
-    # 身份组管理
-
-    def get_roles(self, guild_id: str) -> Response[List[role.Role]]:
-        return self.request(Route('GET', '/guilds/{guild_id}/roles', guild_id=guild_id))
-
-    def edit_role(
-            self, guild_id: str, role_id: str, *, reason: Optional[str] = None, **fields: Any
-    ) -> Response[role.Role]:
-        r = Route('PATCH', '/guilds/{guild_id}/roles/{role_id}', guild_id=guild_id, role_id=role_id)
-        valid_keys = ('name', 'color', 'hoist')
-        payload = {"info": {k: v for k, v in fields.items() if k in valid_keys}}
-        return self.request(r, json=payload, reason=reason)
-
-    def delete_role(self, guild_id: str, role_id: str, *, reason: Optional[str] = None) -> Response[None]:
-        r = Route('DELETE', '/guilds/{guild_id}/roles/{role_id}', guild_id=guild_id, role_id=role_id)
-        return self.request(r, reason=reason)
-
-    def create_role(self, guild_id: str, *, reason: Optional[str] = None, **fields: Any) -> Response[role.Role]:
-        r = Route('POST', '/guilds/{guild_id}/roles', guild_id=guild_id)
-        return self.request(r, json=fields, reason=reason)
-
-    def add_role(
-            self, guild_id: str, user_id: str, role_id: str, *, reason: Optional[str] = None
-    ) -> Response[None]:
-        r = Route(
-            'PUT',
-            '/guilds/{guild_id}/members/{user_id}/roles/{role_id}',
-            guild_id=guild_id,
-            user_id=user_id,
-            role_id=role_id,
-        )
-        return self.request(r, reason=reason)
-
-    def remove_role(
-            self, guild_id: str, user_id: str, role_id: str, *, reason: Optional[str] = None
-    ) -> Response[None]:
-        r = Route(
-            'DELETE',
-            '/guilds/{guild_id}/members/{user_id}/roles/{role_id}',
-            guild_id=guild_id,
-            user_id=user_id,
-            role_id=role_id,
-        )
-        return self.request(r, reason=reason)
-
-    async def get_from_cdn(self, url: str) -> bytes:
-        async with self.__session.get(url) as resp:
-            if resp.status == 200:
-                return await resp.read()
-            elif resp.status == 404:
-                raise NotFound(resp, 'asset not found')
-            elif resp.status == 403:
-                raise Forbidden(resp, 'cannot retrieve asset')
-            else:
-                raise HTTPException(resp, 'failed to get asset')
+    # def get_message(self, channel_id: int, message_id: int) -> Response[Message]:
+    #     r = Route('GET', '/channels/{channel_id}/messages/{message_id}', channel_id=channel_id, message_id=message_id)
+    #     return self.request(r)
+    #
+    # # 身份组管理
+    #
+    # def get_roles(self, guild_id: int) -> Response[List[role.Role]]:
+    #     return self.request(Route('GET', '/guilds/{guild_id}/roles', guild_id=guild_id))
+    #
+    # def edit_role(
+    #         self, guild_id: int, role_id: int, *, reason: Optional[str] = None, **fields: Any
+    # ) -> Response[role.Role]:
+    #     r = Route('PATCH', '/guilds/{guild_id}/roles/{role_id}', guild_id=guild_id, role_id=role_id)
+    #     valid_keys = ('name', 'color', 'hoist')
+    #     payload = {"info": {k: v for k, v in fields.items() if k in valid_keys}}
+    #     return self.request(r, json=payload, reason=reason)
+    #
+    # def delete_role(self, guild_id: int, role_id: int, *, reason: Optional[str] = None) -> Response[None]:
+    #     r = Route('DELETE', '/guilds/{guild_id}/roles/{role_id}', guild_id=guild_id, role_id=role_id)
+    #     return self.request(r, reason=reason)
+    #
+    # def create_role(self, guild_id: int, *, reason: Optional[str] = None, **fields: Any) -> Response[role.Role]:
+    #     r = Route('POST', '/guilds/{guild_id}/roles', guild_id=guild_id)
+    #     return self.request(r, json=fields, reason=reason)
+    #
+    # def add_role(
+    #         self, guild_id: int, user_id: int, role_id: int, *, reason: Optional[str] = None
+    # ) -> Response[None]:
+    #     r = Route(
+    #         'PUT',
+    #         '/guilds/{guild_id}/members/{user_id}/roles/{role_id}',
+    #         guild_id=guild_id,
+    #         user_id=user_id,
+    #         role_id=role_id,
+    #     )
+    #     return self.request(r, reason=reason)
+    #
+    # def remove_role(
+    #         self, guild_id: str, user_id: str, role_id: str, *, reason: Optional[str] = None
+    # ) -> Response[None]:
+    #     r = Route(
+    #         'DELETE',
+    #         '/guilds/{guild_id}/members/{user_id}/roles/{role_id}',
+    #         guild_id=guild_id,
+    #         user_id=user_id,
+    #         role_id=role_id,
+    #     )
+    #     return self.request(r, reason=reason)
+    #
+    # async def get_from_cdn(self, url: str) -> bytes:
+    #     async with self.__session.get(url) as resp:
+    #         if resp.status == 200:
+    #             return await resp.read()
+    #         elif resp.status == 404:
+    #             raise NotFound(resp, 'asset not found')
+    #         elif resp.status == 403:
+    #             raise Forbidden(resp, 'cannot retrieve asset')
+    #         else:
+    #             raise HTTPException(resp, 'failed to get asset')

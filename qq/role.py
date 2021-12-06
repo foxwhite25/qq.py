@@ -33,7 +33,7 @@ class Role(Hashable):
     def __init__(self, *, guild: Guild, state: ConnectionState, data: RolePayload):
         self.guild: Guild = guild
         self._state: ConnectionState = state
-        self.id: str = data['id']
+        self.id: int = int(data['id'])
         self._update(data)
 
     def __str__(self) -> str:

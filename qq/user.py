@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 from typing import Any, TYPE_CHECKING, Optional, Type, TypeVar, Dict, List
 
-from . import Guild, abc
-from .asset import Asset
-from .colour import Colour
-from .state import ConnectionState
-from .types.user import User as UserPayload
+from .abc import *
+
+if TYPE_CHECKING:
+    from .asset import Asset
+    from .guild import Guild
+    from .colour import Colour
+    from .message import Message
+    from .state import ConnectionState
+    from .types.user import User as UserPayload
 
 __all__ = (
     'User',
@@ -161,7 +167,7 @@ class ClientUser(BaseUser):
         super()._update(data)
 
 
-class User(BaseUser, abc.Messageable):
+class User(BaseUser, Messageable):
     __slots__ = ('_stored',)
 
     def __init__(self, *, state: ConnectionState, data: UserPayload) -> None:
