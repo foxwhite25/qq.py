@@ -1,11 +1,13 @@
 import array
 import datetime
 import json
+import re
 from bisect import bisect_left
-from typing import Any, Callable, TypeVar, overload, Optional, Iterable, List, TYPE_CHECKING
+from typing import Any, Callable, TypeVar, overload, Optional, Iterable, List, TYPE_CHECKING, Generic, Type
 from inspect import isawaitable as _isawaitable, signature as _signature
 
 T = TypeVar('T')
+T_co = TypeVar('T_co', covariant=True)
 
 try:
     import orjson
@@ -88,7 +90,6 @@ def _unique(iterable: Iterable[T]) -> List[T]:
 
 
 class SnowflakeList(array.array):
-
     __slots__ = ()
 
     if TYPE_CHECKING:
@@ -109,3 +110,40 @@ class SnowflakeList(array.array):
     def has(self, element: int) -> bool:
         i = bisect_left(self, element)
         return i != len(self) and self[i] == element
+
+
+class CachedSlotProperty(Generic[T, T_co]):
+    def __init__(self, name: str, function: Callable[[T], T_co]) -> None:
+        self.name = name
+        self.function = function
+        self.__doc__ = getattr(function, '__doc__')
+
+    @overload
+    def __get__(self, instance: None, owner: Type[T]):
+        ...
+
+    @overload
+    def __get__(self, instance: T, owner: Type[T]) -> T_co:
+        ...
+
+    def __get__(self, instance: Optional[T], owner: Type[T]) -> Any:
+        if instance is None:
+            return self
+
+        try:
+            return getattr(instance, self.name)
+        except AttributeError:
+            value = self.function(instance)
+            setattr(instance, self.name, value)
+            return value
+
+
+def cached_slot_property(name: str) -> Callable[[Callable[[T], T_co]], CachedSlotProperty[T, T_co]]:
+    def decorator(func: Callable[[T], T_co]) -> CachedSlotProperty[T, T_co]:
+        return CachedSlotProperty(name, func)
+
+    return decorator
+
+
+def escape_mentions(text: str) -> str:
+    return re.sub(r'@(everyone|here|[!&]?[0-9]{17,20})', '@\u200b\\1', text)

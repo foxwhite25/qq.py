@@ -286,3 +286,14 @@ class HTTPClient:
             role_id=role_id,
         )
         return self.request(r, reason=reason)
+
+    async def get_from_cdn(self, url: str) -> bytes:
+        async with self.__session.get(url) as resp:
+            if resp.status == 200:
+                return await resp.read()
+            elif resp.status == 404:
+                raise NotFound(resp, 'asset not found')
+            elif resp.status == 403:
+                raise Forbidden(resp, 'cannot retrieve asset')
+            else:
+                raise HTTPException(resp, 'failed to get asset')
