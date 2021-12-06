@@ -5,19 +5,22 @@ import os
 from collections import deque
 from typing import Callable, TYPE_CHECKING, Dict, Any, Optional, List, Union, Deque, Tuple
 
-from qq import Client, utils, Guild
-from qq.gateway import QQWebSocket
-from qq.http import HTTPClient
+from . import Client, Guild
+from .member import Member
+from .gateway import QQWebSocket
+from .http import HTTPClient
+from .types.user import User as UserPayload
+from .user import User, ClientUser
 
 
 class ChunkRequest:
     def __init__(
-        self,
-        guild_id: int,
-        loop: asyncio.AbstractEventLoop,
-        resolver: Callable[[int], Any],
-        *,
-        cache: bool = True,
+            self,
+            guild_id: int,
+            loop: asyncio.AbstractEventLoop,
+            resolver: Callable[[int], Any],
+            *,
+            cache: bool = True,
     ) -> None:
         self.guild_id: int = guild_id
         self.resolver: Callable[[int], Any] = resolver
@@ -68,14 +71,14 @@ class ConnectionState:
         _parsers: Dict[str, Callable[[Dict[str, Any]], None]]
 
     def __init__(
-        self,
-        *,
-        dispatch: Callable,
-        handlers: Dict[str, Callable],
-        hooks: Dict[str, Callable],
-        http: HTTPClient,
-        loop: asyncio.AbstractEventLoop,
-        **options: Any,
+            self,
+            *,
+            dispatch: Callable,
+            handlers: Dict[str, Callable],
+            hooks: Dict[str, Callable],
+            http: HTTPClient,
+            loop: asyncio.AbstractEventLoop,
+            **options: Any,
     ) -> None:
         self.loop: asyncio.AbstractEventLoop = loop
         self.http: HTTPClient = http
@@ -102,3 +105,36 @@ class ConnectionState:
                 parsers[attr[6:].upper()] = func
 
         self.clear()
+
+    def clear(self) -> None:
+        self.user: Optional[ClientUser] = None
+        self._users: Dict[str, User] = {}
+        self._guilds: Dict[str, Guild] = {}
+
+        if self.max_messages is not None:
+            self._messages: Optional[Deque[Message]] = deque(maxlen=self.max_messages)
+        else:
+            self._messages: Optional[Deque[Message]] = None
+
+    def store_user(self, data: UserPayload) -> User:
+        user_id = str(data['id'])
+        try:
+            return self._users[user_id]
+        except KeyError:
+            user = User(state=self, data=data)
+            self._users[user_id] = user
+            user._stored = True
+            return user
+
+    def deref_user(self, user_id: str) -> None:
+        self._users.pop(user_id, None)
+
+    def create_user(self, data: UserPayload) -> User:
+        return User(state=self, data=data)
+
+    def deref_user_no_intents(self, user_id: str) -> None:
+        return
+
+    def get_user(self, id: Optional[str]) -> Optional[User]:
+        # the keys of self._users are strs
+        return self._users.get(id)  # type: ignore
