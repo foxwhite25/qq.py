@@ -220,7 +220,7 @@ class QQWebSocket:
     @classmethod
     async def from_client(cls, client, *, initial=False, gateway=None, shard_id=None, session=None, sequence=None,
                           resume=False):
-        """Creates a main websocket for Discord from a :class:`Client`.
+        """Creates a main websocket for qq from a :class:`Client`.
         This is for internal use only.
         """
         gateway = gateway or await client.http.get_gateway()
@@ -230,7 +230,7 @@ class QQWebSocket:
         # dynamically add attributes needed
         ws.token = client.http.token
         ws._connection = client._connection
-        ws._discord_parsers = client._connection.parsers
+        ws._qq_parsers = client._connection.parsers
         ws._dispatch = client.dispatch
         ws.gateway = gateway
         ws.call_hooks = client._connection.call_hooks
@@ -406,7 +406,7 @@ class QQWebSocket:
                       self.shard_id, self.session_id, ', '.join(trace))
 
         try:
-            func = self._discord_parsers[event]
+            func = self._qq_parsers[event]
         except KeyError:
             _log.debug('Unknown event %s.', event)
         else:
