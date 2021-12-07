@@ -11,7 +11,6 @@ from typing import Callable, TYPE_CHECKING, Dict, Any, Optional, List, Union, De
 from . import utils
 from .abc import GuildChannel
 from .channel import PartialMessageable, TextChannel, _channel_factory
-from .enum import try_enum
 from .flags import Intents
 from .mention import AllowedMentions
 
@@ -24,7 +23,6 @@ if TYPE_CHECKING:
     from .message import Message
     from .types.user import User as UserPayload
     from .types.message import Message as MessagePayload
-    from .types.channel import GuildChannel as GuildChannelPayload, ChannelType
     from .types.guild import Guild as GuildPayload
     from .user import User, ClientUser
 
