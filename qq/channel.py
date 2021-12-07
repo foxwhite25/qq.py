@@ -57,7 +57,7 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
     def _update(self, guild: Guild, data: TextChannelPayload) -> None:
         self.guild: Guild = guild
         self.name: str = data['name']
-        self.category_id: Optional[int] = data.get('parent_id')
+        self.category_id: Optional[int] = int(data.get('parent_id'))
         self.position: int = data['position']
         self._type: int = data.get('type', self._type)
 
@@ -100,7 +100,7 @@ class VoiceChannel(abc.GuildChannel, Hashable):
     def _update(self, guild: Guild, data: VoiceChannelPayload) -> None:
         self.guild = guild
         self.name: str = data['name']
-        self.category_id: Optional[int] = data.get('parent_id')
+        self.category_id: Optional[int] = int(data.get('parent_id'))
         self.position: int = data['position']
 
     def __repr__(self) -> str:
@@ -132,7 +132,7 @@ class LiveChannel(abc.GuildChannel, Hashable):
     def _update(self, guild: Guild, data: LiveChannelPayload) -> None:
         self.guild = guild
         self.name: str = data['name']
-        self.category_id: Optional[int] = data.get('parent_id')
+        self.category_id: Optional[int] = int(data.get('parent_id'))
         self.position: int = data['position']
 
     def __repr__(self) -> str:
@@ -164,7 +164,7 @@ class AppChannel(abc.GuildChannel, Hashable):
     def _update(self, guild: Guild, data: AppChannelPayload) -> None:
         self.guild = guild
         self.name: str = data['name']
-        self.category_id: Optional[int] = data.get('parent_id')
+        self.category_id: Optional[int] = int(data.get('parent_id'))
         self.position: int = data['position']
 
     def __repr__(self) -> str:
@@ -196,7 +196,7 @@ class ThreadChannel(abc.GuildChannel, Hashable):
     def _update(self, guild: Guild, data: ThreadChannelPayload) -> None:
         self.guild = guild
         self.name: str = data['name']
-        self.category_id: Optional[int] = data.get('parent_id')
+        self.category_id: Optional[int] = int(data.get('parent_id'))
         self.position: int = data['position']
 
     def __repr__(self) -> str:
@@ -224,7 +224,7 @@ class CategoryChannel(abc.GuildChannel, Hashable):
     def _update(self, guild: Guild, data: CategoryChannelPayload) -> None:
         self.guild: Guild = guild
         self.name: str = data['name']
-        self.category_id: Optional[int] = data.get('parent_id')
+        self.category_id: Optional[int] = int(data.get('parent_id'))
         self.position: int = data['position']
 
     @property
@@ -244,7 +244,6 @@ class CategoryChannel(abc.GuildChannel, Hashable):
     def channels(self) -> List[GuildChannelType]:
         def comparator(channel):
             return not isinstance(channel, TextChannel), channel.position
-
         ret = [c for c in self.guild.channels if c.category_id == self.id]
         ret.sort(key=comparator)
         return ret

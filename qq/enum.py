@@ -121,7 +121,7 @@ class ChannelType(Enum):
     text = 0
     voice = 2
     category = 4
-    live = 1005
+    live = 10005
     app = 10006
     thread = 10007
 

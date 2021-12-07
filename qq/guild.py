@@ -1,20 +1,19 @@
 from __future__ import annotations
 
-import asyncio
 from typing import (
     Dict,
     List,
     Union, Optional,
 )
 
-from .abc import GuildChannel
-from .channel import _guild_channel_factory
+from .channel import _guild_channel_factory, TextChannel, CategoryChannel, AppChannel, LiveChannel, ThreadChannel
 from .member import Member
 from .role import Role
 from .state import ConnectionState
 from .types.guild import Guild as GuildPayload
 from .types.channel import VoiceChannel
 
+GuildChannel = Union[VoiceChannel, TextChannel, CategoryChannel, AppChannel, LiveChannel, ThreadChannel]
 VocalGuildChannel = Union[VoiceChannel]
 
 
@@ -84,6 +83,8 @@ class Guild:
         return f'<Guild {inner}>'
 
     def _sync(self) -> None:
+        # I know it's jank to put a sync requests here,
+        # but QQ just does not give all the info about guilds unless you requests it
         channels = self._state.http.sync_guild_channels(self.id)
         for c in channels:
             factory, ch_type = _guild_channel_factory(c['type'])

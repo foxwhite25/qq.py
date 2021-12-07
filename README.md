@@ -23,11 +23,16 @@ from qq import *
 
 async def main():
     client = Client('BotAppID', 'Bot Token')
+    output = ""
     await client.http.static_login(client.token)
-    async for guilds in await client.get_guilds():
-        print(guilds.name)
+    async for guilds in await client.fetch_guilds():
+        print(guilds.name+' 树状图:')
         for channels in guilds.channels:
-            print(channels)
+            if isinstance(channels, CategoryChannel):
+                output += f"{channels.name}\n"
+                for sub in channels.channels:
+                    output += f"  -{sub.name}\n"
+        print(output)
 
 if __name__ == '__main__':
     asyncio.run(main())
