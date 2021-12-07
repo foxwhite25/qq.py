@@ -219,7 +219,7 @@ class HTTPClient:
 
     def get_guilds(
             self,
-            limit: int,
+            limit: int = 100,
             before: Optional[str] = None,
             after: Optional[str] = None,
     ) -> Response[List[guild.Guild]]:

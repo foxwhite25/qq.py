@@ -125,7 +125,7 @@ class Message(Hashable):
             data: MessagePayload,
     ):
         self._state: ConnectionState = state
-        self.id: int = int(data['id'])
+        self.id: str = data['id']
         self.attachments: List[Attachment] = [Attachment(data=a, state=self._state) for a in data['attachments']]
         self.embeds: List[Embed] = [Embed.from_dict(a) for a in data['embeds']]
         self.channel: MessageableChannel = channel

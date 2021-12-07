@@ -1,12 +1,19 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import inspect
 import logging
 import os
 from collections import deque
-from typing import Callable, TYPE_CHECKING, Dict, Any, Optional, List, Union, Deque
+from typing import Callable, TYPE_CHECKING, Dict, Any, Optional, List, Union, Deque, Coroutine, TypeVar, Tuple
 
+from . import utils
+from .abc import GuildChannel
+from .channel import PartialMessageable, TextChannel, _channel_factory
+from .enum import try_enum
+from .flags import Intents
+from .mention import AllowedMentions
 
 if TYPE_CHECKING:
     from .member import Member
@@ -16,7 +23,14 @@ if TYPE_CHECKING:
     from .gateway import QQWebSocket
     from .message import Message
     from .types.user import User as UserPayload
+    from .types.message import Message as MessagePayload
+    from .types.channel import GuildChannel as GuildChannelPayload, ChannelType
+    from .types.guild import Guild as GuildPayload
     from .user import User, ClientUser
+
+    T = TypeVar('T')
+    CS = TypeVar('CS', bound='ConnectionState')
+    Channel = Union[GuildChannel, PartialMessageable]
 
 
 class ChunkRequest:
@@ -70,6 +84,13 @@ class ChunkRequest:
 _log = logging.getLogger(__name__)
 
 
+async def logging_coroutine(coroutine: Coroutine[Any, Any, T], *, info: str) -> Optional[T]:
+    try:
+        await coroutine
+    except Exception:
+        _log.exception('Exception occurred during %s', info)
+
+
 class ConnectionState:
     if TYPE_CHECKING:
         _get_websocket: Callable[..., QQWebSocket]
@@ -103,7 +124,35 @@ class ConnectionState:
         if self.guild_ready_timeout < 0:
             raise ValueError('guild_ready_timeout cannot be negative')
 
+        allowed_mentions = options.get('allowed_mentions')
+
+        if allowed_mentions is not None and not isinstance(allowed_mentions, AllowedMentions):
+            raise TypeError('allowed_mentions parameter must be AllowedMentions')
+
+        self.allowed_mentions: Optional[AllowedMentions] = allowed_mentions
         self._chunk_requests: Dict[Union[int, str], ChunkRequest] = {}
+
+        intents = options.get('intents', None)
+        if intents is not None:
+            if not isinstance(intents, Intents):
+                raise TypeError(f'intents parameter must be Intent not {type(intents)!r}')
+        else:
+            intents = Intents.default()
+
+        if not intents.guilds:
+            _log.warning('Guilds intent seems to be disabled. This may cause state related issues.')
+
+        self._chunk_guilds: bool = options.get('chunk_guilds_at_startup', intents.members)
+
+        # Ensure these two are set properly
+        if not intents.members and self._chunk_guilds:
+            raise ValueError('Intents.members must be enabled to chunk guilds at startup.')
+
+        self._intents: Intents = intents
+
+        if not intents.members:
+            self.store_user = self.create_user  # type: ignore
+            self.deref_user = self.deref_user_no_intents  # type: ignore
 
         self.parsers = parsers = {}
         for attr, func in inspect.getmembers(self):
@@ -116,14 +165,53 @@ class ConnectionState:
         self.user: Optional[ClientUser] = None
         self._users: Dict[int, User] = {}
         self._guilds: Dict[int, Guild] = {}
-
         if self.max_messages is not None:
             self._messages: Optional[Deque[Message]] = deque(maxlen=self.max_messages)
         else:
             self._messages: Optional[Deque[Message]] = None
 
+    def process_chunk_requests(self, guild_id: int, nonce: Optional[str], members: List[Member],
+                               complete: bool) -> None:
+        removed = []
+        for key, request in self._chunk_requests.items():
+            if request.guild_id == guild_id and request.nonce == nonce:
+                request.add_members(members)
+                if complete:
+                    request.done()
+                    removed.append(key)
+
+        for key in removed:
+            del self._chunk_requests[key]
+
+    def call_handlers(self, key: str, *args: Any, **kwargs: Any) -> None:
+        try:
+            func = self.handlers[key]
+        except KeyError:
+            pass
+        else:
+            func(*args, **kwargs)
+
+    async def call_hooks(self, key: str, *args: Any, **kwargs: Any) -> None:
+        try:
+            coro = self.hooks[key]
+        except KeyError:
+            pass
+        else:
+            await coro(*args, **kwargs)
+
+    @property
+    def self_id(self) -> Optional[int]:
+        u = self.user
+        return u.id if u else None
+
+    @property
+    def intents(self) -> Intents:
+        ret = Intents.none()
+        ret.value = self._intents.value
+        return ret
+
     def store_user(self, data: UserPayload) -> User:
-        user_id = data['id']
+        user_id = int(data['id'])
         try:
             return self._users[user_id]
         except KeyError:
@@ -142,5 +230,351 @@ class ConnectionState:
         return
 
     def get_user(self, id: Optional[int]) -> Optional[User]:
-        # the keys of self._users are strs
+        # the keys of self._users are ints
         return self._users.get(id)  # type: ignore
+
+    @property
+    def guilds(self) -> List[Guild]:
+        return list(self._guilds.values())
+
+    def _get_guild(self, guild_id: Optional[int]) -> Optional[Guild]:
+        # the keys of self._guilds are ints
+        return self._guilds.get(guild_id)  # type: ignore
+
+    def _add_guild(self, guild: Guild) -> None:
+        self._guilds[guild.id] = guild
+
+    def _remove_guild(self, guild: Guild) -> None:
+        self._guilds.pop(guild.id, None)
+        del guild
+
+    def _get_message(self, msg_id: Optional[int]) -> Optional[Message]:
+        return utils.find(lambda m: m.id == msg_id, reversed(self._messages)) if self._messages else None
+
+    def _add_guild_from_data(self, data: GuildPayload) -> Guild:
+        guild = Guild(data=data, state=self)
+        self._add_guild(guild)
+        return guild
+
+    def _guild_needs_chunking(self, guild: Guild) -> bool:
+        # If presences are enabled then we get back the old guild.large behaviour
+        return self._chunk_guilds and not guild.chunked and not guild.large
+
+    def _get_guild_channel(self, data: MessagePayload) -> Tuple[Union[Channel], Optional[Guild]]:
+        channel_id = int(data['channel_id'])
+        guild = self._get_guild(int(data['guild_id']))
+        channel = guild and guild._resolve_channel(channel_id)
+        return channel or PartialMessageable(state=self, id=channel_id), guild
+
+    async def chunker(
+        self, guild_id: int, query: str = '', limit: int = 0, presences: bool = False, *, nonce: Optional[str] = None
+    ) -> None:
+        ws = self._get_websocket(guild_id)  # This is ignored upstream
+        await ws.request_chunks(guild_id, query=query, limit=limit, presences=presences, nonce=nonce)
+
+    async def query_members(self, guild: Guild, query: str, limit: int, user_ids: List[int], cache: bool, presences: bool):
+        guild_id = guild.id
+        ws = self._get_websocket(guild_id)
+        if ws is None:
+            raise RuntimeError('Somehow do not have a websocket for this guild_id')
+
+        request = ChunkRequest(guild.id, self.loop, self._get_guild, cache=cache)
+        self._chunk_requests[request.nonce] = request
+
+        try:
+            # start the query operation
+            await ws.request_chunks(
+                guild_id, query=query, limit=limit, user_ids=user_ids, presences=presences, nonce=request.nonce
+            )
+            return await asyncio.wait_for(request.wait(), timeout=30.0)
+        except asyncio.TimeoutError:
+            _log.warning('Timed out waiting for chunks with query %r and limit %d for guild_id %d', query, limit, guild_id)
+            raise
+
+    async def _delay_ready(self) -> None:
+        try:
+            states = []
+            while True:
+                # this snippet of code is basically waiting N seconds
+                # until the last GUILD_CREATE was sent
+                try:
+                    guild = await asyncio.wait_for(self._ready_state.get(), timeout=self.guild_ready_timeout)
+                except asyncio.TimeoutError:
+                    break
+                else:
+                    if self._guild_needs_chunking(guild):
+                        future = await self.chunk_guild(guild, wait=False)
+                        states.append((guild, future))
+                    else:
+                        if guild.unavailable is False:
+                            self.dispatch('guild_available', guild)
+                        else:
+                            self.dispatch('guild_join', guild)
+
+            for guild, future in states:
+                try:
+                    await asyncio.wait_for(future, timeout=5.0)
+                except asyncio.TimeoutError:
+                    _log.warning('Shard ID %s timed out waiting for chunks for guild_id %s.', guild.shard_id, guild.id)
+
+                if guild.unavailable is False:
+                    self.dispatch('guild_available', guild)
+                else:
+                    self.dispatch('guild_join', guild)
+
+            # remove the state
+            try:
+                del self._ready_state
+            except AttributeError:
+                pass  # already been deleted somehow
+
+        except asyncio.CancelledError:
+            pass
+        else:
+            # dispatch the event
+            self.call_handlers('ready')
+            self.dispatch('ready')
+        finally:
+            self._ready_task = None
+
+    def parse_ready(self, data) -> None:
+        if self._ready_task is not None:
+            self._ready_task.cancel()
+
+        self._ready_state = asyncio.Queue()
+        self.clear()
+        self.user = ClientUser(state=self, data=data['user'])
+        self.store_user(data['user'])
+
+        if self.application_id is None:
+            try:
+                application = data['application']
+            except KeyError:
+                pass
+            else:
+                self.application_id = application.get('id')
+        for guild_data in await self.http.get_guilds():
+            self._add_guild_from_data(guild_data)
+
+        self.dispatch('connect')
+        self._ready_task = asyncio.create_task(self._delay_ready())
+
+    def parse_resumed(self, data) -> None:
+        self.dispatch('resumed')
+
+    def parse_at_message_create(self, data) -> None:
+        channel, _ = self._get_guild_channel(data)
+        # channel would be the correct type here
+        message = Message(channel=channel, data=data, state=self)  # type: ignore
+        self.dispatch('message', message)
+        if self._messages is not None:
+            self._messages.append(message)
+        # we ensure that the channel is either a TextChannel or Thread
+        if channel and channel.__class__ in (TextChannel,):
+            channel.last_message_id = message.id  # type: ignore
+
+    def parse_channel_delete(self, data) -> None:
+        guild = self._get_guild(data.get('guild_id'))
+        channel_id = int(data['id'])
+        if guild is not None:
+            channel = guild.get_channel(channel_id)
+            if channel is not None:
+                guild._remove_channel(channel)
+                self.dispatch('guild_channel_delete', channel)
+
+    def parse_channel_update(self, data) -> None:
+        channel_id = int(data['id'])
+        guild_id = data.get('guild_id')
+        guild = self._get_guild(guild_id)
+        if guild is not None:
+            channel = guild.get_channel(channel_id)
+            if channel is not None:
+                old_channel = copy.copy(channel)
+                channel._update(guild, data)
+                self.dispatch('guild_channel_update', old_channel, channel)
+            else:
+                _log.debug('CHANNEL_UPDATE referencing an unknown channel ID: %s. Discarding.', channel_id)
+        else:
+            _log.debug('CHANNEL_UPDATE referencing an unknown guild ID: %s. Discarding.', guild_id)
+
+    def parse_channel_create(self, data) -> None:
+        factory, ch_type = _channel_factory(data['type'])
+        if factory is None:
+            _log.debug('CHANNEL_CREATE referencing an unknown channel type %s. Discarding.', data['type'])
+            return
+
+        guild_id = data.get('guild_id')
+        guild = self._get_guild(guild_id)
+        if guild is not None:
+            # the factory can't be a DMChannel or GroupChannel here
+            channel = factory(guild=guild, state=self, data=data)  # type: ignore
+            guild._add_channel(channel)  # type: ignore
+            self.dispatch('guild_channel_create', channel)
+        else:
+            _log.debug('CHANNEL_CREATE referencing an unknown guild ID: %s. Discarding.', guild_id)
+            return
+
+    def parse_guild_member_add(self, data) -> None:
+        guild = self._get_guild(int(data['guild_id']))
+        if guild is None:
+            _log.debug('GUILD_MEMBER_ADD referencing an unknown guild ID: %s. Discarding.', data['guild_id'])
+            return
+
+        member = Member(guild=guild, data=data, state=self)
+        guild._add_member(member)
+
+        try:
+            guild._member_count += 1
+        except AttributeError:
+            pass
+
+        self.dispatch('member_join', member)
+
+    def parse_guild_member_remove(self, data) -> None:
+        guild = self._get_guild(int(data['guild_id']))
+        if guild is not None:
+            try:
+                guild._member_count -= 1
+            except AttributeError:
+                pass
+
+            user_id = int(data['user']['id'])
+            member = guild.get_member(user_id)
+            if member is not None:
+                guild._remove_member(member)  # type: ignore
+                self.dispatch('member_remove', member)
+        else:
+            _log.debug('GUILD_MEMBER_REMOVE referencing an unknown guild ID: %s. Discarding.', data['guild_id'])
+
+    def parse_guild_member_update(self, data) -> None:
+        guild = self._get_guild(int(data['guild_id']))
+        user = data['user']
+        user_id = int(user['id'])
+        if guild is None:
+            _log.debug('GUILD_MEMBER_UPDATE referencing an unknown guild ID: %s. Discarding.', data['guild_id'])
+            return
+
+        member = guild.get_member(user_id)
+        if member is not None:
+            old_member = Member._copy(member)
+            member._update(data)
+            user_update = member._update_inner_user(user)
+            if user_update:
+                self.dispatch('user_update', user_update[0], user_update[1])
+
+            self.dispatch('member_update', old_member, member)
+        else:
+            member = Member(data=data, guild=guild, state=self)
+
+            # Force an update on the inner user if necessary
+            user_update = member._update_inner_user(user)
+            if user_update:
+                self.dispatch('user_update', user_update[0], user_update[1])
+
+            guild._add_member(member)
+            _log.debug('GUILD_MEMBER_UPDATE referencing an unknown member ID: %s. Discarding.', user_id)
+
+    def _get_create_guild(self, data):
+        return self._add_guild_from_data(data)
+
+    def is_guild_evicted(self, guild) -> bool:
+        return guild.id not in self._guilds
+
+    async def chunk_guild(self, guild, *, wait=True, cache=None):
+        cache = cache
+        request = self._chunk_requests.get(guild.id)
+        if request is None:
+            self._chunk_requests[guild.id] = request = ChunkRequest(guild.id, self.loop, self._get_guild, cache=cache)
+            await self.chunker(guild.id, nonce=request.nonce)
+
+        if wait:
+            return await request.wait()
+        return request.get_future()
+
+    async def _chunk_and_dispatch(self, guild, unavailable):
+        try:
+            await asyncio.wait_for(self.chunk_guild(guild), timeout=60.0)
+        except asyncio.TimeoutError:
+            _log.info('Somehow timed out waiting for chunks.')
+
+        if unavailable is False:
+            self.dispatch('guild_available', guild)
+        else:
+            self.dispatch('guild_join', guild)
+
+    def parse_guild_create(self, data) -> None:
+        unavailable = data.get('unavailable')
+        if unavailable is True:
+            # joined a guild with unavailable == True so..
+            return
+
+        guild = self._get_create_guild(data)
+
+        try:
+            # Notify the on_ready state, if any, that this guild is complete.
+            self._ready_state.put_nowait(guild)
+        except AttributeError:
+            pass
+        else:
+            # If we're waiting for the event, put the rest on hold
+            return
+
+        # check if it requires chunking
+        if self._guild_needs_chunking(guild):
+            asyncio.create_task(self._chunk_and_dispatch(guild, unavailable))
+            return
+
+        # Dispatch available if newly available
+        if unavailable is False:
+            self.dispatch('guild_available', guild)
+        else:
+            self.dispatch('guild_join', guild)
+
+    def parse_guild_update(self, data) -> None:
+        guild = self._get_guild(int(data['id']))
+        if guild is not None:
+            old_guild = copy.copy(guild)
+            guild._from_data(data)
+            self.dispatch('guild_update', old_guild, guild)
+        else:
+            _log.debug('GUILD_UPDATE referencing an unknown guild ID: %s. Discarding.', data['id'])
+
+    def parse_guild_delete(self, data) -> None:
+        guild = self._get_guild(int(data['id']))
+        if guild is None:
+            _log.debug('GUILD_DELETE referencing an unknown guild ID: %s. Discarding.', data['id'])
+            return
+
+        if data.get('unavailable', False):
+            # GUILD_DELETE with unavailable being True means that the
+            # guild that was available is now currently unavailable
+            guild.unavailable = True
+            self.dispatch('guild_unavailable', guild)
+            return
+
+        # do a cleanup of the messages cache
+        if self._messages is not None:
+            self._messages: Optional[Deque[Message]] = deque(
+                (msg for msg in self._messages if msg.guild != guild), maxlen=self.max_messages
+            )
+
+        self._remove_guild(guild)
+        self.dispatch('guild_remove', guild)
+
+    def get_channel(self, id: Optional[int]) -> Optional[Union[Channel]]:
+        if id is None:
+            return None
+
+        for guild in self.guilds:
+            channel = guild._resolve_channel(id)
+            if channel is not None:
+                return channel
+
+    def create_message(
+        self, *, channel: Union[TextChannel, PartialMessageable], data: MessagePayload
+    ) -> Message:
+        return Message(state=self, channel=channel, data=data)
+
+
+
+

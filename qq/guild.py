@@ -5,13 +5,15 @@ from typing import (
 )
 
 from .abc import GuildChannel
+from .channel import _guild_channel_factory
 from .member import Member
 from .role import Role
 from .state import ConnectionState
 from .types.guild import Guild as GuildPayload
-from .types.channel import VoiceChannel, TextChannel, CategoryChannel
+from .types.channel import VoiceChannel
 
 VocalGuildChannel = Union[VoiceChannel]
+
 
 class Guild:
     __slots__ = (
@@ -30,11 +32,11 @@ class Guild:
         '_state'
     )
 
-    def __init__(self, data: GuildPayload, channels: List[GuildChannel], state: ConnectionState):
+    def __init__(self, data: GuildPayload, state: ConnectionState):
         self._channels: Dict[int, GuildChannel] = {}
         self._state: ConnectionState = state
         self._from_data(data)
-        self._sync(channels)
+        self._sync()
 
     def _add_role(self, role: Role, /) -> None:
         self._roles[role.id] = role
@@ -45,8 +47,7 @@ class Guild:
         return role
 
     def _from_data(self, guild: GuildPayload) -> None:
-        print(guild)
-        self.id = guild.get('id')
+        self.id = int(guild.get('id'))
         self.name = guild.get('name')
         self.icon = guild.get('icon')
         self.owner_id = guild.get('owner_id')
@@ -79,7 +80,12 @@ class Guild:
         inner = ' '.join('%s=%r' % t for t in attrs)
         return f'<Guild {inner}>'
 
-    def _sync(self, channels: List[GuildChannel]) -> None:
+    def _sync(self) -> None:
+        channels = await self._state.http.get_guild_channels(self.id)
+        for c in channels:
+            factory, ch_type = _guild_channel_factory(c['type'])
+            if factory:
+                self._add_channel(factory(guild=self, data=c, state=self._state))  # type: ignore
         for c in channels:
             self._add_channel(c)  # type: ignore
 

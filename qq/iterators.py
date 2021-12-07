@@ -129,6 +129,7 @@ class GuildIterator(_AsyncIterator['Guild']):
         self.after = after
 
         self._filter = None
+        self.state = self.bot._connection
 
         self.get_guilds = self.bot.http.get_guilds
         self.get_guild_channels = self.bot.http.get_guild_channels
@@ -160,10 +161,10 @@ class GuildIterator(_AsyncIterator['Guild']):
         self.retrieve = r
         return r > 0
 
-    def create_guild(self, data, channels):
+    def create_guild(self, data):
         from .guild import Guild
 
-        return Guild(data=data, channels=channels)
+        return Guild(data=data, state=self.state)
 
     async def fill_guilds(self):
         if self._get_retrieve():
@@ -175,8 +176,7 @@ class GuildIterator(_AsyncIterator['Guild']):
                 data = filter(self._filter, data)
 
             for element in data:
-                channels = await self.get_guild_channels(element['id'])
-                await self.guilds.put(self.create_guild(element, channels=channels))
+                await self.guilds.put(self.create_guild(element))
 
     async def _retrieve_guilds(self, retrieve) -> List[Guild]:
         """Retrieve guilds and update next parameters."""

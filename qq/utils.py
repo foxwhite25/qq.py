@@ -147,3 +147,10 @@ def cached_slot_property(name: str) -> Callable[[Callable[[T], T_co]], CachedSlo
 
 def escape_mentions(text: str) -> str:
     return re.sub(r'@(everyone|here|[!&]?[0-9]{17,20})', '@\u200b\\1', text)
+
+
+def find(predicate: Callable[[T], Any], seq: Iterable[T]) -> Optional[T]:
+    for element in seq:
+        if predicate(element):
+            return element
+    return None
