@@ -318,11 +318,7 @@ class HTTPClient:
             data = await self.request(Route('GET', '/gateway'))
         except HTTPException as exc:
             raise GatewayNotFound() from exc
-        if zlib:
-            value = '{0}?encoding={1}&v=9&compress=zlib-stream'
-        else:
-            value = '{0}?encoding={1}&v=9'
-        return value.format(data['url'], encoding)
+        return data['url']
 
     async def get_bot_gateway(self, *, encoding: str = 'json', zlib: bool = True) -> Tuple[int, str]:
         try:

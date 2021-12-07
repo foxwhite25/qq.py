@@ -1,4 +1,5 @@
 import array
+import asyncio
 import datetime
 import json
 import re
@@ -176,3 +177,13 @@ def get(iterable: Iterable[T], **attrs: Any) -> Optional[T]:
         if _all(pred(elem) == value for pred, value in converted):
             return elem
     return None
+
+
+async def sane_wait_for(futures, *, timeout):
+    ensured = [asyncio.ensure_future(fut) for fut in futures]
+    done, pending = await asyncio.wait(ensured, timeout=timeout, return_when=asyncio.ALL_COMPLETED)
+
+    if len(pending) != 0:
+        raise asyncio.TimeoutError()
+
+    return done

@@ -67,7 +67,8 @@ class KeepAliveHandler(threading.Thread):
     def run(self):
         while not self._stop_ev.wait(self.interval):
             if self._last_recv + self.heartbeat_timeout < time.perf_counter():
-                _log.warning("Shard ID %s has stopped responding to the gateway. Closing and restarting.", self.shard_id)
+                _log.warning("Shard ID %s has stopped responding to the gateway. Closing and restarting.",
+                             self.shard_id)
                 coro = self.ws.close(4000)
                 f = asyncio.run_coroutine_threadsafe(coro, loop=self.ws.loop)
 
@@ -124,7 +125,6 @@ class KeepAliveHandler(threading.Thread):
         self.latency = ack_time - self._last_send
         if self.latency > 10:
             _log.warning(self.behind_msg, self.shard_id, self.latency)
-
 
 
 class GatewayRatelimiter:
@@ -220,7 +220,7 @@ class QQWebSocket:
     @classmethod
     async def from_client(cls, client, *, initial=False, gateway=None, shard_id=None, session=None, sequence=None,
                           resume=False):
-        """Creates a main websocket for qq from a :class:`Client`.
+        """Creates a main websocket for Discord from a :class:`Client`.
         This is for internal use only.
         """
         gateway = gateway or await client.http.get_gateway()
@@ -230,7 +230,7 @@ class QQWebSocket:
         # dynamically add attributes needed
         ws.token = client.http.token
         ws._connection = client._connection
-        ws._qq_parsers = client._connection.parsers
+        ws._discord_parsers = client._connection.parsers
         ws._dispatch = client.dispatch
         ws.gateway = gateway
         ws.call_hooks = client._connection.call_hooks
@@ -286,20 +286,25 @@ class QQWebSocket:
         payload = {
             'op': self.IDENTIFY,
             'd': {
-                'token': self.token,
-                "intents": 513,
-                "shard": [0, 4],
+                'token': 'Bot ' + self.token,
                 'properties': {
                     '$os': sys.platform,
                     '$browser': 'qq.py',
                     '$device': 'qq.py',
-                }
+                },
             }
         }
 
+        if self.shard_id is not None and self.shard_count is not None:
+            payload['d']['shard'] = [self.shard_id, self.shard_count]
+
+        state = self._connection
+        if state._intents is not None:
+            payload['d']['intents'] = state._intents.value
+
         await self.call_hooks('before_identify', self.shard_id, initial=self._initial_identify)
         await self.send_as_json(payload)
-        _log.info('Shard ID %s has sent the IDENTIFY payload.', self.shard_id)
+        _log.info('Shard ID %s has sent the IDENTIFY payload. Data: %s', self.shard_id, str(payload))
 
     async def resume(self):
         """Sends the RESUME packet."""
@@ -308,7 +313,7 @@ class QQWebSocket:
             'd': {
                 'seq': self.sequence,
                 'session_id': self.session_id,
-                'token': self.token
+                'token': 'Bot '+self.token
             }
         }
 
@@ -401,7 +406,7 @@ class QQWebSocket:
                       self.shard_id, self.session_id, ', '.join(trace))
 
         try:
-            func = self._qq_parsers[event]
+            func = self._discord_parsers[event]
         except KeyError:
             _log.debug('Unknown event %s.', event)
         else:

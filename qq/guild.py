@@ -33,7 +33,8 @@ class Guild:
         '_members',
         '_roles',
         '_state',
-        '_large'
+        '_large',
+        'unavailable'
     )
 
     def __init__(self, data: GuildPayload, state: ConnectionState):
@@ -59,6 +60,7 @@ class Guild:
         self.max_members = guild.get('max_members')
         self.description = guild.get('description')
         self.joined_at = guild.get('joined_at')
+        self.unavailable: bool = guild.get('unavailable', False)
         self._roles: Dict[int, Role] = {}
         state = self._state  # speed up attribute access
         self._large: Optional[bool] = None if self._member_count is None else self._member_count >= 250
@@ -174,4 +176,15 @@ class Guild:
     @property
     def roles(self) -> List[Role]:
         return sorted(self._roles.values())
+
+    def _add_member(self, member: Member, /) -> None:
+        self._members[member.id] = member
+
+    @property
+    def chunked(self) -> bool:
+        count = getattr(self, '_member_count', None)
+        if count is None:
+            return False
+        return count == len(self._members)
+
 

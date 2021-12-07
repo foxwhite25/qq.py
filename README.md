@@ -17,27 +17,27 @@ pip3 install -U qq.py
 
 ## 快速示例
 ```python
-import asyncio
 from qq import *
 
 
-async def main():
-    client = Client('BotAppID', 'Bot Token')
-    output = ""
-    await client.http.static_login(client.token)
-    async for guilds in await client.fetch_guilds():
-        print(guilds.name+' 树状图:')
-        for channels in guilds.channels:
-            if isinstance(channels, CategoryChannel):
-                output += f"{channels.name}\n"
-                for sub in channels.channels:
-                    output += f"  -{sub.name}\n"
-        print(output)
+class MyClient(Client):
+    async def on_ready(self):
+        print('Logged on as', self.user)
+
+    async def on_message(self, message):
+        # don't respond to ourselves
+        if message.author == self.user:
+            return
+
+        if message.content == 'ping':
+            await message.channel.send('pong')
+
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    client = MyClient(app_id='', token='')
+    client.run()
 ```
-输出Bot当前加入的所有频道的名字，以及所有的频道
+当完成初始化输出当前机器人用户对象
 
 ## 链接
 * [QQ API](https://bot.q.qq.com/wiki/develop/api/)
