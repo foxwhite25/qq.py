@@ -41,3 +41,4 @@ class ThreadChannel(_BaseGuildChannel):
 
 
 GuildChannel = Union[TextChannel, LiveChannel, VoiceChannel, CategoryChannel, AppChannel, ThreadChannel]
+Channel = Union[GuildChannel]

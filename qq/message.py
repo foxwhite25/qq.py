@@ -4,9 +4,12 @@ import datetime
 import io
 import re
 from os import PathLike
-from typing import Union, Optional, TYPE_CHECKING, ClassVar, Tuple, List, Callable, overload
+from typing import Union, Optional, TYPE_CHECKING, ClassVar, Tuple, List, Callable, overload, Any
 
+from .abc import MessageableChannel, PartialMessageableChannel
+from .channel import TextChannel
 from .embeds import Embed
+from .enum import ChannelType
 from .guild import Guild, GuildChannel
 from . import utils
 from .file import File
@@ -297,3 +300,50 @@ class Message(Hashable):
 
     async def reply(self, content: Optional[str] = None, **kwargs) -> Message:
         return await self.channel.send(content, reference=self, **kwargs)
+
+
+class PartialMessage(Hashable):
+    __slots__ = ('channel', 'id', '_cs_guild', '_state')
+
+    jump_url: str = Message.jump_url  # type: ignore
+    delete = Message.delete
+    publish = Message.publish
+    pin = Message.pin
+    unpin = Message.unpin
+    add_reaction = Message.add_reaction
+    remove_reaction = Message.remove_reaction
+    clear_reaction = Message.clear_reaction
+    clear_reactions = Message.clear_reactions
+    reply = Message.reply
+    to_reference = Message.to_reference
+    to_message_reference_dict = Message.to_message_reference_dict
+
+    def __init__(self, *, channel: PartialMessageableChannel, id: int):
+        if channel.type not in (
+                ChannelType.text,
+        ):
+            raise TypeError(f'Expected TextChannel,not {type(channel)!r}')
+
+        self.channel: PartialMessageableChannel = channel
+        self._state: ConnectionState = channel._state
+        self.id: int = id
+
+    def _update(self, data) -> None:
+        # This is used for duck typing purposes.
+        # Just do nothing with the data.
+        pass
+
+    # Also needed for duck typing purposes
+    # n.b. not exposed
+
+    def __repr__(self) -> str:
+        return f'<PartialMessage id={self.id} channel={self.channel!r}>'
+
+    @utils.cached_slot_property('_cs_guild')
+    def guild(self) -> Optional[Guild]:
+        """Optional[:class:`Guild`]: The guild that the partial message belongs to, if applicable."""
+        return getattr(self.channel, 'guild', None)
+
+    async def fetch(self) -> Message:
+        data = await self._state.http.get_message(self.channel.id, self.id)
+        return self._state.create_message(channel=self.channel, data=data)
