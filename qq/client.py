@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ('Client',)
 
 import asyncio
@@ -9,12 +11,12 @@ from typing import Optional, Any, Dict, Callable, List, Tuple, Coroutine
 
 import aiohttp
 
-from . import ConnectionState
+from .state import ConnectionState
 from .gateway import QQWebSocket
 from .guild import Guild
 from .http import HTTPClient
 from .iterators import GuildIterator
-from .user import ClientUser
+from .user import ClientUser, User
 
 URL = r'https://api.sgroup.qq.com'
 _log = logging.getLogger(__name__)
@@ -67,6 +69,14 @@ class Client:
         self.shard_id: Optional[int] = options.get('shard_id')
         self.shard_count: Optional[int] = options.get('shard_count')
 
+        self._handlers: Dict[str, Callable] = {
+            'ready': self._handle_ready
+        }
+
+        self._hooks: Dict[str, Callable] = {
+            'before_identify': self._call_before_identify_hook
+        }
+
         connector: Optional[aiohttp.BaseConnector] = options.pop('connector', None)
         proxy: Optional[str] = options.pop('proxy', None)
         proxy_auth: Optional[aiohttp.BasicAuth] = options.pop('proxy_auth', None)
@@ -77,14 +87,6 @@ class Client:
         self._connection: ConnectionState = self._get_state(**options)
         self._connection.shard_count = self.shard_count
         self._ready: asyncio.Event = asyncio.Event()
-
-        self._handlers: Dict[str, Callable] = {
-            'ready': self._handle_ready
-        }
-
-        self._hooks: Dict[str, Callable] = {
-            'before_identify': self._call_before_identify_hook
-        }
 
     def _get_websocket(self, guild_id: Optional[int] = None, *, shard_id: Optional[int] = None) -> QQWebSocket:
         return self.ws
@@ -174,12 +176,47 @@ class Client:
         data = await self.http.static_login(token.strip())
         self._connection.user = ClientUser(state=self._connection, data=data)
 
-    async def get_guild(self, guild_id: int) -> Optional[Guild]:
-        data = await self.http.get_guild(guild_id)
-        channels = await self.http.get_guild_channels(guild_id)
-        return Guild(data=data, channels=channels, state=self._connection)
+    @property
+    def user(self) -> Optional[ClientUser]:
+        """Optional[:class:`.ClientUser`]: Represents the connected client. ``None`` if not logged in."""
+        return self._connection.user
 
-    async def get_guilds(
+    @property
+    def guilds(self) -> List[Guild]:
+        """List[:class:`.Guild`]: The guilds that the connected client is a member of."""
+        return self._connection.guilds
+
+    def get_guild(self, id: int, /) -> Optional[Guild]:
+        """Returns a guild with the given ID.
+        Parameters
+        -----------
+        id: :class:`int`
+            The ID to search for.
+        Returns
+        --------
+        Optional[:class:`.Guild`]
+            The guild or ``None`` if not found.
+        """
+        return self._connection._get_guild(id)
+
+    def get_user(self, id: int, /) -> Optional[User]:
+        """Returns a user with the given ID.
+        Parameters
+        -----------
+        id: :class:`int`
+            The ID to search for.
+        Returns
+        --------
+        Optional[:class:`~discord.User`]
+            The user or ``None`` if not found.
+        """
+        return self._connection.get_user(id)
+
+    async def fetch_guild(self, guild_id: int) -> Optional[Guild]:
+        data = await self.http.get_guild(guild_id)
+        return Guild(data=data, state=self._connection)
+
+    async def fetch_guilds(
             self,
             *,
             limit: Optional[int] = 100,

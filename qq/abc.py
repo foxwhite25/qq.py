@@ -4,22 +4,18 @@ import copy
 from datetime import datetime
 from typing import overload, Optional, Union, List, TYPE_CHECKING, TypeVar, Dict, Any
 
-from . import Guild, utils
-from .channel import CategoryChannel, TextChannel, PartialMessageable
 from .enum import ChannelType
 from .error import InvalidArgument
-from .member import Member
 from .mention import AllowedMentions
-from .role import Role
-from .user import User
 from .utils import MISSING
 
 if TYPE_CHECKING:
+    from .channel import CategoryChannel, TextChannel, PartialMessageable
+    from .guild import Guild
     from .state import ConnectionState
     from .message import Message
     from .types.channel import (
         Channel as ChannelPayload,
-        GuildChannel as GuildChannelPayload,
     )
 
     PartialMessageableChannel = Union[TextChannel, PartialMessageable]

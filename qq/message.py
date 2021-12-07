@@ -6,23 +6,25 @@ import re
 from os import PathLike
 from typing import Union, Optional, TYPE_CHECKING, ClassVar, Tuple, List, Callable, overload, Any
 
-from .abc import MessageableChannel, PartialMessageableChannel
-from .channel import TextChannel
-from .embeds import Embed
-from .enum import ChannelType
-from .guild import Guild, GuildChannel
 from . import utils
 from .file import File
 from .member import Member
 from .mixins import Hashable
 from .role import Role
 from .state import ConnectionState
-from .types.message import Attachment as AttachmentPayload, Message as MessagePayload
-from .types.embed import Embed as EmbedPayload
-from .types.user import User as UserPayload
-from .types.member import Member as MemberPayload, UserWithMember as UserWithMemberPayload
-from .user import User
 from .utils import escape_mentions
+
+if TYPE_CHECKING:
+    from .abc import MessageableChannel, PartialMessageableChannel
+    from .channel import TextChannel
+    from .embeds import Embed
+    from .enum import ChannelType
+    from .guild import Guild, GuildChannel
+    from .types.message import Attachment as AttachmentPayload, Message as MessagePayload
+    from .types.embed import Embed as EmbedPayload
+    from .types.user import User as UserPayload
+    from .types.member import Member as MemberPayload, UserWithMember as UserWithMemberPayload
+    from .user import User
 
 
 class Attachment(Hashable):
@@ -304,19 +306,6 @@ class Message(Hashable):
 
 class PartialMessage(Hashable):
     __slots__ = ('channel', 'id', '_cs_guild', '_state')
-
-    jump_url: str = Message.jump_url  # type: ignore
-    delete = Message.delete
-    publish = Message.publish
-    pin = Message.pin
-    unpin = Message.unpin
-    add_reaction = Message.add_reaction
-    remove_reaction = Message.remove_reaction
-    clear_reaction = Message.clear_reaction
-    clear_reactions = Message.clear_reactions
-    reply = Message.reply
-    to_reference = Message.to_reference
-    to_message_reference_dict = Message.to_message_reference_dict
 
     def __init__(self, *, channel: PartialMessageableChannel, id: int):
         if channel.type not in (

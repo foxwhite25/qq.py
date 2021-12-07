@@ -8,6 +8,7 @@ from types import TracebackType
 from typing import ClassVar, Any, Optional, Sequence, Iterable, Dict, Union, TypeVar, Type, Coroutine, List
 from urllib.parse import quote as _uriquote
 import aiohttp
+import requests
 
 from . import __version__, utils, role
 from .error import HTTPException, Forbidden, NotFound, QQServerError, LoginFailure
@@ -15,6 +16,7 @@ from .gateway import QQClientWebSocketResponse
 from .message import Message
 from .types import user, guild
 from .utils import MISSING
+from .types.channel import Channel as ChannelPayload
 
 T = TypeVar('T')
 BE = TypeVar('BE', bound=BaseException)
@@ -233,6 +235,15 @@ class HTTPClient:
             params['after'] = after
 
         return self.request(Route('GET', '/users/@me/guilds'), params=params)
+
+    def sync_guild_channels(self, guild_id: int) -> List[ChannelPayload]:
+        headers: Dict[str, str] = {
+            'User-Agent': self.user_agent,
+        }
+        if self.token is not None:
+            headers['Authorization'] = 'Bot ' + self.token
+        rsp = requests.get(f'https://api.sgroup.qq.com/guilds/{guild_id}/channels', headers=headers)
+        return rsp.json()
 
     def get_guild(self, guild_id: int) -> Response[guild.Guild]:
         return self.request(Route('GET', '/guilds/{guild_id}', guild_id=guild_id))

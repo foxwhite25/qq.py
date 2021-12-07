@@ -9,12 +9,12 @@ from collections import deque
 from typing import Callable, TYPE_CHECKING, Dict, Any, Optional, List, Union, Deque, Coroutine, TypeVar, Tuple
 
 from . import utils
-from .abc import GuildChannel
 from .channel import PartialMessageable, TextChannel, _channel_factory
 from .flags import Intents
 from .mention import AllowedMentions
 
 if TYPE_CHECKING:
+    from .abc import GuildChannel
     from .member import Member
     from .http import HTTPClient
     from .client import Client
@@ -351,7 +351,7 @@ class ConnectionState:
                 pass
             else:
                 self.application_id = application.get('id')
-        for guild_data in await self.http.get_guilds():
+        for guild_data in asyncio.run(self.http.get_guilds()):
             self._add_guild_from_data(guild_data)
 
         self.dispatch('connect')

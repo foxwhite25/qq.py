@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import asyncio
 from typing import (
     Dict,
     List,
@@ -42,7 +45,7 @@ class Guild:
         self._roles[role.id] = role
 
     def _remove_role(self, role_id: int, /) -> Role:
-        # this raises KeyError if it fails..
+        # this raises KeyError if it fails.
         role = self._roles.pop(role_id)
         return role
 
@@ -81,13 +84,11 @@ class Guild:
         return f'<Guild {inner}>'
 
     def _sync(self) -> None:
-        channels = await self._state.http.get_guild_channels(self.id)
+        channels = self._state.http.sync_guild_channels(self.id)
         for c in channels:
             factory, ch_type = _guild_channel_factory(c['type'])
             if factory:
                 self._add_channel(factory(guild=self, data=c, state=self._state))  # type: ignore
-        for c in channels:
-            self._add_channel(c)  # type: ignore
 
     @property
     def channels(self) -> List[GuildChannel]:
