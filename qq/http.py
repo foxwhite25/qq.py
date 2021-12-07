@@ -17,6 +17,7 @@ from .message import Message
 from .types import user, guild
 from .utils import MISSING
 from .types.channel import Channel as ChannelPayload
+from .types.role import Role as RolePayload
 
 T = TypeVar('T')
 BE = TypeVar('BE', bound=BaseException)
@@ -236,14 +237,15 @@ class HTTPClient:
 
         return self.request(Route('GET', '/users/@me/guilds'), params=params)
 
-    def sync_guild_channels(self, guild_id: int) -> List[ChannelPayload]:
+    def sync_guild_channels_roles(self, guild_id: int) -> Tuple[List[ChannelPayload], List[RolePayload]]:
         headers: Dict[str, str] = {
             'User-Agent': self.user_agent,
         }
         if self.token is not None:
             headers['Authorization'] = 'Bot ' + self.token
         rsp = requests.get(f'https://api.sgroup.qq.com/guilds/{guild_id}/channels', headers=headers)
-        return rsp.json()
+        rsp2 = requests.get(f'https://api.sgroup.qq.com/guilds/{guild_id}/roles', headers=headers)
+        return rsp.json(), rsp2.json()['roles']
 
     def get_guild(self, guild_id: int) -> Response[guild.Guild]:
         return self.request(Route('GET', '/guilds/{guild_id}', guild_id=guild_id))
@@ -333,3 +335,29 @@ class HTTPClient:
         else:
             value = '{0}?encoding={1}&v=9'
         return data['shards'], value.format(data['url'], encoding)
+
+    def recreate(self) -> None:
+        if self.__session.closed:
+            self.__session = aiohttp.ClientSession(
+                connector=self.connector, ws_response_class=QQClientWebSocketResponse
+            )
+
+    async def close(self) -> None:
+        if self.__session:
+            await self.__session.close()
+
+    async def ws_connect(self, url: str, *, compress: int = 0) -> Any:
+        kwargs = {
+            'proxy_auth': self.proxy_auth,
+            'proxy': self.proxy,
+            'max_msg_size': 0,
+            'timeout': 30.0,
+            'autoclose': False,
+            'headers': {
+                'User-Agent': self.user_agent,
+            },
+            'compress': compress,
+        }
+
+        return await self.__session.ws_connect(url, **kwargs)
+

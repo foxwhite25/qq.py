@@ -5,14 +5,17 @@ __all__ = ('Client',)
 import asyncio
 import datetime
 import logging
+import signal
 import sys
 import traceback
 from typing import Optional, Any, Dict, Callable, List, Tuple, Coroutine
 
 import aiohttp
 
+from .backoff import ExponentialBackoff
+from .error import HTTPException, GatewayNotFound, ConnectionClosed
 from .state import ConnectionState
-from .gateway import QQWebSocket
+from .gateway import QQWebSocket, ReconnectWebSocket
 from .guild import Guild
 from .http import HTTPClient
 from .iterators import GuildIterator
@@ -68,6 +71,7 @@ class Client:
         self.token = f"{options.pop('app_id', None)}.{options.pop('token', None)}"
         self.shard_id: Optional[int] = options.get('shard_id')
         self.shard_count: Optional[int] = options.get('shard_count')
+        self._enable_debug_events: bool = options.pop('enable_debug_events', False)
 
         self._handlers: Dict[str, Callable] = {
             'ready': self._handle_ready
@@ -86,6 +90,7 @@ class Client:
 
         self._connection: ConnectionState = self._get_state(**options)
         self._connection.shard_count = self.shard_count
+        self._closed: bool = False
         self._ready: asyncio.Event = asyncio.Event()
 
     def _get_websocket(self, guild_id: Optional[int] = None, *, shard_id: Optional[int] = None) -> QQWebSocket:
@@ -224,3 +229,126 @@ class Client:
             after: datetime.datetime = None
     ):
         return GuildIterator(self, limit=limit, before=before, after=after)
+
+    def run(self, *args: Any, **kwargs: Any) -> None:
+        loop = self.loop
+
+        try:
+            loop.add_signal_handler(signal.SIGINT, lambda: loop.stop())
+            loop.add_signal_handler(signal.SIGTERM, lambda: loop.stop())
+        except NotImplementedError:
+            pass
+
+        async def runner():
+            try:
+                await self.start(**kwargs)
+            finally:
+                if not self.is_closed():
+                    await self.close()
+
+        def stop_loop_on_completion(f):
+            loop.stop()
+
+        future = asyncio.ensure_future(runner(), loop=loop)
+        future.add_done_callback(stop_loop_on_completion)
+        try:
+            loop.run_forever()
+        except KeyboardInterrupt:
+            _log.info('Received signal to terminate bot and event loop.')
+        finally:
+            future.remove_done_callback(stop_loop_on_completion)
+            _log.info('Cleaning up tasks.')
+            _cleanup_loop(loop)
+
+        if not future.cancelled():
+            try:
+                return future.result()
+            except KeyboardInterrupt:
+                # I am unsure why this gets raised here but suppress it anyway
+                return None
+
+    async def start(self, reconnect: bool = True) -> None:
+        await self.login(self.token)
+        await self.connect(reconnect=reconnect)
+
+    def clear(self) -> None:
+        self._closed = False
+        self._ready.clear()
+        self._connection.clear()
+        self.http.recreate()
+
+    def is_closed(self) -> bool:
+        return self._closed
+
+    async def connect(self, *, reconnect: bool = True) -> None:
+        backoff = ExponentialBackoff()
+        ws_params = {
+            'initial': True,
+            'shard_id': self.shard_id,
+        }
+        while not self.is_closed():
+            try:
+                coro = QQWebSocket.from_client(self, **ws_params)
+                self.ws = await asyncio.wait_for(coro, timeout=60.0)
+                ws_params['initial'] = False
+                while True:
+                    await self.ws.poll_event()
+            except ReconnectWebSocket as e:
+                _log.info('Got a request to %s the websocket.', e.op)
+                self.dispatch('disconnect')
+                ws_params.update(sequence=self.ws.sequence, resume=e.resume, session=self.ws.session_id)
+                continue
+            except (OSError,
+                    HTTPException,
+                    GatewayNotFound,
+                    ConnectionClosed,
+                    aiohttp.ClientError,
+                    asyncio.TimeoutError) as exc:
+
+                self.dispatch('disconnect')
+                if not reconnect:
+                    await self.close()
+                    if isinstance(exc, ConnectionClosed) and exc.code == 1000:
+                        # clean close, don't re-raise this
+                        return
+                    raise
+
+                if self.is_closed():
+                    return
+
+                # If we get connection reset by peer then try to RESUME
+                if isinstance(exc, OSError) and exc.errno in (54, 10054):
+                    ws_params.update(sequence=self.ws.sequence, initial=False, resume=True, session=self.ws.session_id)
+                    continue
+
+                # We should only get this when an unhandled close code happens,
+                # such as a clean disconnect (1000) or a bad state (bad token, no sharding, etc)
+                # sometimes, discord sends us 1000 for unknown reasons, so we should reconnect
+                # regardless and rely on is_closed instead
+                if isinstance(exc, ConnectionClosed):
+                    if exc.code != 1000:
+                        await self.close()
+                        raise
+
+                retry = backoff.delay()
+                _log.exception("Attempting a reconnect in %.2fs", retry)
+                await asyncio.sleep(retry)
+                # Always try to RESUME the connection
+                # If the connection is not RESUME-able then the gateway will invalidate the session.
+                # This is apparently what the official Discord client does.
+                ws_params.update(sequence=self.ws.sequence, resume=True, session=self.ws.session_id)
+
+    async def close(self) -> None:
+        """|coro|
+        Closes the connection to Discord.
+        """
+        if self._closed:
+            return
+
+        self._closed = True
+
+        if self.ws is not None and self.ws.open:
+            await self.ws.close(code=1000)
+
+        await self.http.close()
+        self._ready.clear()

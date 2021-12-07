@@ -42,6 +42,27 @@ class Role(Hashable):
     def __repr__(self) -> str:
         return f'<Role id={self.id} name={self.name!r}>'
 
+    def __lt__(self: R, other: R) -> bool:
+        if not isinstance(other, Role) or not isinstance(self, Role):
+            return NotImplemented
+
+        if self.guild != other.guild:
+            raise RuntimeError('cannot compare roles from two different guilds.')
+
+        # the @everyone role is always the lowest role in hierarchy
+        guild_id = self.guild.id
+        if self.id == guild_id:
+            # everyone_role < everyone_role -> False
+            return other.id != guild_id
+
+        if self.id < other.id:
+            return True
+
+        if self.id == other.id:
+            return int(self.id) > int(other.id)
+
+        return False
+
     def __le__(self: R, other: R) -> bool:
         r = Role.__lt__(other, self)
         if r is NotImplemented:

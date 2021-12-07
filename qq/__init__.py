@@ -10,5 +10,5 @@ import logging
 from .client import *
 from .guild import *
 
-
-logging.getLogger(__name__).addHandler(logging.NullHandler())
+logging.basicConfig()
+logging.root.setLevel(logging.NOTSET)

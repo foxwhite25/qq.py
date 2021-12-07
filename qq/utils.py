@@ -3,6 +3,7 @@ import datetime
 import json
 import re
 from bisect import bisect_left
+from operator import attrgetter
 from typing import Any, Callable, TypeVar, overload, Optional, Iterable, List, TYPE_CHECKING, Generic, Type
 from inspect import isawaitable as _isawaitable, signature as _signature
 
@@ -153,4 +154,25 @@ def find(predicate: Callable[[T], Any], seq: Iterable[T]) -> Optional[T]:
     for element in seq:
         if predicate(element):
             return element
+    return None
+
+
+def get(iterable: Iterable[T], **attrs: Any) -> Optional[T]:
+    _all = all
+    attrget = attrgetter
+
+    # Special case the single element call
+    if len(attrs) == 1:
+        k, v = attrs.popitem()
+        pred = attrget(k.replace('__', '.'))
+        for elem in iterable:
+            if pred(elem) == v:
+                return elem
+        return None
+
+    converted = [(attrget(attr.replace('__', '.')), value) for attr, value in attrs.items()]
+
+    for elem in iterable:
+        if _all(pred(elem) == value for pred, value in converted):
+            return elem
     return None

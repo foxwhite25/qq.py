@@ -1,8 +1,10 @@
 import asyncio
+import concurrent
 import logging
 import sys
 import threading
 import time
+import traceback
 import zlib
 from collections import namedtuple
 
@@ -61,6 +63,68 @@ class KeepAliveHandler(threading.Thread):
         self._last_recv = time.perf_counter()
         self.latency = float('inf')
         self.heartbeat_timeout = ws._max_heartbeat_timeout
+
+    def run(self):
+        while not self._stop_ev.wait(self.interval):
+            if self._last_recv + self.heartbeat_timeout < time.perf_counter():
+                _log.warning("Shard ID %s has stopped responding to the gateway. Closing and restarting.", self.shard_id)
+                coro = self.ws.close(4000)
+                f = asyncio.run_coroutine_threadsafe(coro, loop=self.ws.loop)
+
+                try:
+                    f.result()
+                except Exception:
+                    _log.exception('An error occurred while stopping the gateway. Ignoring.')
+                finally:
+                    self.stop()
+                    return
+
+            data = self.get_payload()
+            _log.debug(self.msg, self.shard_id, data['d'])
+            coro = self.ws.send_heartbeat(data)
+            f = asyncio.run_coroutine_threadsafe(coro, loop=self.ws.loop)
+            try:
+                # block until sending is complete
+                total = 0
+                while True:
+                    try:
+                        f.result(10)
+                        break
+                    except concurrent.futures.TimeoutError:
+                        total += 10
+                        try:
+                            frame = sys._current_frames()[self._main_thread_id]
+                        except KeyError:
+                            msg = self.block_msg
+                        else:
+                            stack = ''.join(traceback.format_stack(frame))
+                            msg = f'{self.block_msg}\nLoop thread traceback (most recent call last):\n{stack}'
+                        _log.warning(msg, self.shard_id, total)
+
+            except Exception:
+                self.stop()
+            else:
+                self._last_send = time.perf_counter()
+
+    def get_payload(self):
+        return {
+            'op': self.ws.HEARTBEAT,
+            'd': self.ws.sequence
+        }
+
+    def stop(self):
+        self._stop_ev.set()
+
+    def tick(self):
+        self._last_recv = time.perf_counter()
+
+    def ack(self):
+        ack_time = time.perf_counter()
+        self._last_ack = ack_time
+        self.latency = ack_time - self._last_send
+        if self.latency > 10:
+            _log.warning(self.behind_msg, self.shard_id, self.latency)
+
 
 
 class GatewayRatelimiter:
@@ -182,8 +246,6 @@ class QQWebSocket:
             ws.send = ws.debug_send
             ws.log_receive = ws.debug_log_receive
 
-        client._connection._update_references(ws)
-
         _log.debug('Created websocket connected to %s', gateway)
 
         # poll event for OP Hello
@@ -225,12 +287,12 @@ class QQWebSocket:
             'op': self.IDENTIFY,
             'd': {
                 'token': self.token,
+                "intents": 513,
+                "shard": [0, 4],
                 'properties': {
                     '$os': sys.platform,
                     '$browser': 'qq.py',
                     '$device': 'qq.py',
-                    '$referrer': '',
-                    '$referring_domain': ''
                 }
             }
         }

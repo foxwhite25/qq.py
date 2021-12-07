@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import (
     Dict,
     List,
-    Union, Optional,
+    Union, Optional, Tuple,
 )
 
 from .channel import _guild_channel_factory, TextChannel, CategoryChannel, AppChannel, LiveChannel, ThreadChannel
@@ -15,6 +15,7 @@ from .types.channel import VoiceChannel
 
 GuildChannel = Union[VoiceChannel, TextChannel, CategoryChannel, AppChannel, LiveChannel, ThreadChannel]
 VocalGuildChannel = Union[VoiceChannel]
+ByCategoryItem = Tuple[Optional[CategoryChannel], List[GuildChannel]]
 
 
 class Guild:
@@ -24,21 +25,21 @@ class Guild:
         'icon',
         'owner_id',
         'owner',
-        'member_count',
+        '_member_count',
         'max_members',
         'description',
         'joined_at',
         '_channels',
         '_members',
         '_roles',
-        '_state'
+        '_state',
+        '_large'
     )
 
     def __init__(self, data: GuildPayload, state: ConnectionState):
         self._channels: Dict[int, GuildChannel] = {}
         self._state: ConnectionState = state
         self._from_data(data)
-        self._sync()
 
     def _add_role(self, role: Role, /) -> None:
         self._roles[role.id] = role
@@ -54,15 +55,17 @@ class Guild:
         self.icon = guild.get('icon')
         self.owner_id = guild.get('owner_id')
         self.owner = guild.get('owner')
-        self.member_count = guild.get('member_count')
+        self._member_count = guild.get('member_count')
         self.max_members = guild.get('max_members')
         self.description = guild.get('description')
         self.joined_at = guild.get('joined_at')
         self._roles: Dict[int, Role] = {}
         state = self._state  # speed up attribute access
+        self._large: Optional[bool] = None if self._member_count is None else self._member_count >= 250
         for r in guild.get('roles', []):
             role = Role(guild=self, data=r, state=state)
             self._roles[role.id] = role
+        self._sync()
 
     def _add_channel(self, channel: GuildChannel, /) -> None:
         self._channels[channel.id] = channel
@@ -85,7 +88,10 @@ class Guild:
     def _sync(self) -> None:
         # I know it's jank to put a sync requests here,
         # but QQ just does not give all the info about guilds unless you requests it
-        channels = self._state.http.sync_guild_channels(self.id)
+        channels, roles = self._state.http.sync_guild_channels_roles(self.id)
+        for r in roles:
+            role = Role(guild=self, data=r, state=self._state)
+            self._roles[role.id] = role
         for c in channels:
             factory, ch_type = _guild_channel_factory(c['type'])
             if factory:
@@ -102,3 +108,70 @@ class Guild:
 
     def get_role(self, role_id: int, /) -> Optional[Role]:
         return self._roles.get(role_id)
+
+    @property
+    def large(self) -> bool:
+        if self._large is None:
+            try:
+                return self._member_count >= 250
+            except AttributeError:
+                return len(self._members) >= 250
+        return self._large
+
+    @property
+    def me(self) -> Member:
+        self_id = self._state.user.id
+        # The self member is *always* cached
+        return self.get_member(self_id)  # type: ignore
+
+    @property
+    def text_channels(self) -> List[TextChannel]:
+        r = [ch for ch in self._channels.values() if isinstance(ch, TextChannel)]
+        r.sort(key=lambda c: (c.position, c.id))
+        return r
+
+    @property
+    def categories(self) -> List[CategoryChannel]:
+        r = [ch for ch in self._channels.values() if isinstance(ch, CategoryChannel)]
+        r.sort(key=lambda c: (c.position, c.id))
+        return r
+
+    def by_category(self) -> List[ByCategoryItem]:
+        grouped: Dict[Optional[int], List[GuildChannel]] = {}
+        for channel in self._channels.values():
+            if isinstance(channel, CategoryChannel):
+                grouped.setdefault(channel.id, [])
+                continue
+
+            try:
+                grouped[channel.category_id].append(channel)
+            except KeyError:
+                grouped[channel.category_id] = [channel]
+
+        def key(t: ByCategoryItem) -> Tuple[Tuple[int, int], List[GuildChannel]]:
+            k, v = t
+            return (k.position, k.id) if k else (-1, -1), v
+
+        _get = self._channels.get
+        as_list: List[ByCategoryItem] = [(_get(k), v) for k, v in grouped.items()]  # type: ignore
+        as_list.sort(key=key)
+        for _, channels in as_list:
+            channels.sort(key=lambda c: (c._sorting_bucket, c.position, c.id))
+        return as_list
+
+    def _resolve_channel(self, id: Optional[int], /) -> Optional[Union[GuildChannel, ]]:
+        if id is None:
+            return
+
+        return self._channels.get(id)
+
+    def get_channel(self, channel_id: int, /) -> Optional[GuildChannel]:
+        return self._channels.get(channel_id)
+
+    def get_member(self, user_id: int, /) -> Optional[Member]:
+        return self._members.get(user_id)
+
+    @property
+    def roles(self) -> List[Role]:
+        return sorted(self._roles.values())
+
