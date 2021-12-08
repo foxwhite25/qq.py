@@ -32,19 +32,19 @@ def _cancel_tasks(loop: asyncio.AbstractEventLoop) -> None:
     if not tasks:
         return
 
-    _log.info('Cleaning up after %d tasks.', len(tasks))
+    _log.info('在 %d 个任务后清理。', len(tasks))
     for task in tasks:
         task.cancel()
 
     loop.run_until_complete(asyncio.gather(*tasks, return_exceptions=True))
-    _log.info('All tasks finished cancelling.')
+    _log.info('所有任务都取消了。')
 
     for task in tasks:
         if task.cancelled():
             continue
         if task.exception() is not None:
             loop.call_exception_handler({
-                'message': 'Unhandled exception during Client.run shutdown.',
+                'message': 'Client.run 关闭期间未处理的异常。',
                 'exception': task.exception(),
                 'task': task
             })
@@ -55,7 +55,7 @@ def _cleanup_loop(loop: asyncio.AbstractEventLoop) -> None:
         _cancel_tasks(loop)
         loop.run_until_complete(loop.shutdown_asyncgens())
     finally:
-        _log.info('Closing the event loop.')
+        _log.info('关闭事件循环。')
         loop.close()
 
 
@@ -115,7 +115,7 @@ class Client:
             await asyncio.sleep(5.0)
 
     async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
-        print(f'Ignoring exception in {event_method}', file=sys.stderr)
+        print(f'忽略 {event_method} 中的异常', file=sys.stderr)
         traceback.print_exc()
 
     async def _run_event(self, coro: Callable[..., Coroutine[Any, Any, Any]], event_name: str, *args: Any,
@@ -137,7 +137,7 @@ class Client:
         return asyncio.create_task(wrapped, name=f'qq.py: {event_name}')
 
     def dispatch(self, event: str, *args: Any, **kwargs: Any) -> None:
-        _log.debug('Dispatching event %s', event)
+        _log.debug('分派事件 %s', event)
         method = 'on_' + event
 
         listeners = self._listeners.get(event)
@@ -177,7 +177,7 @@ class Client:
             self._schedule_event(coro, method, *args, **kwargs)
 
     async def login(self, token: str) -> None:
-        _log.info('logging in using static token')
+        _log.info('使用静态令牌登录')
 
         data = await self.http.static_login(token.strip())
         self._connection.user = ClientUser(state=self._connection, data=data)
@@ -255,10 +255,10 @@ class Client:
         try:
             loop.run_forever()
         except KeyboardInterrupt:
-            _log.info('Received signal to terminate bot and event loop.')
+            _log.info('接收到终止机器人和事件循环的信号。')
         finally:
             future.remove_done_callback(stop_loop_on_completion)
-            _log.info('Cleaning up tasks.')
+            _log.info('清理任务。')
             _cleanup_loop(loop)
 
         if not future.cancelled():
@@ -295,7 +295,7 @@ class Client:
                 while True:
                     await self.ws.poll_event()
             except ReconnectWebSocket as e:
-                _log.info('Got a request to %s the websocket.', e.op)
+                _log.info('收到了 %s websocket 的请求。', e.op)
                 self.dispatch('disconnect')
                 ws_params.update(sequence=self.ws.sequence, resume=e.resume, session=self.ws.session_id)
                 continue
@@ -332,7 +332,7 @@ class Client:
                         raise
 
                 retry = backoff.delay()
-                _log.exception("Attempting a reconnect in %.2fs", retry)
+                _log.exception("尝试在 %.2fs 中重新连接", retry)
                 await asyncio.sleep(retry)
                 # Always try to RESUME the connection
                 # If the connection is not RESUME-able then the gateway will invalidate the session.
@@ -356,8 +356,8 @@ class Client:
 
     def event(self, coro: Coro) -> Coro:
         if not asyncio.iscoroutinefunction(coro):
-            raise TypeError('event registered must be a coroutine function')
+            raise TypeError('注册的事件必须是协程函数')
 
         setattr(self, coro.__name__, coro)
-        _log.debug('%s has successfully been registered as an event', coro.__name__)
+        _log.debug('%s 已成功注册为事件', coro.__name__)
         return coro

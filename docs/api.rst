@@ -459,6 +459,37 @@ API 为某些类型的字符串提供了一些枚举，以避免 API 被字符�
         :param predicate: 调用每个元素的谓词。 可能是 |coroutine_link|_。
         :rtype: :class:`AsyncIterator`
 
+抽象基类
+-----------------------
+
+一个 :term:`抽象基类` (也被称为 ``abc``) 是模型可以继承以获取行为的类。
+**抽象基类不应该被实例化**。
+它们主要用于 :func:`isinstance` 和 :func:`issubclass`\。
+
+GuildChannel
+~~~~~~~~~~~~~
+
+.. attributetable:: discord.abc.GuildChannel
+
+.. autoclass:: discord.abc.GuildChannel()
+    :members:
+
+Messageable
+~~~~~~~~~~~~
+
+.. attributetable:: discord.abc.Messageable
+
+.. autoclass:: discord.abc.Messageable()
+    :members:
+    :exclude-members: history, typing
+
+    .. automethod:: discord.abc.Messageable.history
+        :async-for:
+
+    .. automethod:: discord.abc.Messageable.typing
+        :async-with:
+
+
 QQ 模型
 ---------------
 
@@ -579,6 +610,33 @@ CategoryChannel
 .. attributetable:: CategoryChannel
 
 .. autoclass:: CategoryChannel()
+    :members:
+    :inherited-members:
+
+AppChannel
+~~~~~~~~~~~~~~~~~
+
+.. attributetable:: AppChannel
+
+.. autoclass:: AppChannel()
+    :members:
+    :inherited-members:
+
+LiveChannel
+~~~~~~~~~~~~~~~~~
+
+.. attributetable:: LiveChannel
+
+.. autoclass:: LiveChannel()
+    :members:
+    :inherited-members:
+
+ThreadChannel
+~~~~~~~~~~~~~~~~~
+
+.. attributetable:: ThreadChannel
+
+.. autoclass:: ThreadChannel()
     :members:
     :inherited-members:
 

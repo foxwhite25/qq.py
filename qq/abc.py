@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import copy
 from datetime import datetime
 from typing import overload, Optional, Union, List, TYPE_CHECKING, TypeVar, Dict, Any
@@ -34,6 +35,14 @@ _undefined: Any = _Undefined()
 
 
 class Messageable:
+    """一个 记录了可以发送消息的模型上的常见操作的ABC。
+    以下实现了这个 ABC：
+    - :class:`~discord.TextChannel`
+    - :class:`~discord.User`
+    - :class:`~discord.Member`
+    - :class:`~discord.ext.commands.Context`
+    """
+
     __slots__ = ()
     _state: ConnectionState
 
@@ -101,23 +110,23 @@ class Messageable:
 
     async def fetch_message(self, id: int, /) -> Message:
         """|coro|
-        Retrieves a single :class:`~discord.Message` from the destination.
+        从目的地检索单个 :class:`~qq.Message`。
         Parameters
         ------------
         id: :class:`int`
-            The message ID to look for.
+            要查找的消息 ID。
         Raises
         --------
-        ~discord.NotFound
-            The specified message was not found.
-        ~discord.Forbidden
-            You do not have the permissions required to get a message.
-        ~discord.HTTPException
-            Retrieving the message failed.
+        ~qq.NotFound
+            未找到指定的消息。
+        ~qq.Forbidden
+            您没有获取消息所需的权限。
+        ~qq.HTTPException
+            检索消息失败。
         Returns
         --------
         :class:`~discord.Message`
-            The message asked for.
+            消息要求。
         """
         id = id
         channel = await self._get_channel()
@@ -129,6 +138,25 @@ GCH = TypeVar('GCH', bound='GuildChannel')
 
 
 class GuildChannel:
+    """详细介绍 QQ 子频道上常见操作的 ABC。
+    以下实现了这个 ABC：
+    - :class:`~discord.TextChannel`
+    - :class:`~discord.VoiceChannel`
+    - :class:`~discord.CategoryChannel`
+    - :class:`~discord.ThreadChannel`
+    - :class:`~discord.LiveChannel`
+    - :class:`~discord.AppChannel`
+
+    Attributes
+    -----------
+    name: :class:`str`
+        子频道名称。
+    guild: :class:`~qq.Guild`
+        子频道所属的频道。
+    position: :class:`int`
+        在频道列表中的位置。这是一个从 0 开始的数字。例如顶部子是位置 0。
+    """
+
     __slots__ = ()
 
     id: int
@@ -160,9 +188,8 @@ class GuildChannel:
             *,
             reason: Optional[str],
     ) -> None:
-        raise NotImplementedError
         if position < 0:
-            raise InvalidArgument('Channel position cannot be less than 0.')
+            raise InvalidArgument('频道位置不能小于 0。')
 
         http = self._state.http
         bucket = self._sorting_bucket
@@ -188,35 +215,15 @@ class GuildChannel:
                 d.update(parent_id=parent_id)
             payload.append(d)
 
-        await http.bulk_channel_update(self.guild.id, payload, reason=reason)
+        await asyncio.gather(*http.bulk_channel_update(self.guild.id, payload, reason=reason))
 
     async def _edit(self, options: Dict[str, Any], reason: Optional[str]) -> Optional[ChannelPayload]:
-        raise NotImplementedError
         try:
             parent = options.pop('category')
         except KeyError:
             parent_id = _undefined
         else:
             parent_id = parent and parent.id
-
-        try:
-            options['rate_limit_per_user'] = options.pop('slowmode_delay')
-        except KeyError:
-            pass
-
-        try:
-            rtc_region = options.pop('rtc_region')
-        except KeyError:
-            pass
-        else:
-            options['rtc_region'] = None if rtc_region is None else str(rtc_region)
-
-        try:
-            video_quality_mode = options.pop('video_quality_mode')
-        except KeyError:
-            pass
-        else:
-            options['video_quality_mode'] = int(video_quality_mode)
 
         try:
             position = options.pop('position')
@@ -232,7 +239,7 @@ class GuildChannel:
             pass
         else:
             if not isinstance(ch_type, ChannelType):
-                raise InvalidArgument('type field must be of type ChannelType')
+                raise InvalidArgument('type 字段必须是 ChannelType 类型')
             options['type'] = ch_type.value
 
         if options:
@@ -240,18 +247,16 @@ class GuildChannel:
 
     @property
     def mention(self) -> str:
-        """:class:`str`: The string that allows you to mention the channel."""
+        """:class:`str`: 允许您提及频道的字符串。"""
         return f'<#{self.id}>'
 
     @property
     def category(self) -> Optional[CategoryChannel]:
-        """Optional[:class:`~discord.CategoryChannel`]: The category this channel belongs to.
-        If there is no category then this is ``None``.
+        """Optional[:class:`~discord.CategoryChannel`]: 此频道所属的类别。如果没有类别，则为 ``None``。
         """
         return self.guild.get_channel(self.category_id)  # type: ignore
 
     async def delete(self, *, reason: Optional[str] = None) -> None:
-        raise NotImplementedError
         await self._state.http.delete_channel(self.id, reason=reason)
 
     async def _clone_impl(
@@ -261,7 +266,6 @@ class GuildChannel:
             name: Optional[str] = None,
             reason: Optional[str] = None,
     ) -> GCH:
-        raise NotImplementedError
         base_attrs['parent_id'] = self.category_id
         base_attrs['name'] = name or self.name
         guild_id = self.guild.id
@@ -325,6 +329,37 @@ class GuildChannel:
         ...
 
     async def move(self, **kwargs) -> None:
+        """|coro|
+        帮助你相对于其他频道移动频道。
+        如果需要精确的位置移动，则应使用 ``edit`` 代替。
+
+        Parameters
+        ------------
+        beginning: :class:`bool`
+            是否将频道移动到频道列表（或类别，如果给定）的开头。这与 ``end`` 、 ``before`` 和 ``after`` 是互斥的。
+        end: :class:`bool`
+            是否将频道移动到频道列表（或类别，如果给定）的末尾。这与 ``beginning`` 、 ``before`` 和 ``after`` 是互斥的。
+        before: :class:`GuildChannel`
+            应该在我们当前频道之前的频道。这与 ``beginning`` 、 ``end`` 和` `after`` 是互斥的。
+        after: :class:`GuildChannel`
+            应该在我们当前频道之后的频道。这与 ``beginning`` 、 ``end`` 和 ``before`` 是互斥的。
+        offset: :class:`int`
+            偏移移动的通道数。
+            例如，带有 ``beginning=True`` 的 ``2`` 偏移量会在开始后移动 2。
+            正数将其移至下方，而负数将其移至上方。请注意，这个数字是相对的，并且是在 ``beginning`` 、 ``end`` 、 ``before`` 和 ``after`` 参数之后计算的。
+        category: Optional[:class:`GuildChannel`]
+            将此频道移动到的类别。如果给出 ``None``，则将其移出类别。如果移动类别频道，则忽略此参数。
+
+        Raises
+        -------
+        InvalidArgument
+            给出了无效的位置或传递了错误的参数组合。
+        Forbidden
+            您无权移动频道。
+        HTTPException
+            移动频道失败。
+        """
+
         if not kwargs:
             return
 
@@ -332,7 +367,7 @@ class GuildChannel:
         before, after = kwargs.get('before'), kwargs.get('after')
         offset = kwargs.get('offset', 0)
         if sum(bool(a) for a in (beginning, end, before, after)) > 1:
-            raise InvalidArgument('Only one of [before, after, end, beginning] can be used.')
+            raise InvalidArgument('只能使用 [before, after, end, begin] 之一。')
 
         bucket = self._sorting_bucket
         parent_id = kwargs.get('category', MISSING)
@@ -367,16 +402,14 @@ class GuildChannel:
             index = next((i + 1 for i, c in enumerate(channels) if c.id == after.id), None)
 
         if index is None:
-            raise InvalidArgument('Could not resolve appropriate move position')
+            raise InvalidArgument('无法解析适当的移动位置')
 
         channels.insert(max((index + offset), 0), self)
         payload = []
-        lock_permissions = kwargs.get('sync_permissions', False)
-        reason = kwargs.get('reason')
         for index, channel in enumerate(channels):
             d = {'id': channel.id, 'position': index}
             if parent_id is not MISSING and channel.id == self.id:
-                d.update(parent_id=parent_id, lock_permissions=lock_permissions)
+                d.update(parent_id=parent_id)
             payload.append(d)
 
-        await self._state.http.bulk_channel_update(self.guild.id, payload, reason=reason)
+        await asyncio.gather(*self._state.http.bulk_channel_update(self.guild.id, payload))

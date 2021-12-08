@@ -88,7 +88,7 @@ async def logging_coroutine(coroutine: Coroutine[Any, Any, T], *, info: str) -> 
     try:
         await coroutine
     except Exception:
-        _log.exception('Exception occurred during %s', info)
+        _log.exception('%s 期间发生异常', info)
 
 
 class ConnectionState:
@@ -122,12 +122,12 @@ class ConnectionState:
         self.heartbeat_timeout: float = options.get('heartbeat_timeout', 60.0)
         self.guild_ready_timeout: float = options.get('guild_ready_timeout', 2.0)
         if self.guild_ready_timeout < 0:
-            raise ValueError('guild_ready_timeout cannot be negative')
+            raise ValueError('guild_ready_timeout 不能为负')
 
         allowed_mentions = options.get('allowed_mentions')
 
         if allowed_mentions is not None and not isinstance(allowed_mentions, AllowedMentions):
-            raise TypeError('allowed_mentions parameter must be AllowedMentions')
+            raise TypeError('allowed_mentions 参数必须是 AllowedMentions')
 
         self.allowed_mentions: Optional[AllowedMentions] = allowed_mentions
         self._chunk_requests: Dict[Union[int, str], ChunkRequest] = {}
@@ -135,18 +135,18 @@ class ConnectionState:
         intents = options.get('intents', None)
         if intents is not None:
             if not isinstance(intents, Intents):
-                raise TypeError(f'intents parameter must be Intent not {type(intents)!r}')
+                raise TypeError(f'Intents 参数必须是 Intents 而不是 {type(intents)!r}')
         else:
             intents = Intents.default()
 
         if not intents.guilds:
-            _log.warning('Guilds intent seems to be disabled. This may cause state related issues.')
+            _log.warning('频道 Intents 似乎被禁用。这可能会导致状态相关的问题。')
 
         self._chunk_guilds: bool = options.get('chunk_guilds_at_startup', intents.members)
 
         # Ensure these two are set properly
         if not intents.members and self._chunk_guilds:
-            raise ValueError('Intents.members must be enabled to chunk guilds at startup.')
+            raise ValueError('Intents.members 必须在启动时启用分块频道。')
 
         self._intents: Intents = intents
 
@@ -278,7 +278,7 @@ class ConnectionState:
         guild_id = guild.id
         ws = self._get_websocket(guild_id)
         if ws is None:
-            raise RuntimeError('Somehow do not have a websocket for this guild_id')
+            raise RuntimeError('不知何故没有这个 guild_id 的 websocket')
 
         request = ChunkRequest(guild.id, self.loop, self._get_guild, cache=cache)
         self._chunk_requests[request.nonce] = request
@@ -290,7 +290,7 @@ class ConnectionState:
             )
             return await asyncio.wait_for(request.wait(), timeout=30.0)
         except asyncio.TimeoutError:
-            _log.warning('Timed out waiting for chunks with query %r and limit %d for guild_id %d', query, limit,
+            _log.warning('等待查询 %r 的块超时，guild_id %d 限制为 %d', query, limit,
                          guild_id)
             raise
 
@@ -318,7 +318,7 @@ class ConnectionState:
                 try:
                     await asyncio.wait_for(future, timeout=5.0)
                 except asyncio.TimeoutError:
-                    _log.warning('Shard ID %s timed out waiting for chunks for guild_id %s.', guild.shard_id, guild.id)
+                    _log.warning('分片 ID %s 等待 guild_id %s 的块时超时。', guild.shard_id, guild.id)
 
                 if guild.unavailable is False:
                     self.dispatch('guild_available', guild)
@@ -397,14 +397,14 @@ class ConnectionState:
                 channel._update(guild, data)
                 self.dispatch('guild_channel_update', old_channel, channel)
             else:
-                _log.debug('CHANNEL_UPDATE referencing an unknown channel ID: %s. Discarding.', channel_id)
+                _log.debug('CHANNEL_UPDATE 引用了一个未知的子频道 ID：%s。丢弃。', channel_id)
         else:
-            _log.debug('CHANNEL_UPDATE referencing an unknown guild ID: %s. Discarding.', guild_id)
+            _log.debug('CHANNEL_UPDATE 引用了一个未知的频道 ID：%s。 丢弃。', guild_id)
 
     def parse_channel_create(self, data) -> None:
         factory, ch_type = _channel_factory(data['type'])
         if factory is None:
-            _log.debug('CHANNEL_CREATE referencing an unknown channel type %s. Discarding.', data['type'])
+            _log.debug('CHANNEL_CREATE 引用了未知的子频道类型 %s。丢弃。', data['type'])
             return
 
         guild_id = data.get('guild_id')
@@ -415,13 +415,13 @@ class ConnectionState:
             guild._add_channel(channel)  # type: ignore
             self.dispatch('guild_channel_create', channel)
         else:
-            _log.debug('CHANNEL_CREATE referencing an unknown guild ID: %s. Discarding.', guild_id)
+            _log.debug('CHANNEL_CREATE 引用了一个未知的频道 ID：%s。丢弃。', guild_id)
             return
 
     def parse_guild_member_add(self, data) -> None:
         guild = self._get_guild(int(data['guild_id']))
         if guild is None:
-            _log.debug('GUILD_MEMBER_ADD referencing an unknown guild ID: %s. Discarding.', data['guild_id'])
+            _log.debug('GUILD_MEMBER_ADD 引用了一个未知的频道 ID：%s。丢弃。', data['guild_id'])
             return
 
         member = Member(guild=guild, data=data, state=self)
@@ -448,14 +448,14 @@ class ConnectionState:
                 guild._remove_member(member)  # type: ignore
                 self.dispatch('member_remove', member)
         else:
-            _log.debug('GUILD_MEMBER_REMOVE referencing an unknown guild ID: %s. Discarding.', data['guild_id'])
+            _log.debug('GUILD_MEMBER_REMOVE 引用了一个未知的频道 ID：%s。丢弃。', data['guild_id'])
 
     def parse_guild_member_update(self, data) -> None:
         guild = self._get_guild(int(data['guild_id']))
         user = data['user']
         user_id = int(user['id'])
         if guild is None:
-            _log.debug('GUILD_MEMBER_UPDATE referencing an unknown guild ID: %s. Discarding.', data['guild_id'])
+            _log.debug('GUILD_MEMBER_UPDATE 引用了一个未知的频道 ID：%s。丢弃。', data['guild_id'])
             return
 
         member = guild.get_member(user_id)
@@ -476,7 +476,7 @@ class ConnectionState:
                 self.dispatch('user_update', user_update[0], user_update[1])
 
             guild._add_member(member)
-            _log.debug('GUILD_MEMBER_UPDATE referencing an unknown member ID: %s. Discarding.', user_id)
+            _log.debug('GUILD_MEMBER_UPDATE 引用了一个未知的频道 ID：%s。丢弃。', user_id)
 
     def _get_create_guild(self, data):
         return self._add_guild_from_data(data)
@@ -499,7 +499,7 @@ class ConnectionState:
         try:
             await asyncio.wait_for(self.chunk_guild(guild), timeout=60.0)
         except asyncio.TimeoutError:
-            _log.info('Somehow timed out waiting for chunks.')
+            _log.info('不知何故 chunk 超时了')
 
         if unavailable is False:
             self.dispatch('guild_available', guild)
@@ -541,12 +541,12 @@ class ConnectionState:
             guild._from_data(data)
             self.dispatch('guild_update', old_guild, guild)
         else:
-            _log.debug('GUILD_UPDATE referencing an unknown guild ID: %s. Discarding.', data['id'])
+            _log.debug('GUILD_UPDATE 引用了一个未知的频道 ID：%s。丢弃。', data['id'])
 
     def parse_guild_delete(self, data) -> None:
         guild = self._get_guild(int(data['id']))
         if guild is None:
-            _log.debug('GUILD_DELETE referencing an unknown guild ID: %s. Discarding.', data['id'])
+            _log.debug('GUILD_DELETE 引用了一个未知的频道 ID：%s。丢弃。', data['id'])
             return
 
         if data.get('unavailable', False):
@@ -626,12 +626,12 @@ class AutoShardedConnectionState(ConnectionState):
                 break
             else:
                 if self._guild_needs_chunking(guild):
-                    _log.debug('Guild ID %d requires chunking, will be done in the background.', guild.id)
+                    _log.debug('频道 ID %d 需要分块，将在后台完成。', guild.id)
                     if len(current_bucket) >= max_concurrency:
                         try:
                             await utils.sane_wait_for(current_bucket, timeout=max_concurrency * 70.0)
                         except asyncio.TimeoutError:
-                            fmt = 'Shard ID %s failed to wait for chunks from a sub-bucket with length %d'
+                            fmt = '分片 ID %s 无法等待来自长度为 %d 的子存储桶的块'
                             _log.warning(fmt, guild.shard_id, len(current_bucket))
                         finally:
                             current_bucket = []
@@ -654,7 +654,7 @@ class AutoShardedConnectionState(ConnectionState):
                 await utils.sane_wait_for(futures, timeout=timeout)
             except asyncio.TimeoutError:
                 _log.warning(
-                    'Shard ID %s failed to wait for chunks (timeout=%.2f) for %d guilds', shard_id, timeout, len(guilds)
+                    '分片 ID %s 无法等待 %d 个公会的块（超时 = %.2f）', shard_id, timeout, len(guilds)
                 )
             for guild in children:
                 if guild.unavailable is False:

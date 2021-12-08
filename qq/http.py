@@ -163,14 +163,14 @@ class HTTPClient:
                     kwargs['data'] = form_data
                 try:
                     async with self.__session.request(method, url, **kwargs) as response:
-                        _log.debug('%s %s with %s has returned %s', method, url, kwargs.get('data'), response.status)
+                        _log.debug('%s %s 与 %s 已返回 %s', method, url, kwargs.get('data'), response.status)
 
                         # even errors have text involved in them so this is safe to call
                         data = await json_or_text(response)
 
                         # the request was successful so just return the text/json
                         if 300 > response.status >= 200:
-                            _log.debug('%s %s has received %s', method, url, data)
+                            _log.debug('%s %s 已收到 %s', method, url, data)
                             return data
 
                         # we've received a 500, 502, or 504, unconditional retry
@@ -203,7 +203,7 @@ class HTTPClient:
 
                     raise HTTPException(response, data)
 
-                raise RuntimeError('Unreachable code in HTTP handling')
+                raise RuntimeError('HTTP 处理中无法访问的代码')
 
     async def static_login(self, token: str) -> user.User:
         # Necessary to get aiohttp to stop complaining about session creation
@@ -216,7 +216,7 @@ class HTTPClient:
         except HTTPException as exc:
             self.token = old_token
             if exc.status == 401:
-                raise LoginFailure('Improper token has been passed.') from exc
+                raise LoginFailure('传递了不正确的令牌。') from exc
             raise
 
         return data
@@ -350,6 +350,26 @@ class HTTPClient:
         )
         payload = {k: v for k, v in options.items() if k in valid_keys}
         return self.request(r, reason=reason, json=payload)
+
+    def bulk_channel_update(
+        self,
+        guild_id: int,
+        datas: List[guild.ChannelPositionUpdate],
+        *,
+        reason: Optional[str] = None,
+    ) -> List[Response[None]]:
+        rsp = []
+        for data in datas:
+            valid_keys = (
+                'name',
+                'parent_id',
+                'position',
+                'type',
+            )
+            payload = {k: v for k, v in data.items() if k in valid_keys}
+            r = Route('PATCH', '/channels/{channel_id}', channel_id=data.get('id'))
+            rsp.append(self.request(r, reason=reason, json=payload))
+        return rsp
 
     def delete_channel(
             self,

@@ -33,3 +33,9 @@ class Guild(_BaseGuildPreview, _GuildOptional):
     owner_id: str
     afk_timeout: int
     roles: List[Role]
+
+
+class ChannelPositionUpdate(TypedDict):
+    id: int
+    position: Optional[int]
+    parent_id: Optional[int]

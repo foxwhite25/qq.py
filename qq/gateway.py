@@ -54,9 +54,9 @@ class KeepAliveHandler(threading.Thread):
         self.interval = interval
         self.daemon = True
         self.shard_id = shard_id
-        self.msg = 'Keeping shard ID %s websocket alive with sequence %s.'
-        self.block_msg = 'Shard ID %s heartbeat blocked for more than %s seconds.'
-        self.behind_msg = 'Can\'t keep up, shard ID %s websocket is %.1fs behind.'
+        self.msg = '使用序列 %s 保持分片 ID %s websocket 处于活动状态。'
+        self.block_msg = '分片 ID %s 心跳被阻止超过 %s 秒。'
+        self.behind_msg = '跟不上，分片 ID %s websocket 落后 %.1fs。'
         self._stop_ev = threading.Event()
         self._last_ack = time.perf_counter()
         self._last_send = time.perf_counter()
@@ -67,7 +67,7 @@ class KeepAliveHandler(threading.Thread):
     def run(self):
         while not self._stop_ev.wait(self.interval):
             if self._last_recv + self.heartbeat_timeout < time.perf_counter():
-                _log.warning("Shard ID %s has stopped responding to the gateway. Closing and restarting.",
+                _log.warning("分片 ID %s 已停止响应网关。关闭并重新启动。",
                              self.shard_id)
                 coro = self.ws.close(4000)
                 f = asyncio.run_coroutine_threadsafe(coro, loop=self.ws.loop)
@@ -75,13 +75,13 @@ class KeepAliveHandler(threading.Thread):
                 try:
                     f.result()
                 except Exception:
-                    _log.exception('An error occurred while stopping the gateway. Ignoring.')
+                    _log.exception('停止网关时发生错误。无视。')
                 finally:
                     self.stop()
                     return
 
             data = self.get_payload()
-            _log.debug(self.msg, self.shard_id, data['d'])
+            _log.debug(self.msg, data['d'], self.shard_id)
             coro = self.ws.send_heartbeat(data)
             f = asyncio.run_coroutine_threadsafe(coro, loop=self.ws.loop)
             try:
@@ -99,7 +99,7 @@ class KeepAliveHandler(threading.Thread):
                             msg = self.block_msg
                         else:
                             stack = ''.join(traceback.format_stack(frame))
-                            msg = f'{self.block_msg}\nLoop thread traceback (most recent call last):\n{stack}'
+                            msg = f'{self.block_msg}\nLoop 线程回溯（最近一次调用）：\n{stack}'
                         _log.warning(msg, self.shard_id, total)
 
             except Exception:
@@ -165,7 +165,7 @@ class GatewayRatelimiter:
         async with self.lock:
             delta = self.get_delay()
             if delta:
-                _log.warning('WebSocket in shard ID %s is ratelimited, waiting %.2f seconds', self.shard_id, delta)
+                _log.warning('分片 ID %s 中的 WebSocket 受速率限制，等待 %.2f 秒', self.shard_id, delta)
                 await asyncio.sleep(delta)
 
 
@@ -246,7 +246,7 @@ class QQWebSocket:
             ws.send = ws.debug_send
             ws.log_receive = ws.debug_log_receive
 
-        _log.debug('Created websocket connected to %s', gateway)
+        _log.debug('创建连接到 %s 的 websocket', gateway)
 
         # poll event for OP Hello
         await ws.poll_event()
@@ -304,7 +304,7 @@ class QQWebSocket:
 
         await self.call_hooks('before_identify', self.shard_id, initial=self._initial_identify)
         await self.send_as_json(payload)
-        _log.info('Shard ID %s has sent the IDENTIFY payload.\n Data: %s', self.shard_id, str(payload))
+        _log.info('分片 ID %s 已发送 IDENTIFY 负载。', self.shard_id)
 
     async def resume(self):
         """Sends the RESUME packet."""
@@ -318,7 +318,7 @@ class QQWebSocket:
         }
 
         await self.send_as_json(payload)
-        _log.info('Shard ID %s has sent the RESUME payload.', self.shard_id)
+        _log.info('分片 ID %s 已发送 RESUME 负载。', self.shard_id)
 
     async def received_message(self, msg, /):
         if type(msg) is bytes:
@@ -333,7 +333,7 @@ class QQWebSocket:
         self.log_receive(msg)
         msg = utils._from_json(msg)
 
-        _log.debug('For Shard ID %s: WebSocket Event: %s', self.shard_id, msg)
+        _log.debug('分片 ID %s：WebSocket 事件：%s', self.shard_id, msg)
         event = msg.get('t')
         if event:
             self._dispatch('socket_event_type', event)
@@ -381,11 +381,11 @@ class QQWebSocket:
 
                 self.sequence = None
                 self.session_id = None
-                _log.info('Shard ID %s session has been invalidated.', self.shard_id)
+                _log.info('分片 ID %s 会话已失效。', self.shard_id)
                 await self.close(code=1000)
                 raise ReconnectWebSocket(self.shard_id, resume=False)
 
-            _log.warning('Unknown OP code %s.', op)
+            _log.warning('未知 OP 代码 %s.', op)
             return
 
         if event == 'READY':
@@ -394,20 +394,20 @@ class QQWebSocket:
             self.session_id = data['session_id']
             # pass back shard ID to ready handler
             data['__shard_id__'] = self.shard_id
-            _log.info('Shard ID %s has connected to Gateway: %s (Session ID: %s).',
+            _log.info('分片 ID %s 已连接到网关：%s（会话 ID：%s）。',
                       self.shard_id, ', '.join(trace), self.session_id)
 
         elif event == 'RESUMED':
             self._trace = trace = data.get('_trace', [])
             # pass back the shard ID to the resumed handler
             data['__shard_id__'] = self.shard_id
-            _log.info('Shard ID %s has successfully RESUMED session %s under trace %s.',
+            _log.info('分片 ID %s 已在跟踪 %s 下成功恢复会话 %s。',
                       self.shard_id, self.session_id, ', '.join(trace))
 
         try:
             func = self._qq_parsers[event]
         except KeyError:
-            _log.debug('Unknown event %s.', event)
+            _log.debug('未知事件 %s.', event)
         else:
             func(data)
 
@@ -460,10 +460,10 @@ class QQWebSocket:
             elif msg.type is aiohttp.WSMsgType.BINARY:
                 await self.received_message(msg.data)
             elif msg.type is aiohttp.WSMsgType.ERROR:
-                _log.debug('Received %s', msg)
+                _log.debug('收到 %s', msg)
                 raise msg.data
             elif msg.type in (aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.CLOSING, aiohttp.WSMsgType.CLOSE):
-                _log.debug('Received %s', msg)
+                _log.debug('收到 %s', msg)
                 raise WebSocketClosure
         except (asyncio.TimeoutError, WebSocketClosure) as e:
             # Ensure the keep alive handler is closed
@@ -472,15 +472,15 @@ class QQWebSocket:
                 self._keep_alive = None
 
             if isinstance(e, asyncio.TimeoutError):
-                _log.info('Timed out receiving packet. Attempting a reconnect.')
+                _log.info('接收数据包超时。正在尝试重新连接。')
                 raise ReconnectWebSocket(self.shard_id) from None
 
             code = self._close_code or self.socket.close_code
             if self._can_handle_close():
-                _log.info('Websocket closed with %s, attempting a reconnect.', code)
+                _log.info('Websocket 以 %s 关闭，正在尝试重新连接。', code)
                 raise ReconnectWebSocket(self.shard_id) from None
             else:
-                _log.info('Websocket closed with %s, cannot reconnect.', code)
+                _log.info('Websocket 以 %s 关闭，无法重新连接。', code)
                 raise ConnectionClosed(self.socket, shard_id=self.shard_id, code=code) from None
 
     async def debug_send(self, data, /):
