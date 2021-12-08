@@ -43,7 +43,9 @@ if TYPE_CHECKING:
 class Guild(Hashable):
     """代表一个 QQ guild.
     这在官方 QQ UI 中称为 “频道” 。
+
     .. container:: operations
+
         .. describe:: x == y
             检查两个 guild 是否相等。
         .. describe:: x != y
@@ -66,6 +68,7 @@ class Guild(Hashable):
     max_members: Optional[:class:`int`]
         guild 成员的最大数量。
         .. note::
+
             该属性只能通过 :meth:`.Client.fetch_guild` 获得。
     description: Optional[:class:`str`]
         guild 的说明。
@@ -227,7 +230,8 @@ class Guild(Hashable):
     def by_category(self) -> List[ByCategoryItem]:
         """返回每个 :class:`CategoryChannel` 及其关联的频道。
         这些频道和类别按官方 QQ UI 顺序排序。
-        如果频道没有类别，则元组的第一个元素是“无”。
+        如果频道没有类别，则元组的第一个元素是 “None”。
+
         Returns
         --------
         List[Tuple[Optional[:class:`CategoryChannel`], List[:class:`abc.GuildChannel`]]]:
@@ -330,7 +334,7 @@ class Guild(Hashable):
     def member_count(self) -> int:
         """:class:`int`: 无论是否完全加载，都返回真实的成员计数。
         .. warning::
-            由于 QQ 的限制，为了使该属性保持最新和准确，它需要指定 :attr:`Intents.members`。
+            由于 QQ 的限制，为了使该属性保持最新和准确，它需要指定 :attr:`Intents.members` 。
         """
         return self._member_count
 
@@ -350,7 +354,9 @@ class Guild(Hashable):
         ----------
         创建基本频道：
         .. code-block:: python3
+
             channel = await guild.create_text_channel('cool-channel')
+
         Parameters
         -----------
         name: :class:`str`
@@ -361,6 +367,7 @@ class Guild(Hashable):
             在子频道列表中的位置。这是一个从 0 开始的数字。例如顶部子频道是位置 0。
         reason: Optional[:class:`str`]
             创建此频道的原因。显示在审计日志中。
+
         Raises
         -------
         Forbidden
@@ -407,23 +414,26 @@ class Guild(Hashable):
         reason: Optional[str] = None,
     ) -> LiveChannel:
         """|coro|
-        这类似于 :meth:`create_text_channel` ，除了创建一个 :class:`LiveChannel` 。
+        这类似于 :meth:`create_live_channel` ，除了创建一个 :class:`LiveChannel` 。
+
         Parameters
         -----------
         name: :class:`str`
             频道的名称。
-        category: Optional[:class:`CategoryChannel`]
+        category: Optional[:class:`LiveChannel`]
             将新创建的频道置于其下的类别。
         position: :class:`int`
             在频道列表中的位置。这是一个从 0 开始的数字。例如顶部通道是位置 0。
         reason: Optional[:class:`str`]
             创建此频道的原因。显示在审计日志中。
+
         Raises
         ------
         Forbidden
             您没有创建此频道的适当权限。
         HTTPException
             创建频道失败。
+
         Returns
         -------
         :class:`LiveChannel`
@@ -452,23 +462,26 @@ class Guild(Hashable):
         reason: Optional[str] = None,
     ) -> AppChannel:
         """|coro|
-        这类似于 :meth:`create_text_channel` ，除了生成一个 :class:`AppChannel`。
+        这类似于 :meth:`create_app_channel` ，除了生成一个 :class:`AppChannel`。
+
         Parameters
         -----------
         name: :class:`str`
             频道的名称。
-        category: Optional[:class:`CategoryChannel`]
+        category: Optional[:class:`AppChannel`]
             将新创建的频道置于其下的类别。
         position: :class:`int`
             在频道列表中的位置。这是一个从 0 开始的数字。例如顶部通道是位置 0。
         reason: Optional[:class:`str`]
             创建此频道的原因。显示在审计日志中。
+
         Raises
         ------
         Forbidden
             您没有创建此频道的适当权限。
         HTTPException
             创建频道失败。
+
         Returns
         -------
         :class:`AppChannel`
@@ -497,23 +510,26 @@ class Guild(Hashable):
         reason: Optional[str] = None,
     ) -> ThreadChannel:
         """|coro|
-        这类似于 :meth:`create_text_channel` ，除了生成一个 :class:`ThreadChannel`。
+        这类似于 :meth:`create_thread_channel` ，除了生成一个 :class:`ThreadChannel`。
+
         Parameters
         -----------
         name: :class:`str`
             频道的名称。
-        category: Optional[:class:`CategoryChannel`]
+        category: Optional[:class:`ThreadChannel`]
             将新创建的频道置于其下的类别。
         position: :class:`int`
             在频道列表中的位置。这是一个从 0 开始的数字。例如顶部通道是位置 0。
         reason: Optional[:class:`str`]
             创建此频道的原因。显示在审计日志中。
+
         Raises
         ------
         Forbidden
             您没有创建此频道的适当权限。
         HTTPException
             创建频道失败。
+
         Returns
         -------
         :class:`LiveChannel`
@@ -544,12 +560,14 @@ class Guild(Hashable):
         与 :meth:`create_text_channel` 相同，除了创建一个 :class:`CategoryChannel`。
         .. note::
             此函数不支持 ``category`` 参数，因为类别不能有类别。
+
         Raises
         ------
         Forbidden
             您没有创建此频道的适当权限。
         HTTPException
             创建频道失败。
+
         Returns
         -------
         :class:`CategoryChannel`
@@ -574,14 +592,15 @@ class Guild(Hashable):
         """|coro|
         检索频道拥有的所有 :class:`abc.GuildChannel`。
         .. note::
-            This method is an API call. For general usage, consider :attr:`channels` instead.
-        .. versionadded:: 1.2
+            该方法是一个 API 调用。 对于一般用途，请考虑 :attr:`channels`。
+
         Raises
         -------
         InvalidData
             从 QQ 接收到未知的频道类型。
         HTTPException
             检索频道失败。
+
         Returns
         -------
         Sequence[:class:`abc.GuildChannel`]
