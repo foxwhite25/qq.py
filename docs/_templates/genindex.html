@@ -9,12 +9,12 @@
     // this is pretty finicky but it should work.
     for(let el of elements) {
       let key = el.getAttribute('href').split('#', 2)[1]
-      if(!key.startsWith('discord.')) {
+      if(!key.startsWith('qq.')) {
         continue;
       }
 
-      if(key.startsWith('discord.ext.')) {
-        key = key.substr(12); // discord.ext.
+      if(key.startsWith('qq.ext.')) {
+        key = key.substr(12); // qq.ext.
       }
 
       if(el.textContent.indexOf('()') !== -1) {
