@@ -229,7 +229,7 @@ A :class:`File` 接受两个参数，类文件对象（或文件路径）和上�
     async def echo(ctx, message: str):
         await ctx.send(message)
 
-通过 ``?echo a b c`` 调用它只会获取第一个参数而忽略其余参数。 要解决此问题，你需要在边上加上引号``?echo "a b c"`` 或添加多个你需要的参数。 例子： ::
+通过 ``?echo a b c`` 调用它只会获取第一个参数而忽略其余参数。 要解决此问题，你需要在边上加上引号 ``?echo "a b c"`` 或添加多个你需要的参数。 例子： ::
 
     @bot.command()
     async def echo(ctx, a, b, c, message: str):

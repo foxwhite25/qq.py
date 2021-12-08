@@ -92,9 +92,9 @@ class BaseUser(_UserTag):
 
     @property
     def avatar(self) -> Optional[Asset]:
-        """Optional[:class:`Asset`]: Returns an :class:`Asset` for the avatar the user has.
-        If the user does not have a traditional avatar, ``None`` is returned.
-        If you want the avatar that a user has displayed, consider :attr:`display_avatar`.
+        """Optional[:class:`Asset`]: 返回用户拥有的头像的 :class:`Asset`。
+        如果用户没有传统头像，则返回 ``None``。
+        如果你想要用户显示的头像，请考虑 :attr:`display_avatar`。
         """
         if self._avatar is not None:
             return Asset._from_avatar(self._state, self._avatar)
@@ -102,52 +102,35 @@ class BaseUser(_UserTag):
 
     @property
     def display_avatar(self) -> Asset:
-        """:class:`Asset`: Returns the user's display avatar.
-        For regular users this is just their default avatar or uploaded avatar.
-        .. versionadded:: 2.0
+        """:class:`Asset`: 返回用户的显示头像。
+        对于普通用户，这只是他们的默认头像或上传的头像。
         """
         return self.avatar
 
     @property
-    def colour(self) -> Colour:
-        """:class:`Colour`: A property that returns a colour denoting the rendered colour
-        for the user. This always returns :meth:`Colour.default`.
-        There is an alias for this named :attr:`color`.
-        """
-        return Colour.default()
-
-    @property
-    def color(self) -> Colour:
-        """:class:`Colour`: A property that returns a color denoting the rendered color
-        for the user. This always returns :meth:`Colour.default`.
-        There is an alias for this named :attr:`colour`.
-        """
-        return self.colour
-
-    @property
     def mention(self) -> str:
-        """:class:`str`: Returns a string that allows you to mention the given user."""
+        """:class:`str`: 返回一个字符串，允许你提及给定的用户。"""
         return f'<@{self.id}>'
 
     @property
     def display_name(self) -> str:
-        """:class:`str`: Returns the user's display name.
-        For regular users this is just their username, but
-        if they have a guild specific nickname then that
-        is returned instead.
+        """:class:`str`: 返回用户的显示名称。
+        对于普通用户，这只是他们的用户名，但如果他们有频道特定的昵称，则返回该昵称。
         """
         return self.name
 
     def mentioned_in(self, message: Message) -> bool:
-        """Checks if the user is mentioned in the specified message.
+        """检查用户是否在指定的消息中被提及。
+        
         Parameters
         -----------
         message: :class:`Message`
-            The message to check if you're mentioned in.
+            用于检查是否被提及的消息。
+            
         Returns
         -------
         :class:`bool`
-            Indicates if the user is mentioned in the message.
+            指示消息中是否提到了用户。
         """
 
         if message.mention_everyone:
@@ -157,6 +140,36 @@ class BaseUser(_UserTag):
 
 
 class ClientUser(BaseUser):
+    """代表你的 QQ 用户。
+
+    .. container:: operations
+
+        .. describe:: x == y
+
+            检查两个用户是否相等。
+
+        .. describe:: x != y
+
+            检查两个用户是否不相等。
+
+        .. describe:: hash(x)
+
+            返回用户的哈希值。
+
+        .. describe:: str(x)
+
+            返回用户名。
+
+    Attributes
+    -----------
+    name: :class:`str`
+        用户的用户名。
+    id: :class:`int`
+        用户的唯一 ID。
+    bot: :class:`bool`
+        指定用户是否为机器人帐户。
+    """
+
     def __init__(self, *, state: ConnectionState, data: UserPayload) -> None:
         super().__init__(state=state, data=data)
 
@@ -170,6 +183,36 @@ class ClientUser(BaseUser):
 
 
 class User(BaseUser, Messageable):
+    """代表一个 QQ 用户。
+
+    .. container:: operations
+
+        .. describe:: x == y
+
+            检查两个用户是否相等。
+
+        .. describe:: x != y
+
+            检查两个用户是否不相等。
+
+        .. describe:: hash(x)
+
+            返回用户的哈希值。
+
+        .. describe:: str(x)
+
+            返回用户名。
+
+    Attributes
+    -----------
+    name: :class:`str`
+        用户的用户名。
+    id: :class:`int`
+        用户的唯一 ID。
+    bot: :class:`bool`
+        指定用户是否为机器人帐户。
+    """
+
     __slots__ = ('_stored',)
 
     def __init__(self, *, state: ConnectionState, data: UserPayload) -> None:
@@ -194,9 +237,11 @@ class User(BaseUser, Messageable):
 
     @property
     def mutual_guilds(self) -> List[Guild]:
-        """List[:class:`Guild`]: The guilds that the user shares with the client.
+        """List[:class:`Guild`]: 用户与客户端共同的频道。
+
         .. note::
-            This will only return mutual guilds within the client's internal cache.
-        .. versionadded:: 1.7
+
+            这只会返回客户端内部缓存中的共同频道。
+
         """
         return [guild for guild in self._state._guilds.values() if guild.get_member(self.id)]
