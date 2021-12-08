@@ -528,14 +528,6 @@ Role
 .. autoclass:: Role()
     :members:
 
-RoleTags
-~~~~~~~~~~
-
-.. attributetable:: RoleTags
-
-.. autoclass:: RoleTags()
-    :members:
-
 PartialMessageable
 ~~~~~~~~~~~~~~~~~~~~
 
