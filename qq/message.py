@@ -193,7 +193,7 @@ class Attachment(Hashable):
         HTTPException
             下载附件失败。
         Forbidden
-            您无权访问此附件
+            你无权访问此附件
         NotFound
             附件已删除。
 
@@ -216,7 +216,7 @@ class Attachment(Hashable):
         HTTPException
             下载附件失败。
         Forbidden
-            您无权访问此附件
+            你无权访问此附件
         NotFound
             附件已删除。
 
@@ -284,7 +284,7 @@ class Message(Hashable):
 
         .. warning::
 
-            提及列表的顺序没有任何特定顺序，因此您不应依赖它。 这是 QQ 的限制，与库无关。
+            提及列表的顺序没有任何特定顺序，因此你不应依赖它。 这是 QQ 的限制，与库无关。
 
     channel_mentions: List[:class:`abc.GuildChannel`]
         提到的 :class:`abc.GuildChannel` 的列表。 (官方还没有实现)
@@ -454,7 +454,7 @@ class Message(Hashable):
 
     @utils.cached_slot_property('_cs_raw_mentions')
     def raw_mentions(self) -> List[int]:
-        """List[:class:`int`]: 返回与消息内容中的```<@user_id>`` 语法匹配的用户 ID 数组的属性。
+        """List[:class:`int`]: 返回与消息内容中的 ``<@user_id>`` 语法匹配的用户 ID 数组的属性。
         """
         return [int(x) for x in re.findall(r'<@!?([0-9]{15,20})>', self.content)]
 
@@ -494,7 +494,7 @@ class Message(Hashable):
         .. note::
 
         这 **不** 影响 Markdown 。
-        如果您想转义或删除 Markdown，请分别使用 :func:`utils.escape_markdown` 或 :func:`utils.remove_markdown` 以及此功能。
+        如果你想转义或删除 Markdown，请分别使用 :func:`utils.escape_markdown` 或 :func:`utils.remove_markdown` 以及此功能。
 
         """
 
@@ -570,6 +570,28 @@ class Message(Hashable):
 
 
 class PartialMessage(Hashable):
+    """当仅存在消息和通道 ID 时，只使用部分消息以帮助处理消息。
+    有两种方法可以构造这个类。第一个是通过构造函数本身，第二个是通过以下方式：
+    - :meth:`TextChannel.get_partial_message`
+    注意这个类是被修剪过的，没有丰富的属性。
+
+    .. container:: operations
+
+        .. describe:: x == y
+            检查两个部分消息是否相等。
+        .. describe:: x != y
+            检查两个部分消息是否不相等。
+        .. describe:: hash(x)
+            返回部分消息的哈希值。
+
+    Attributes
+    -----------
+    channel: :class:`TextChannel`
+        与此部分消息关联的频道。
+    id: :class:`int`
+        消息 ID。
+    """
+
     __slots__ = ('channel', 'id', '_cs_guild', '_state')
 
     def __init__(self, *, channel: PartialMessageableChannel, id: int):
@@ -595,9 +617,26 @@ class PartialMessage(Hashable):
 
     @utils.cached_slot_property('_cs_guild')
     def guild(self) -> Optional[Guild]:
-        """Optional[:class:`Guild`]: The guild that the partial message belongs to, if applicable."""
+        """Optional[:class:`Guild`]: 部分消息所属的频道（如果适用）。"""
         return getattr(self.channel, 'guild', None)
 
     async def fetch(self) -> Message:
+        """|coro|
+        将部分消息获取到完整的 :class:`Message` 。
+
+        Raises
+        --------
+        NotFound
+            未找到该消息。
+        Forbidden
+            你没有获取消息所需的权限。
+        HTTPException
+            检索消息失败。
+        Returns
+        --------
+        :class:`Message`
+            完整的消息。
+        """
+
         data = await self._state.http.get_message(self.channel.id, self.id)
         return self._state.create_message(channel=self.channel, data=data)
