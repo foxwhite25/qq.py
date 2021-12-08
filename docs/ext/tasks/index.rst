@@ -1,6 +1,6 @@
-.. _discord_ext_tasks:
+.. _qq_ext_tasks:
 
-``discord.ext.tasks`` -- asyncio.Task 助手
+``qq.ext.tasks`` -- asyncio.Task 助手
 ====================================================
 
 .. versionadded:: 1.1.0
@@ -16,7 +16,7 @@
 教程
 ---------
 
-一个简单的后台任务:class:`~discord.ext.commands.Cog`:
+一个简单的后台任务:class:`~qq.ext.commands.Cog`:
 
 .. code-block:: python3
 
@@ -62,7 +62,7 @@
 
 .. code-block:: python3
 
-    from discord.ext import tasks
+    from qq.ext import tasks
 
     @tasks.loop(seconds=5.0, count=5)
     async def slow_count():
@@ -78,7 +78,7 @@
 
 .. code-block:: python3
 
-    from discord.ext import tasks, commands
+    from qq.ext import tasks, commands
 
     class MyCog(commands.Cog):
         def __init__(self, bot):
@@ -103,7 +103,7 @@
 
 .. code-block:: python3
 
-    from discord.ext import tasks, commands
+    from qq.ext import tasks, commands
     import asyncio
 
     class MyCog(commands.Cog):
@@ -135,9 +135,9 @@
 API 参考
 ---------------
 
-.. attributetable:: discord.ext.tasks.Loop
+.. attributetable:: qq.ext.tasks.Loop
 
-.. autoclass:: discord.ext.tasks.Loop()
+.. autoclass:: qq.ext.tasks.Loop()
     :members:
     :special-members: __call__
     :exclude-members: after_loop, before_loop, error
@@ -151,4 +151,4 @@ API 参考
     .. automethod:: Loop.error()
         :decorator:
 
-.. autofunction:: discord.ext.tasks.loop
+.. autofunction:: qq.ext.tasks.loop
