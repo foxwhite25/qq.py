@@ -459,6 +459,24 @@ API 为某些类型的字符串提供了一些枚举，以避免 API 被字符�
         :param predicate: 调用每个元素的谓词。 可能是 |coroutine_link|_。
         :rtype: :class:`AsyncIterator`
 
+QQ 模型
+---------------
+
+模型是从 QQ 接收的类，并不打算由库的用户创建。
+
+.. danger::
+
+    下面列出的类 **不是由用户创建的** ，也是 **只读的** 。
+
+    例如，这意味着您不应该创建自己的 :class:`User` 实例，也不应该自己修改 :class:`User` 实例。
+
+    如果你想获得这些模型类实例中的一个，
+    必须通过缓存，而一种常见的方法是通过 :func:`utils.find` 函数或
+    从 :ref:`qq-api-events` 中指定的事件获取 。
+
+.. note::
+
+    这里几乎所有的类都定义了 :ref:`py:slots`，这意味着数据类不可能有动态属性。
 
 ClientUser
 ~~~~~~~~~~~~
