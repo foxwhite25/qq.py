@@ -31,6 +31,24 @@ if TYPE_CHECKING:
 
 
 class MessageReference:
+    """表示对 :class:`~discord.Message` 的引用。 这个类现在可以由用户构建。
+
+    Attributes
+    -----------
+    message_id: Optional[:class:`int`]
+        引用的消息的 ID。
+    channel_id: :class:`int`
+        引用的消息的子频道 ID。
+    guild_id: Optional[:class:`int`]
+        所引用消息的频道 ID。
+    fail_if_not_exists: :class:`bool`
+        回复引用的消息是否应该引发 :class:`HTTPException`
+        如果消息不再存在或 QQ 无法获取消息。
+    resolved: Optional[:class:`Message`]
+        此引用将解析为的消息。 如果这是 ``None`` ，那么原始消息没有被获取，要么是因为 QQ API 没有尝试解析它，要么在创建时它不可用。
+
+        目前，这主要是用户回复消息时的回复消息。
+    """
     __slots__ = ('message_id', 'channel_id', 'guild_id', 'fail_if_not_exists', 'resolved', '_state')
 
     def __init__(self, *, message_id: int, channel_id: int, guild_id: Optional[int] = None,
@@ -55,6 +73,22 @@ class MessageReference:
 
     @classmethod
     def from_message(cls: Type[MR], message: Message, *, fail_if_not_exists: bool = True) -> MR:
+        """从现有的 :class:`~discord.Message` 创建一个 :class:`MessageReference` 。
+
+        Parameters
+        ----------
+        message: :class:`~discord.Message`
+            要转换为引用的消息。
+        fail_if_not_exists: :class:`bool`
+            回复引用的消息是否应该引发 :class:`HTTPException`
+            如果消息不再存在或 QQ 无法获取消息。
+
+        Returns
+        -------
+        :class:`MessageReference`
+            对消息的引用。
+        """
+
         self = cls(
             message_id=message.id,
             channel_id=message.channel.id,
@@ -84,18 +118,25 @@ class MessageReference:
 
 
 class Attachment(Hashable):
-    __slots__ = ('id', 'size', 'height', 'width', 'filename', 'url', 'proxy_url', '_http', 'content_type')
+    """代表来自 QQ 的附件。
+    .. container:: operations
+        .. describe:: str(x)
+            返回附件的 URL。
+
+    Attributes
+    ------------
+    url: :class:`str`
+        附件网址。 如果此附件被删除，则这将是 404。
+    """
+
+    __slots__ = ('url', '_http')
 
     def __init__(self, *, data: AttachmentPayload, state: ConnectionState):
         self.url: str = data.get('url')
         self._http = state.http
 
-    def is_spoiler(self) -> bool:
-        """:class:`bool`: Whether this attachment contains a spoiler."""
-        return self.filename.startswith('SPOILER_')
-
     def __repr__(self) -> str:
-        return f'<Attachment id={self.id} filename={self.filename!r} url={self.url!r}>'
+        return f'<Attachment url={self.url!r}>'
 
     def __str__(self) -> str:
         return self.url or ''
@@ -105,9 +146,31 @@ class Attachment(Hashable):
             fp: Union[io.BufferedIOBase, PathLike],
             *,
             seek_begin: bool = True,
-            use_cached: bool = False,
     ) -> int:
-        data = await self.read(use_cached=use_cached)
+        """|coro|
+        将此附件保存到类文件对象中。
+
+        Parameters
+        -----------
+        fp: Union[:class:`io.BufferedIOBase`, :class:`os.PathLike`]
+            将此附件保存到的类文件对象或要使用的文件名。 如果传递了文件名，则会使用该文件名创建一个文件并改为使用该文件。
+        seek_begin: :class:`bool`
+            保存成功后是否查找文件开头。
+
+        Raises
+        --------
+        HTTPException
+            保存附件失败。
+        NotFound
+            附件已删除。
+
+        Returns
+        --------
+        :class:`int`
+            写入的字节数。
+        """
+
+        data = await self.read()
         if isinstance(fp, io.BufferedIOBase):
             written = fp.write(data)
             if seek_begin:
@@ -117,14 +180,50 @@ class Attachment(Hashable):
             with open(fp, 'wb') as f:
                 return f.write(data)
 
-    async def read(self, *, use_cached: bool = False) -> bytes:
-        url = self.proxy_url if use_cached else self.url
+    async def read(self) -> bytes:
+        """|coro|
+        检索此附件的内容作为 :class:`bytes` 对象。
+
+        Raises
+        ------
+        HTTPException
+            下载附件失败。
+        Forbidden
+            您无权访问此附件
+        NotFound
+            附件已删除。
+
+        Returns
+        -------
+        :class:`bytes`
+            附件的内容。
+        """
+
+        url = self.url
         data = await self._http.get_from_cdn(url)
         return data
 
-    async def to_file(self, *, use_cached: bool = False, spoiler: bool = False) -> File:
-        data = await self.read(use_cached=use_cached)
-        return File(io.BytesIO(data), filename=self.filename, spoiler=spoiler)
+    async def to_file(self) -> File:
+        """|coro|
+        将附件转换为适合通过 :meth:`abc.Messageable.send` 发送的 :class:`File`。
+
+        Raises
+        ------
+        HTTPException
+            下载附件失败。
+        Forbidden
+            您无权访问此附件
+        NotFound
+            附件已删除。
+
+        Returns
+        -------
+        :class:`File`
+            附件作为适合发送的文件。
+        """
+
+        data = await self.read()
+        return File(io.BytesIO(data))
 
     def to_dict(self) -> AttachmentPayload:
         result: AttachmentPayload = {'url': self.url}

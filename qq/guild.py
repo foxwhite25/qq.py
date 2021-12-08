@@ -171,7 +171,7 @@ class Guild(Hashable):
 
     @property
     def owner(self) -> Optional[Member]:
-        """Optional[:class:`Member`]: The member that owns the guild."""
+        """Optional[:class:`Member`]: 拥有频道的成员。"""
         return self.get_member(self.owner_id)
 
     @property
@@ -181,10 +181,12 @@ class Guild(Hashable):
 
     def get_role(self, role_id: int, /) -> Optional[Role]:
         """返回具有给定 ID 的 Role。
+
         Parameters
         -----------
         role_id: :class:`int`
             要搜索的 ID。
+
         Returns
         --------
         Optional[:class:`Role`]
@@ -207,7 +209,7 @@ class Guild(Hashable):
 
     @property
     def me(self) -> Member:
-        """:class:`Member`: 类似于:attr:`Client.user`，除了它是 :class:`Member` 的一个实例。
+        """:class:`Member`: 类似于 :attr:`Client.user` ，除了它是 :class:`Member` 的一个实例。
         这主要用于获取您自己的 Member 版本。
         """
         self_id = self._state.user.id
@@ -318,10 +320,12 @@ class Guild(Hashable):
         """返回找到的第一个与提供的名称匹配的成员。
         如果传递了昵称，则通过昵称查找它。
         如果没有找到成员，则返回 “None”。
+
         Parameters
         -----------
         name: :class:`str`
             要查找的成员的名称。
+
         Returns
         --------
         Optional[:class:`Member`]
@@ -802,7 +806,7 @@ class Guild(Hashable):
         name: :class:`str`
             身份组名称。
         colour: Union[:class:`Colour`, :class:`int`]
-            身份组的颜色。默认为:meth:`Colour.default`。这也是 ``Color`` 的别名。
+            身份组的颜色。默认为 :meth:`Colour.default` 。这也是 ``Color`` 的别名。
         hoist: :class:`bool`
             指示身份组是否应单独显示在成员列表中。默认为 ``False``。
         mentionable: :class:`bool`
