@@ -35,11 +35,11 @@ class AssetMixin:
         HTTPException
             下载素材失败。
         NotFound
-            资产已删除。
+            素材已删除。
         Returns
         -------
         :class:`bytes`
-            资产的内容。
+            素材的内容。
         """
 
         if self._state is None:
@@ -49,7 +49,7 @@ class AssetMixin:
 
     async def save(self, fp: Union[str, bytes, os.PathLike, io.BufferedIOBase], *, seek_begin: bool = True) -> int:
         """|coro|
-        将此资产保存到类似文件的对象中。
+        将此素材保存到类似文件的对象中。
 
         Parameters
         ----------
@@ -64,9 +64,9 @@ class AssetMixin:
         QQException
             没有内部连接状态。
         HTTPException
-            下载资产失败。
+            下载素材失败。
         NotFound
-            资产已删除。
+            素材已删除。
 
         Returns
         --------
@@ -92,23 +92,23 @@ class Asset(AssetMixin):
 
         .. describe:: str(x)
 
-            返回 CDN 资产的 URL。
+            返回素材的 URL。
 
         .. describe:: len(x)
 
-            返回 CDN 资产 URL 的长度。
+            返回素材 URL 的长度。
 
         .. describe:: x == y
 
-            检查资产是否等于另一个资产。
+            检查素材是否等于另一个素材。
 
         .. describe:: x != y
 
-            检查资产是否不等于另一个资产。
+            检查素材是否不等于另一个素材。
 
         .. describe:: hash(x)
 
-            返回资产的哈希值。
+            返回素材的哈希值。
     """
 
     __slots__: Tuple[str, ...] = (
@@ -156,10 +156,10 @@ class Asset(AssetMixin):
 
     @property
     def url(self) -> str:
-        """:class:`str`: 返回资产的底层 URL。"""
+        """:class:`str`: 返回素材的底层 URL。"""
         return self._url
 
     @property
     def key(self) -> str:
-        """:class:`str`: 返回资产的识别键。"""
+        """:class:`str`: 返回素材的识别键。"""
         return self._key
