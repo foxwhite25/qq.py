@@ -4,7 +4,7 @@ import datetime
 import io
 import re
 from os import PathLike
-from typing import Union, Optional, TYPE_CHECKING, ClassVar, Tuple, List, Callable, overload, Any
+from typing import Union, Optional, TYPE_CHECKING, ClassVar, Tuple, List, Callable, overload, Any, Type, TypeVar
 
 from . import utils
 from .file import File
@@ -26,6 +26,61 @@ if TYPE_CHECKING:
     from .types.user import User as UserPayload
     from .types.member import Member as MemberPayload, UserWithMember as UserWithMemberPayload
     from .user import User
+
+    MR = TypeVar('MR', bound='MessageReference')
+
+
+class MessageReference:
+    __slots__ = ('message_id', 'channel_id', 'guild_id', 'fail_if_not_exists', 'resolved', '_state')
+
+    def __init__(self, *, message_id: int, channel_id: int, guild_id: Optional[int] = None,
+                 fail_if_not_exists: bool = True):
+        self._state: Optional[ConnectionState] = None
+        self.resolved: Optional[Message] = None
+        self.message_id: Optional[int] = message_id
+        self.channel_id: int = channel_id
+        self.guild_id: Optional[int] = guild_id
+        self.fail_if_not_exists: bool = fail_if_not_exists
+
+    @classmethod
+    def with_state(cls: Type[MR], state: ConnectionState, data: MessageReferencePayload) -> MR:
+        self = cls.__new__(cls)
+        self.message_id = data.get('message_id')
+        self.channel_id = int(data.pop('channel_id'))
+        self.guild_id = data.get('guild_id')
+        self.fail_if_not_exists = data.get('fail_if_not_exists', True)
+        self._state = state
+        self.resolved = None
+        return self
+
+    @classmethod
+    def from_message(cls: Type[MR], message: Message, *, fail_if_not_exists: bool = True) -> MR:
+        self = cls(
+            message_id=message.id,
+            channel_id=message.channel.id,
+            guild_id=getattr(message.guild, 'id', None),
+            fail_if_not_exists=fail_if_not_exists,
+        )
+        self._state = message._state
+        return self
+
+    @property
+    def cached_message(self) -> Optional[Message]:
+        return self._state and self._state._get_message(self.message_id)
+
+    def __repr__(self) -> str:
+        return f'<MessageReference message_id={self.message_id!r} channel_id={self.channel_id!r} guild_id={self.guild_id!r}>'
+
+    def to_dict(self) -> MessageReferencePayload:
+        result: MessageReferencePayload = {'message_id': self.message_id} if self.message_id is not None else {}
+        result['channel_id'] = self.channel_id
+        if self.guild_id is not None:
+            result['guild_id'] = self.guild_id
+        if self.fail_if_not_exists is not None:
+            result['fail_if_not_exists'] = self.fail_if_not_exists
+        return result
+
+    to_message_reference_dict = to_dict
 
 
 class Attachment(Hashable):
@@ -131,8 +186,8 @@ class Message(Hashable):
         self.id: str = data['id']
         self.attachments: Optional[List[Attachment]] = \
             [Attachment(data=a, state=self._state) for a in data['attachments']] \
-            if 'attachment' in data else None
-        self.embeds: Optional[List[Embed]] = [Embed.from_dict(a) for a in data['embeds']]\
+                if 'attachment' in data else None
+        self.embeds: Optional[List[Embed]] = [Embed.from_dict(a) for a in data['embeds']] \
             if 'embeds' in data else None
         self.channel: MessageableChannel = channel
         self._edited_timestamp: Optional[datetime.datetime] = utils.parse_time(data['edited_timestamp']) \
