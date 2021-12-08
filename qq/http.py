@@ -14,7 +14,7 @@ from . import __version__, utils, role
 from .error import HTTPException, Forbidden, NotFound, QQServerError, LoginFailure, GatewayNotFound
 from .gateway import QQClientWebSocketResponse
 from .types.message import Message
-from .types import user, guild, message
+from .types import user, guild, message, channel, member
 from .types.embed import Embed
 from .utils import MISSING
 from .types.channel import Channel as ChannelPayload
@@ -312,6 +312,53 @@ class HTTPClient:
         )
         return self.request(r, reason=reason)
 
+    def create_channel(
+            self,
+            guild_id: int,
+            channel_type: channel.ChannelType,
+            *,
+            reason: Optional[str] = None,
+            **options: Any,
+    ) -> Response[channel.GuildChannel]:
+        payload = {
+            'type': channel_type,
+        }
+
+        valid_keys = (
+            'name',
+            'parent_id',
+            'position',
+        )
+        payload.update({k: v for k, v in options.items() if k in valid_keys and v is not None})
+
+        return self.request(Route('POST', '/guilds/{guild_id}/channels', guild_id=guild_id), json=payload,
+                            reason=reason)
+
+    def edit_channel(
+            self,
+            channel_id: int,
+            *,
+            reason: Optional[str] = None,
+            **options: Any,
+    ) -> Response[channel.Channel]:
+        r = Route('PATCH', '/channels/{channel_id}', channel_id=channel_id)
+        valid_keys = (
+            'name',
+            'parent_id',
+            'position',
+            'type',
+        )
+        payload = {k: v for k, v in options.items() if k in valid_keys}
+        return self.request(r, reason=reason, json=payload)
+
+    def delete_channel(
+            self,
+            channel_id: int,
+            *,
+            reason: Optional[str] = None,
+    ) -> Response[None]:
+        return self.request(Route('DELETE', '/channels/{channel_id}', channel_id=channel_id), reason=reason)
+
     async def get_from_cdn(self, url: str) -> bytes:
         async with self.__session.get(url) as resp:
             if resp.status == 200:
@@ -399,3 +446,21 @@ class HTTPClient:
 
         return self.request(r, json=payload)
 
+    def get_all_guild_channels(self, guild_id: int) -> Response[List[guild.GuildChannel]]:
+        return self.request(Route('GET', '/guilds/{guild_id}/channels', guild_id=guild_id))
+
+    def get_member(self, guild_id: int, member_id: int) -> Response[member.MemberWithUser]:
+        return self.request(
+            Route('GET', '/guilds/{guild_id}/members/{member_id}', guild_id=guild_id, member_id=member_id))
+
+    def get_channel(self, channel_id: int) -> Response[channel.Channel]:
+        r = Route('GET', '/channels/{channel_id}', channel_id=channel_id)
+        return self.request(r)
+
+    def kick(self, user_id: int, guild_id: int, reason: Optional[str] = None) -> Response[None]:
+        r = Route('DELETE', '/guilds/{guild_id}/members/{user_id}', guild_id=guild_id, user_id=user_id)
+        if reason:
+            # thanks aiohttp
+            r.url = f'{r.url}?reason={_uriquote(reason)}'
+
+        return self.request(r)
