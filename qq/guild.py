@@ -270,10 +270,12 @@ class Guild(Hashable):
 
     def get_channel(self, channel_id: int, /) -> Optional[GuildChannel]:
         """返回具有给定 ID 的频道。
+
         Parameters
         -----------
         channel_id: :class:`int`
             要搜索的 ID。
+
         Returns
         --------
         Optional[:class:`.abc.GuildChannel`]
@@ -283,10 +285,12 @@ class Guild(Hashable):
 
     def get_member(self, user_id: int, /) -> Optional[Member]:
         """返回具有给定 ID 的成员。
+
         Parameters
         -----------
         user_id: :class:`int`
             要搜索的 ID。
+
         Returns
         --------
         Optional[:class:`Member`]
@@ -336,7 +340,9 @@ class Guild(Hashable):
     @property
     def member_count(self) -> int:
         """:class:`int`: 无论是否完全加载，都返回真实的成员计数。
+
         .. warning::
+
             由于 QQ 的限制，为了使该属性保持最新和准确，它需要指定 :attr:`Intents.members` 。
         """
         return self._member_count
@@ -350,7 +356,7 @@ class Guild(Hashable):
             position: int = MISSING,
     ) -> TextChannel:
         """|coro|
-        为频道创建一个:class:`TextChannel`。
+        为频道创建一个 :class:`TextChannel` 。
 
         .. note::
 
@@ -359,6 +365,7 @@ class Guild(Hashable):
         Examples
         ----------
         创建基本频道：
+
         .. code-block:: python3
 
             channel = await guild.create_text_channel('cool-channel')
@@ -372,7 +379,7 @@ class Guild(Hashable):
         position: :class:`int`
             在子频道列表中的位置。这是一个从 0 开始的数字。例如顶部子频道是位置 0。
         reason: Optional[:class:`str`]
-            创建此频道的原因。显示在审计日志中。
+            创建此频道的原因。
 
         Raises
         -------
@@ -431,7 +438,7 @@ class Guild(Hashable):
         position: :class:`int`
             在频道列表中的位置。这是一个从 0 开始的数字。例如顶部通道是位置 0。
         reason: Optional[:class:`str`]
-            创建此频道的原因。显示在审计日志中。
+            创建此频道的原因。
 
         Raises
         ------
@@ -479,7 +486,7 @@ class Guild(Hashable):
         position: :class:`int`
             在频道列表中的位置。这是一个从 0 开始的数字。例如顶部通道是位置 0。
         reason: Optional[:class:`str`]
-            创建此频道的原因。显示在审计日志中。
+            创建此频道的原因。
 
         Raises
         ------
@@ -527,7 +534,7 @@ class Guild(Hashable):
         position: :class:`int`
             在频道列表中的位置。这是一个从 0 开始的数字。例如顶部通道是位置 0。
         reason: Optional[:class:`str`]
-            创建此频道的原因。显示在审计日志中。
+            创建此频道的原因。
 
         Raises
         ------
@@ -630,7 +637,6 @@ class Guild(Hashable):
         """检索一个 :class:`.AsyncIterator` 来接收频道的成员。为了使用它，必须启用:meth:`Intents.members`。
 
         .. note::
-
             该方法是一个 API 调用。对于一般用法，请考虑 :attr:`members`。
 
         Parameters
@@ -652,12 +658,16 @@ class Guild(Hashable):
 
         Examples
         --------
-        用法 ::
+        用法  ::
+
             async for member in guild.fetch_members(limit=150):
                 print(member.name)
+
         展平成一个列表 ::
+
             members = await guild.fetch_members(limit=150).flatten()
             # 成员现在是一个Member列表 ...
+
         """
 
         if not self._state._intents.members:
@@ -785,7 +795,8 @@ class Guild(Hashable):
         reason: Optional[str] = None,
     ) -> Role:
         """|coro|
-        为频道创建一个身份组身份组。所有字段都是可选的。您必须具有 :attr:`~Permissions.manage_roles` 权限才能执行此操作。
+        为频道创建一个身份组。
+        
         Parameters
         -----------
         name: :class:`str`
@@ -797,7 +808,8 @@ class Guild(Hashable):
         mentionable: :class:`bool`
             指示身份组是否应该被其他人提及。默认为 ``False``。
         reason: Optional[:class:`str`]
-            创建此身份组的原因。显示在审计日志中。
+            创建此身份组的原因。
+            
         Raises
         -------
         Forbidden
@@ -806,6 +818,7 @@ class Guild(Hashable):
             创建身份组失败。
         InvalidArgument
             给出了无效的关键字参数。
+            
         Returns
         --------
         :class:`Role`
@@ -836,12 +849,14 @@ class Guild(Hashable):
     async def kick(self, user: Member, *, reason: Optional[str] = None) -> None:
         """|coro|
         将一个用户踢出公会。
+
         Parameters
         -----------
         user: :class:`Member`
             踢出的用户。
         reason: Optional[:class:`str`]
             用户被踢的原因。
+
         Raises
         -------
         Forbidden

@@ -57,8 +57,8 @@
   :maxdepth: 1
 
   api
-  discord.ext.commands API Reference <ext/commands/api.rst>
-  discord.ext.tasks API Reference <ext/tasks/index.rst>
+  qq.ext.commands API Reference <ext/commands/api.rst>
+  qq.ext.tasks API Reference <ext/tasks/index.rst>
 
 Meta
 ------
