@@ -477,13 +477,6 @@ User
 .. autoclass:: User()
     :members:
     :inherited-members:
-    :exclude-members: history, typing
-
-    .. automethod:: history
-        :async-for:
-
-    .. automethod:: typing
-        :async-with:
 
 Attachment
 ~~~~~~~~~~~
@@ -564,13 +557,6 @@ TextChannel
 .. autoclass:: TextChannel()
     :members:
     :inherited-members:
-    :exclude-members: history, typing
-
-    .. automethod:: history
-        :async-for:
-
-    .. automethod:: typing
-        :async-with:
 
 VoiceChannel
 ~~~~~~~~~~~~~
