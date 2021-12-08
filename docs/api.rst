@@ -301,26 +301,20 @@ AutoShardedClient
 
 .. _qq-api-utils:
 
-Utility Functions
+实用功能
 -----------------
 
 .. autofunction:: qq.utils.find
 
 .. autofunction:: qq.utils.get
 
-.. autofunction:: qq.utils.snowflake_time
-
-.. autofunction:: qq.utils.oauth_url
+.. autofunction:: qq.utils
 
 .. autofunction:: qq.utils.remove_markdown
 
 .. autofunction:: qq.utils.escape_markdown
 
 .. autofunction:: qq.utils.escape_mentions
-
-.. autofunction:: qq.utils.resolve_invite
-
-.. autofunction:: qq.utils.resolve_template
 
 .. autofunction:: qq.utils.sleep_until
 

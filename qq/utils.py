@@ -7,17 +7,143 @@ import sys
 from bisect import bisect_left
 from operator import attrgetter
 from typing import Any, Callable, TypeVar, overload, Optional, Iterable, List, TYPE_CHECKING, Generic, Type, Dict, \
-    ForwardRef, Literal, Tuple, Union
+    ForwardRef, Literal, Tuple, Union, Iterator, AsyncIterator
 from inspect import isawaitable as _isawaitable, signature as _signature
 
 T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)
+_Iter = Union[Iterator[T], AsyncIterator[T]]
 _MARKDOWN_ESCAPE_SUBREGEX = '|'.join(r'\{0}(?=([\s\S]*((?<!\{0})\{0})))'.format(c) for c in ('*', '`', '_', '~', '|'))
 _MARKDOWN_ESCAPE_COMMON = r'^>(?:>>)?\s|\[.+\]\(.+\)'
 _MARKDOWN_ESCAPE_REGEX = re.compile(fr'(?P<markdown>{_MARKDOWN_ESCAPE_SUBREGEX}|{_MARKDOWN_ESCAPE_COMMON})',
                                     re.MULTILINE)
 _URL_REGEX = r'(?P<url><[^: >]+:\/[^ >]+>|(?:https?|steam):\/\/[^\s<]+[^<.,:;\"\'\]\s])'
 _MARKDOWN_STOCK_REGEX = fr'(?P<markdown>[_\\~|\*`]|{_MARKDOWN_ESCAPE_COMMON})'
+
+__all__ = (
+    'find',
+    'get',
+    'sleep_until',
+    'utcnow',
+    'remove_markdown',
+    'escape_markdown',
+    'escape_mentions',
+    'as_chunks',
+    'format_dt',
+)
+
+
+def utcnow() -> datetime.datetime:
+    """A helper function to return an aware UTC datetime representing the current time.
+    This should be preferred to :meth:`datetime.datetime.utcnow` since it is an aware
+    datetime, compared to the naive datetime in the standard library.
+    .. versionadded:: 2.0
+    Returns
+    --------
+    :class:`datetime.datetime`
+        The current aware datetime in UTC.
+    """
+    return datetime.datetime.now(datetime.timezone.utc)
+
+
+@overload
+def as_chunks(iterator: Iterator[T], max_size: int) -> Iterator[List[T]]:
+    ...
+
+
+@overload
+def as_chunks(iterator: AsyncIterator[T], max_size: int) -> AsyncIterator[List[T]]:
+    ...
+
+
+def as_chunks(iterator: _Iter[T], max_size: int) -> _Iter[List[T]]:
+    """A helper function that collects an iterator into chunks of a given size.
+    .. versionadded:: 2.0
+    Parameters
+    ----------
+    iterator: Union[:class:`collections.abc.Iterator`, :class:`collections.abc.AsyncIterator`]
+        The iterator to chunk, can be sync or async.
+    max_size: :class:`int`
+        The maximum chunk size.
+    .. warning::
+        The last chunk collected may not be as large as ``max_size``.
+    Returns
+    --------
+    Union[:class:`Iterator`, :class:`AsyncIterator`]
+        A new iterator which yields chunks of a given size.
+    """
+    if max_size <= 0:
+        raise ValueError('Chunk sizes must be greater than 0.')
+
+    if isinstance(iterator, AsyncIterator):
+        return _achunk(iterator, max_size)
+    return _chunk(iterator, max_size)
+
+
+PY_310 = sys.version_info >= (3, 10)
+
+
+def format_dt(dt: datetime.datetime, /, style: Optional[TimestampStyle] = None) -> str:
+    """A helper function to format a :class:`datetime.datetime` for presentation within Discord.
+    This allows for a locale-independent way of presenting data using Discord specific Markdown.
+    +-------------+----------------------------+-----------------+
+    |    Style    |       Example Output       |   Description   |
+    +=============+============================+=================+
+    | t           | 22:57                      | Short Time      |
+    +-------------+----------------------------+-----------------+
+    | T           | 22:57:58                   | Long Time       |
+    +-------------+----------------------------+-----------------+
+    | d           | 17/05/2016                 | Short Date      |
+    +-------------+----------------------------+-----------------+
+    | D           | 17 May 2016                | Long Date       |
+    +-------------+----------------------------+-----------------+
+    | f (default) | 17 May 2016 22:57          | Short Date Time |
+    +-------------+----------------------------+-----------------+
+    | F           | Tuesday, 17 May 2016 22:57 | Long Date Time  |
+    +-------------+----------------------------+-----------------+
+    | R           | 5 years ago                | Relative Time   |
+    +-------------+----------------------------+-----------------+
+    Note that the exact output depends on the user's locale setting in the client. The example output
+    presented is using the ``en-GB`` locale.
+    .. versionadded:: 2.0
+    Parameters
+    -----------
+    dt: :class:`datetime.datetime`
+        The datetime to format.
+    style: :class:`str`
+        The style to format the datetime with.
+    Returns
+    --------
+    :class:`str`
+        The formatted string.
+    """
+    if style is None:
+        return f'<t:{int(dt.timestamp())}>'
+    return f'<t:{int(dt.timestamp())}:{style}>'
+
+
+def compute_timedelta(dt: datetime.datetime):
+    if dt.tzinfo is None:
+        dt = dt.astimezone()
+    now = datetime.datetime.now(datetime.timezone.utc)
+    return max((dt - now).total_seconds(), 0)
+
+
+async def sleep_until(when: datetime.datetime, result: Optional[T] = None) -> Optional[T]:
+    """|coro|
+    Sleep until a specified time.
+    If the time supplied is in the past this function will yield instantly.
+    .. versionadded:: 1.3
+    Parameters
+    -----------
+    when: :class:`datetime.datetime`
+        The timestamp in which to sleep until. If the datetime is naive then
+        it is assumed to be local time.
+    result: Any
+        If provided is returned to the caller when the coroutine completes.
+    """
+    delta = compute_timedelta(when)
+    return await asyncio.sleep(delta, result)
 
 
 def remove_markdown(text: str, *, ignore_links: bool = True) -> str:
