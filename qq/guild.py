@@ -54,6 +54,7 @@ class Guild(Hashable):
             返回 guild 的哈希值。
         .. describe:: str(x)
             返回 guild 的名称。
+
     Attributes
     ----------
     name: :class:`str`
@@ -67,9 +68,11 @@ class Guild(Hashable):
         如果频道不可用，最好不要对频道做任何事情。
     max_members: Optional[:class:`int`]
         guild 成员的最大数量。
+
         .. note::
 
             该属性只能通过 :meth:`.Client.fetch_guild` 获得。
+
     description: Optional[:class:`str`]
         guild 的说明。
     """
@@ -348,8 +351,11 @@ class Guild(Hashable):
     ) -> TextChannel:
         """|coro|
         为频道创建一个:class:`TextChannel`。
+
         .. note::
+
             创建指定位置的频道不会更新其他频道的位置以效仿。需要对 :meth:`~TextChannel.edit` 进行后续调用以更新频道在频道列表中的位置。
+
         Examples
         ----------
         创建基本频道：
@@ -558,6 +564,7 @@ class Guild(Hashable):
     ) -> CategoryChannel:
         """|coro|
         与 :meth:`create_text_channel` 相同，除了创建一个 :class:`CategoryChannel`。
+
         .. note::
             此函数不支持 ``category`` 参数，因为类别不能有类别。
 
@@ -591,6 +598,7 @@ class Guild(Hashable):
     async def fetch_channels(self) -> Sequence[GuildChannel]:
         """|coro|
         检索频道拥有的所有 :class:`abc.GuildChannel`。
+
         .. note::
             该方法是一个 API 调用。 对于一般用途，请考虑 :attr:`channels`。
 
@@ -620,23 +628,28 @@ class Guild(Hashable):
 
     def fetch_members(self, *, limit: int = 1000) -> MemberIterator:
         """检索一个 :class:`.AsyncIterator` 来接收频道的成员。为了使用它，必须启用:meth:`Intents.members`。
+
         .. note::
+
             该方法是一个 API 调用。对于一般用法，请考虑 :attr:`members`。
 
         Parameters
         ----------
         limit: Optional[:class:`int`]
             要检索的成员数。默认为 1000。传递“无”以获取所有成员。请注意，这可能很慢。
+
         Raises
         ------
         ClientException
             成员意图未启用。
         HTTPException
             获取成员失败。
+
         Yields
         ------
         :class:`.Member`
             已解析成员数据的成员。
+
         Examples
         --------
         用法 ::
@@ -655,18 +668,22 @@ class Guild(Hashable):
     async def fetch_member(self, member_id: int, /) -> Member:
         """|coro|
         从频道 ID 和成员 ID 中检索:class:`Member`。
+
         .. note::
             该方法是一个 API 调用。如果您启用了 :attr:`Intents.members` 和成员缓存，请考虑使用 :meth:`get_member`。
+
         Parameters
         -----------
         member_id: :class:`int`
             要从中获取的成员 ID。
+
         Raises
         -------
         Forbidden
             您无权访问频道。
         HTTPException
             获取成员失败。
+
         Returns
         --------
         :class:`Member`
@@ -678,8 +695,11 @@ class Guild(Hashable):
     async def fetch_channel(self, channel_id: int, /) -> GuildChannel:
         """|coro|
         检索具有指定 ID 的 :class:`.abc.GuildChannel`。
+
         .. note::
+
             该方法是一个 API 调用。对于一般用法，请考虑 :meth:`get_channel`。
+
         Raises
         -------
         :exc:`.InvalidData`
@@ -690,6 +710,7 @@ class Guild(Hashable):
             无效的频道 ID。
         :exc:`.Forbidden`
             您无权获取此频道。
+
         Returns
         --------
         :class:`.abc.GuildChannel`
@@ -712,12 +733,15 @@ class Guild(Hashable):
         """|coro|
         检索频道拥有的所有 :class:`Role`。
         .. note::
+
             该方法是一个 API 调用。对于一般用法，请考虑 :attr:`roles`。
         .. versionadded:: 1.3
+
         Raises
         -------
         HTTPException
             检索身份组失败。
+
         Returns
         -------
         List[:class:`Role`]
