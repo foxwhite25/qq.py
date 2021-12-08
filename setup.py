@@ -3,6 +3,14 @@ from setuptools import setup
 with open('README.md', encoding='utf-8') as f:
     readme = f.read()
 
+extras_require = {
+    'docs': [
+        'sphinx==4.0.2',
+        'sphinxcontrib_trio==1.1.2',
+        'sphinxcontrib-websupport',
+    ],
+}
+
 setup(
     name='qq.py',
     version='0.1.2',
