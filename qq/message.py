@@ -315,8 +315,7 @@ class Message(Hashable):
         'attachments',
         'guild',
         'reference',
-        'role_mentions',
-        'channel_mentions'
+        'role_mentions'
     )
 
     if TYPE_CHECKING:
