@@ -237,6 +237,15 @@ class HTTPClient:
 
         return self.request(Route('GET', '/users/@me/guilds'), params=params)
 
+    def _sync_get_guilds(self):
+        headers: Dict[str, str] = {
+            'User-Agent': self.user_agent,
+        }
+        if self.token is not None:
+            headers['Authorization'] = 'Bot ' + self.token
+        rsp = requests.get(f'https://api.sgroup.qq.com/users/@me/guilds', headers=headers)
+        return rsp.json()
+
     def sync_guild_channels_roles(self, guild_id: int) -> Tuple[List[ChannelPayload], List[RolePayload]]:
         headers: Dict[str, str] = {
             'User-Agent': self.user_agent,

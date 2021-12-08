@@ -35,6 +35,28 @@ class alias_flag_value(flag_value):
     pass
 
 
+def fill_with_flags(*, inverted: bool = False):
+    def decorator(cls: Type[BF]):
+        # fmt: off
+        cls.VALID_FLAGS = {
+            name: value.flag
+            for name, value in cls.__dict__.items()
+            if isinstance(value, flag_value)
+        }
+        # fmt: on
+
+        if inverted:
+            max_bits = max(cls.VALID_FLAGS.values()).bit_length()
+            cls.DEFAULT_VALUE = -1 + (2 ** max_bits)
+        else:
+            cls.DEFAULT_VALUE = 0
+
+        return cls
+
+    return decorator
+
+
+# n.b. flags must inherit from this and use the decorator above
 class BaseFlags:
     VALID_FLAGS: ClassVar[Dict[str, int]]
     DEFAULT_VALUE: ClassVar[int]
@@ -88,27 +110,6 @@ class BaseFlags:
             raise TypeError(f'Value to set for {self.__class__.__name__} must be a bool.')
 
 
-def fill_with_flags(*, inverted: bool = False):
-    def decorator(cls: Type[BF]):
-        # fmt: off
-        cls.VALID_FLAGS = {
-            name: value.flag
-            for name, value in cls.__dict__.items()
-            if isinstance(value, flag_value)
-        }
-        # fmt: on
-
-        if inverted:
-            max_bits = max(cls.VALID_FLAGS.values()).bit_length()
-            cls.DEFAULT_VALUE = -1 + (2 ** max_bits)
-        else:
-            cls.DEFAULT_VALUE = 0
-
-        return cls
-
-    return decorator
-
-
 @fill_with_flags()
 class Intents(BaseFlags):
     __slots__ = ()
@@ -123,8 +124,9 @@ class Intents(BaseFlags):
     @classmethod
     def all(cls: Type[Intents]) -> Intents:
         """A factory method that creates a :class:`Intents` with everything enabled."""
-        bits = max(cls.VALID_FLAGS.values()).bit_length()
-        value = (1 << bits) - 1
+        value = 0
+        for bits in cls.VALID_FLAGS.values():
+            value |= bits
         self = cls.__new__(cls)
         self.value = value
         return self

@@ -16,13 +16,10 @@ from .error import (
     ConnectionClosed,
 )
 
-from .enum import Status
-
 from typing import TYPE_CHECKING, Any, Callable, Tuple, Type, Optional, List, Dict, TypeVar
 
 if TYPE_CHECKING:
     from .gateway import QQWebSocket
-    from .enum import Status
 
     EI = TypeVar('EI', bound='EventItem')
 
@@ -370,13 +367,6 @@ class AutoShardedClient(Client):
             return
 
         self._closed = True
-
-        for vc in self.voice_clients:
-            try:
-                await vc.disconnect(force=True)
-            except Exception:
-                pass
-
         to_close = [asyncio.ensure_future(shard.close(), loop=self.loop) for shard in self.__shards.values()]
         if to_close:
             await asyncio.wait(to_close)

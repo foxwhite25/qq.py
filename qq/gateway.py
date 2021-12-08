@@ -304,7 +304,7 @@ class QQWebSocket:
 
         await self.call_hooks('before_identify', self.shard_id, initial=self._initial_identify)
         await self.send_as_json(payload)
-        _log.info('Shard ID %s has sent the IDENTIFY payload. Data: %s', self.shard_id, str(payload))
+        _log.info('Shard ID %s has sent the IDENTIFY payload.\n Data: %s', self.shard_id, str(payload))
 
     async def resume(self):
         """Sends the RESUME packet."""
@@ -371,7 +371,6 @@ class QQWebSocket:
                 interval = data['heartbeat_interval'] / 1000.0
                 self._keep_alive = KeepAliveHandler(ws=self, interval=interval, shard_id=self.shard_id)
                 # send a heartbeat immediately
-                await self.send_as_json(self._keep_alive.get_payload())
                 self._keep_alive.start()
                 return
 
@@ -445,7 +444,7 @@ class QQWebSocket:
 
     def _can_handle_close(self):
         code = self._close_code or self.socket.close_code
-        return code not in (1000, 4004, 4010, 4011, 4012, 4013, 4014)
+        return code not in (1000, 4004, 4010, 4011, 4012, 4013, 4014, 4801)
 
     async def poll_event(self):
         """Polls for a DISPATCH event and handles the general gateway loop.

@@ -3,15 +3,17 @@ from __future__ import annotations
 from typing import (
     Dict,
     List,
-    Union, Optional, Tuple,
+    Union, Optional, Tuple, TYPE_CHECKING,
 )
 
 from .channel import _guild_channel_factory, TextChannel, CategoryChannel, AppChannel, LiveChannel, ThreadChannel
 from .member import Member
 from .role import Role
-from .state import ConnectionState
 from .types.guild import Guild as GuildPayload
 from .types.channel import VoiceChannel
+
+if TYPE_CHECKING:
+    from .state import ConnectionState
 
 GuildChannel = Union[VoiceChannel, TextChannel, CategoryChannel, AppChannel, LiveChannel, ThreadChannel]
 VocalGuildChannel = Union[VoiceChannel]

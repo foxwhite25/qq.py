@@ -14,19 +14,19 @@ from .channel import PartialMessageable, TextChannel, _channel_factory
 from .flags import Intents
 from .mention import AllowedMentions
 from .object import Object
+from .user import User, ClientUser
+from .guild import Guild
 
 if TYPE_CHECKING:
     from .abc import GuildChannel
     from .member import Member
     from .http import HTTPClient
     from .client import Client
-    from .guild import Guild
     from .gateway import QQWebSocket
     from .message import Message
     from .types.user import User as UserPayload
     from .types.message import Message as MessagePayload
     from .types.guild import Guild as GuildPayload
-    from .user import User, ClientUser
 
     T = TypeVar('T')
     CS = TypeVar('CS', bound='ConnectionState')
@@ -356,7 +356,7 @@ class ConnectionState:
                 pass
             else:
                 self.application_id = application.get('id')
-        for guild_data in asyncio.run(self.http.get_guilds()):
+        for guild_data in self.http._sync_get_guilds():
             self._add_guild_from_data(guild_data)
 
         self.dispatch('connect')
@@ -694,7 +694,7 @@ class AutoShardedConnectionState(ConnectionState):
             else:
                 self.application_id = application.get('id')
 
-        for guild_data in data['guilds']:
+        for guild_data in self.http._sync_get_guilds():
             self._add_guild_from_data(guild_data)
 
         if self._messages:

@@ -43,6 +43,7 @@ class BaseUser(_UserTag):
 
     def __init__(self, *, state: ConnectionState, data: UserPayload) -> None:
         self._state = state
+        self._avatar = None
         self._update(data)
 
     def __repr__(self) -> str:
@@ -65,7 +66,8 @@ class BaseUser(_UserTag):
     def _update(self, data: UserPayload) -> None:
         self.name = data['username']
         self.id = int(data['id'])
-        self._avatar = data['avatar']
+        if 'avatar' in data:
+            self._avatar = data['avatar']
         self.bot = data.get('bot', False)
 
     @classmethod
