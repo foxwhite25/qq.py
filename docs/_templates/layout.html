@@ -68,7 +68,7 @@
       <nav class="mobile-only">
         <form role="search" class="search" action="{{ pathto('search') }}" method="get">
           <div class="search-wrapper">
-            <input type="search" name="q" placeholder="{{ _('Search documentation') }}" />
+            <input type="search" name="q" placeholder="{{ _('搜索文档') }}" />
             <button type="submit">
               <span class="material-icons">search</span>
             </button>
@@ -78,7 +78,7 @@
     </header>
     {#- The sub-header with search and extension related selection #}
     <div class="sub-header grid-item">
-      <label for="documentation_select">{{ _('View Documentation For') }}</label>
+      <label for="documentation_select">{{ _('查看 ') }}</label>
       <select id="documentation_select" onchange="window.location = this.value;">
         {%- if pagename is prefixedwith 'ext/' %}
         <option value="{{ pathto(master_doc)|e }}">qq</option>
@@ -89,6 +89,7 @@
         <option value="{{ pathto(p + '/index')|e }}" {% if pagename is prefixedwith p %}selected{% endif %}>{{ ext }}</option>
         {%- endfor %}
       </select>
+	  <label for="documentation_select">{{ _(' 的文档') }}</label>
       <form role="search" class="search" action="{{ pathto('search') }}" method="get">
         <div class="search-wrapper">
           <input type="search" name="q" placeholder="{{ _('Search documentation') }}" />
@@ -97,17 +98,17 @@
           </button>
         </div>
       </form>
-      <a accesskey="S" class="settings" onclick="settingsModal.open();"><span class="material-icons">settings</span></a>
+      <a accesskey="S" class="settings" onclick="settingsModal.open();"><span class="material-icons">设置</span></a>
     </div>
     {#- The sidebar component #}
     <aside class="grid-item">
       {%- if display_toc %}
       <span id="hamburger-toggle">
-        <span class="material-icons">menu</span>
+        <span class="material-icons">菜单</span>
       </span>
       {%- endif %}
       <span id="settings-toggle" class="settings" onclick="settingsModal.open();">
-        <span class="material-icons">settings</span>
+        <span class="material-icons">设置</span>
       </span>
       <div id="sidebar">
         {%- include "localtoc.html" %}
