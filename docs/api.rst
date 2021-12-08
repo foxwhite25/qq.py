@@ -555,24 +555,6 @@ VoiceChannel
     :members:
     :inherited-members:
 
-StageChannel
-~~~~~~~~~~~~~
-
-.. attributetable:: StageChannel
-
-.. autoclass:: StageChannel()
-    :members:
-    :inherited-members:
-
-
-StageInstance
-~~~~~~~~~~~~~~
-
-.. attributetable:: StageInstance
-
-.. autoclass:: StageInstance()
-    :members:
-
 CategoryChannel
 ~~~~~~~~~~~~~~~~~
 
