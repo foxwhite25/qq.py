@@ -12,11 +12,11 @@ from .member import Member
 from .mixins import Hashable
 from .role import Role
 from .utils import escape_mentions
-from .guild import Guild, GuildChannel
+from .guild import Guild
 
 if TYPE_CHECKING:
     from .state import ConnectionState
-    from .abc import MessageableChannel, PartialMessageableChannel
+    from .abc import GuildChannel, PartialMessageableChannel, MessageableChannel
     from .channel import TextChannel
     from .embeds import Embed
     from .enum import ChannelType

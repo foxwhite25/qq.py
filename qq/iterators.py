@@ -1,11 +1,28 @@
+from __future__ import annotations
+
 import asyncio
 import datetime
-from typing import AsyncIterator, TypeVar, Awaitable, Any, Optional, Callable, Union, List
+from typing import AsyncIterator, TypeVar, Awaitable, Any, Optional, Callable, Union, List, TYPE_CHECKING
 
-from qq.error import NoMoreItems
-from .guild import Guild
-from .types.guild import Guild as GuildPayload
+from .error import NoMoreItems
 from .utils import maybe_coroutine
+from .object import Object
+
+
+if TYPE_CHECKING:
+    from .types.guild import (
+        Guild as GuildPayload,
+    )
+    from .types.message import (
+        Message as MessagePayload,
+    )
+    from .types.user import (
+        PartialUser as PartialUserPayload,
+    )
+    from .member import Member
+    from .user import User
+    from .message import Message
+    from .guild import Guild
 
 T = TypeVar('T')
 OT = TypeVar('OT')
@@ -199,3 +216,52 @@ class GuildIterator(_AsyncIterator['Guild']):
             if self.limit is not None:
                 self.limit -= retrieve
         return data
+
+
+class MemberIterator(_AsyncIterator['Member']):
+    def __init__(self, guild, limit=1000):
+
+        self.guild = guild
+        self.limit = limit
+
+        self.state = self.guild._state
+        self.get_members = self.state.http.get_members
+        self.members = asyncio.Queue()
+
+    async def next(self) -> Member:
+        if self.members.empty():
+            await self.fill_members()
+
+        try:
+            return self.members.get_nowait()
+        except asyncio.QueueEmpty:
+            raise NoMoreItems()
+
+    def _get_retrieve(self):
+        l = self.limit
+        if l is None or l > 1000:
+            r = 1000
+        else:
+            r = l
+        self.retrieve = r
+        return r > 0
+
+    async def fill_members(self):
+        if self._get_retrieve():
+            data = await self.get_members(self.guild.id, self.retrieve)
+            if not data:
+                # no data, terminate
+                return
+
+            if len(data) < 1000:
+                self.limit = 0  # terminate loop
+
+            self.after = Object(id=int(data[-1]['user']['id']))
+
+            for element in reversed(data):
+                await self.members.put(self.create_member(element))
+
+    def create_member(self, data):
+        from .member import Member
+
+        return Member(data=data, guild=self.guild, state=self.state)

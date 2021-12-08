@@ -3,29 +3,44 @@ from __future__ import annotations
 from typing import (
     Dict,
     List,
-    Union, Optional, Tuple, TYPE_CHECKING, Any, Sequence, overload,
+    Union,
+    Optional,
+    Tuple,
+    TYPE_CHECKING,
+    Any,
+    Sequence,
+    overload,
 )
 
-from . import utils, Colour
-from .asset import MISSING
-from .error import ClientException, InvalidData
-from .channel import _guild_channel_factory, TextChannel, CategoryChannel, AppChannel, LiveChannel, ThreadChannel, \
-    _channel_factory
-from .member import Member
+from . import utils, abc
 from .role import Role
-from .types.guild import Guild as GuildPayload
-from .types.channel import VoiceChannel
-from .enum import ChannelType
+from .member import Member
+from .error import InvalidData
+from .colour import Colour
+from .error import InvalidArgument, ClientException
+from .channel import *
+from .channel import _guild_channel_factory, _channel_factory
+from .mixins import Hashable
+from .user import User
+from .iterators import MemberIterator
+from .asset import Asset
+from .file import File
+
+
+MISSING = utils.MISSING
 
 if TYPE_CHECKING:
     from .state import ConnectionState
+    from .types.guild import Guild as GuildPayload
+    from .channel import TextChannel, CategoryChannel, AppChannel, LiveChannel, ThreadChannel
+    from .state import ConnectionState
 
-GuildChannel = Union[VoiceChannel, TextChannel, CategoryChannel, AppChannel, LiveChannel, ThreadChannel]
-VocalGuildChannel = Union[VoiceChannel]
-ByCategoryItem = Tuple[Optional[CategoryChannel], List[GuildChannel]]
+    GuildChannel = Union[VoiceChannel, TextChannel, CategoryChannel, AppChannel, LiveChannel, ThreadChannel]
+    VocalGuildChannel = Union[VoiceChannel]
+    ByCategoryItem = Tuple[Optional[CategoryChannel], List[GuildChannel]]
 
 
-class Guild:
+class Guild(Hashable):
     """代表一个 QQ guild.
     这在官方 QQ UI 中称为 “频道” 。
     .. container:: operations
@@ -61,7 +76,6 @@ class Guild:
         'name',
         'icon',
         'owner_id',
-        'owner',
         '_member_count',
         'max_members',
         'description',
@@ -92,8 +106,7 @@ class Guild:
         self.id = int(guild.get('id'))
         self.name = guild.get('name')
         self.icon = guild.get('icon')
-        self.owner_id = guild.get('owner_id')
-        self.owner = guild.get('owner')
+        self.owner_id = int(guild.get('owner_id'))
         self._member_count = guild.get('member_count')
         self.max_members = guild.get('max_members')
         self.description = guild.get('description')
@@ -151,36 +164,14 @@ class Guild:
         return (self.id >> 22) % count
 
     @property
+    def owner(self) -> Optional[Member]:
+        """Optional[:class:`Member`]: The member that owns the guild."""
+        return self.get_member(self.owner_id)
+
+    @property
     def members(self) -> List[Member]:
         """List[:class:`Member`]: 属于该频道的成员列表。"""
         return list(self._members.values())
-
-    async def query_members(
-            self,
-            query: Optional[str] = None,
-            *,
-            limit: int = 5,
-            user_ids: Optional[List[int]] = None,
-            presences: bool = False,
-            cache: bool = True,
-    ) -> List[Member]:
-        if query is None:
-            if query == '':
-                raise ValueError('Cannot pass empty query string.')
-
-            if user_ids is None:
-                raise ValueError('Must pass either query or user_ids')
-
-        if user_ids is not None and query is not None:
-            raise ValueError('Cannot pass both query and user_ids')
-
-        if user_ids is not None and not user_ids:
-            raise ValueError('user_ids must contain at least 1 value')
-
-        limit = min(100, limit or 5)
-        return await self._state.query_members(
-            self, query=query, limit=limit, user_ids=user_ids, presences=presences, cache=cache
-        )
 
     def get_role(self, role_id: int, /) -> Optional[Role]:
         """返回具有给定 ID 的 Role。
@@ -334,22 +325,6 @@ class Guild:
             return m.nick == name or m.name == name
 
         return utils.find(pred, members)
-
-    @property
-    def self_role(self) -> Optional[Role]:
-        """Optional[:class:`Role`]: 获取与此客户端的用户关联的 Role（如果有）。
-        """
-        self_id = self._state.self_id
-        for role in self._roles.values():
-            tags = role.tags
-            if tags and tags.bot_id == self_id:
-                return role
-        return None
-    
-    @property
-    def owner(self) -> Optional[Member]:
-        """Optional[:class:`Member`]: 拥有频道的成员。"""
-        return self.get_member(self.owner_id)  # type: ignore
 
     @property
     def member_count(self) -> int:
