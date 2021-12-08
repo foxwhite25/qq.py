@@ -49,7 +49,7 @@ autodoc_typehints = 'none'
 # napoleon_attr_annotations = False
 
 extlinks = {
-    'issue': ('https://github.com/Rapptz/qq.py/issues/%s', 'GH-'),
+    'issue': ('https://github.com/foxwhite25/qq.py/issues/%s', 'GH-'),
 }
 
 # Links used for cross-referencing stuff in other documentation
@@ -60,8 +60,8 @@ intersphinx_mapping = {
 }
 
 rst_prolog = """
-.. |coro| replace:: This function is a |coroutine_link|_.
-.. |maybecoro| replace:: This function *could be a* |coroutine_link|_.
+.. |coro| replace:: 这个函数是一个 |coroutine_link|_.
+.. |maybecoro| replace:: 这个函数 *可以是* |coroutine_link|_.
 .. |coroutine_link| replace:: *coroutine*
 .. _coroutine_link: https://docs.python.org/3/library/asyncio-task.html#coroutine
 """
@@ -159,7 +159,6 @@ html_experimental_html5_writer = True
 html_theme = 'basic'
 
 html_context = {
-    'qq_invite': 'https://qq.gg/r3sSKJJ',
     'qq_extensions': [
         ('qq.ext.commands', 'ext/commands'),
         ('qq.ext.tasks', 'ext/tasks'),
@@ -167,10 +166,9 @@ html_context = {
 }
 
 resource_links = {
-    'qq': 'https://qq.gg/r3sSKJJ',
-    'issues': 'https://github.com/Rapptz/qq.py/issues',
-    'discussions': 'https://github.com/Rapptz/qq.py/discussions',
-    'examples': f'https://github.com/Rapptz/qq.py/tree/{branch}/examples',
+    'issues': 'https://github.com/foxwhite25/qq.py/issues',
+    'discussions': 'https://github.com/foxwhite25/qq.py/discussions',
+    'examples': f'https://github.com/foxwhite25/qq.py/tree/{branch}/examples',
 }
 
 # Theme options are theme-specific and customize the look and feel of a theme
