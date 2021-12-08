@@ -254,11 +254,17 @@ class Message(Hashable):
     r"""代表来自 QQ 的消息。
 
     .. container:: operations
+
         .. describe:: x == y
+
             检查两个消息是否相等。
+
         .. describe:: x != y
+
             检查两个消息是否不相等。
+
         .. describe:: hash(x)
+
             返回消息的哈希值。
 
     Attributes

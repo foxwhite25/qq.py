@@ -25,12 +25,54 @@ class AssetMixin:
     _state: Optional[Any]
 
     async def read(self) -> bytes:
+        """|coro|
+        获得这个素材的 :class:`bytes` 内容。
+
+        Raises
+        ------
+        QQException
+            没有内部连接状态。
+        HTTPException
+            下载素材失败。
+        NotFound
+            资产已删除。
+        Returns
+        -------
+        :class:`bytes`
+            资产的内容。
+        """
+
         if self._state is None:
             raise QQException('Invalid state (no ConnectionState provided)')
 
         return await self._state.http.get_from_cdn(self.url)
 
     async def save(self, fp: Union[str, bytes, os.PathLike, io.BufferedIOBase], *, seek_begin: bool = True) -> int:
+        """|coro|
+        将此资产保存到类似文件的对象中。
+
+        Parameters
+        ----------
+        fp: Union[:class:`io.BufferedIOBase`, :class:`os.PathLike`]
+            将此附件保存到的类文件对象或要使用的文件名。
+            如果传递了文件名，则会使用该文件名创建一个文件并改为使用该文件。
+        seek_begin: :class:`bool`
+            保存成功后是否查找文件开头。
+
+        Raises
+        ------
+        QQException
+            没有内部连接状态。
+        HTTPException
+            下载资产失败。
+        NotFound
+            资产已删除。
+
+        Returns
+        --------
+        :class:`int`
+            写入的字节数。
+        """
 
         data = await self.read()
         if isinstance(fp, io.BufferedIOBase):
@@ -44,6 +86,30 @@ class AssetMixin:
 
 
 class Asset(AssetMixin):
+    """代表 QQ 上的素材。
+
+    .. container:: operations
+
+        .. describe:: str(x)
+
+            返回 CDN 资产的 URL。
+
+        .. describe:: len(x)
+
+            返回 CDN 资产 URL 的长度。
+
+        .. describe:: x == y
+
+            检查资产是否等于另一个资产。
+
+        .. describe:: x != y
+
+            检查资产是否不等于另一个资产。
+
+        .. describe:: hash(x)
+
+            返回资产的哈希值。
+    """
 
     __slots__: Tuple[str, ...] = (
         '_state',
@@ -51,7 +117,7 @@ class Asset(AssetMixin):
         '_key',
     )
 
-    def __init__(self, state, *, url: str, key: str, animated: bool = False):
+    def __init__(self, state, *, url: str, key: str):
         self._state = state
         self._url = url
         self._key = key
@@ -90,10 +156,10 @@ class Asset(AssetMixin):
 
     @property
     def url(self) -> str:
-        """:class:`str`: Returns the underlying URL of the asset."""
+        """:class:`str`: 返回资产的底层 URL。"""
         return self._url
 
     @property
     def key(self) -> str:
-        """:class:`str`: Returns the identifying key of the asset."""
+        """:class:`str`: 返回资产的识别键。"""
         return self._key
