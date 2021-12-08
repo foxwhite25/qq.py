@@ -8,7 +8,7 @@ import logging
 import signal
 import sys
 import traceback
-from typing import Optional, Any, Dict, Callable, List, Tuple, Coroutine
+from typing import Optional, Any, Dict, Callable, List, Tuple, Coroutine, TypeVar
 
 import aiohttp
 
@@ -23,6 +23,7 @@ from .user import ClientUser, User
 
 URL = r'https://api.sgroup.qq.com'
 _log = logging.getLogger(__name__)
+Coro = TypeVar('Coro', bound=Callable[..., Coroutine[Any, Any, Any]])
 
 
 def _cancel_tasks(loop: asyncio.AbstractEventLoop) -> None:
@@ -352,3 +353,11 @@ class Client:
 
         await self.http.close()
         self._ready.clear()
+
+    def event(self, coro: Coro) -> Coro:
+        if not asyncio.iscoroutinefunction(coro):
+            raise TypeError('event registered must be a coroutine function')
+
+        setattr(self, coro.__name__, coro)
+        _log.debug('%s has successfully been registered as an event', coro.__name__)
+        return coro
