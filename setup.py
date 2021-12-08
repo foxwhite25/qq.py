@@ -1,5 +1,8 @@
 from setuptools import setup
 
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
 with open('README.md', encoding='utf-8') as f:
     readme = f.read()
 
@@ -20,6 +23,8 @@ setup(
     license='MIT',
     long_description=readme,
     long_description_content_type="text/markdown",
+    install_requires=requirements,
+    extras_require=extras_require,
     python_requires='>=3.8.0',
     classifiers=[
         'Development Status :: 3 - Alpha',
