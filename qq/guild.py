@@ -112,7 +112,9 @@ class Guild(Hashable):
         self.id = int(guild.get('id'))
         self.name = guild.get('name')
         self.icon = guild.get('icon')
-        self.owner_id = int(guild.get('owner_id'))
+        self.owner_id = guild.get('owner_id')
+        if self.owner_id:
+            self.owner_id = int(self.owner_id)
         self._member_count = guild.get('member_count')
         self.max_members = guild.get('max_members')
         self.description = guild.get('description')

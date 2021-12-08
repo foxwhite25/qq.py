@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import datetime
 import io
 import re
@@ -13,6 +14,7 @@ from .mixins import Hashable
 from .role import Role
 from .utils import escape_mentions
 from .guild import Guild
+from .error import HTTPException
 
 if TYPE_CHECKING:
     from .state import ConnectionState
@@ -100,6 +102,7 @@ class MessageReference:
 
     @property
     def cached_message(self) -> Optional[Message]:
+        """Optional[:class:`~discord.Message`]: 缓存的消息（如果在内部消息缓存中找到）。"""
         return self._state and self._state._get_message(self.message_id)
 
     def __repr__(self) -> str:
@@ -119,6 +122,7 @@ class MessageReference:
 
 class Attachment(Hashable):
     """代表来自 QQ 的附件。
+
     .. container:: operations
         .. describe:: str(x)
             返回附件的 URL。
@@ -247,6 +251,52 @@ def flatten_handlers(cls):
 
 @flatten_handlers
 class Message(Hashable):
+    r"""代表来自 QQ 的消息。
+
+    .. container:: operations
+        .. describe:: x == y
+            检查两个消息是否相等。
+        .. describe:: x != y
+            检查两个消息是否不相等。
+        .. describe:: hash(x)
+            返回消息的哈希值。
+
+    Attributes
+    -----------
+    author: Union[:class:`Member`, :class:`abc.User`]
+        发送消息的 :class:`Member`。 如果用户离开了频道，那么它是一个 :class:`User` 。
+    content: :class:`str`
+        消息的实际内容。
+    embeds: List[:class:`Embed`]
+        消息所具有的 :class:`Embed` 的列表。
+    channel: :class:`TextChannel`
+        发送消息的 :class:`TextChannel`。
+    mention_everyone: :class:`bool`
+        指定消息是否提及所有人。
+
+        .. note::
+
+            这不会检查 ``@全体成员`` 文本是否在消息本身中。
+            因此你需要在检查 ``@全体成员`` 文本是否在消息中 **的同时** 看这个是否是 ``True`` 。
+
+    mentions: List[:class:`Member`]
+        @到的 :class:`Member` 列表。
+
+        .. warning::
+
+            提及列表的顺序没有任何特定顺序，因此您不应依赖它。 这是 QQ 的限制，与库无关。
+
+    channel_mentions: List[:class:`abc.GuildChannel`]
+        提到的 :class:`abc.GuildChannel` 的列表。 (官方还没有实现)
+    role_mentions: List[:class:`Role`]
+        提到的 :class:`Role` 列表。 (官方还没有实现)
+    id: :class:`int`
+        消息ID。
+    attachments: List[:class:`Attachment`]
+        提供给消息的附件列表。
+    guild: Optional[:class:`Guild`]
+        消息所属的频道（如果适用）。
+    """
     __slots__ = (
         '_state',
         '_edited_timestamp',
@@ -264,6 +314,9 @@ class Message(Hashable):
         'author',
         'attachments',
         'guild',
+        'reference',
+        'role_mentions',
+        'channel_mentions'
     )
 
     if TYPE_CHECKING:
@@ -347,6 +400,14 @@ class Message(Hashable):
     def _handle_edited_timestamp(self, value: str) -> None:
         self._edited_timestamp = utils.parse_time(value)
 
+    def _handle_mention_roles(self, role_mentions: List[int]) -> None:
+        self.role_mentions = []
+        if isinstance(self.guild, Guild):
+            for role_id in map(int, role_mentions):
+                role = self.guild.get_role(role_id)
+                if role is not None:
+                    self.role_mentions.append(role)
+
     def _handle_mention_everyone(self, value: bool) -> None:
         self.mention_everyone = value
 
@@ -394,19 +455,28 @@ class Message(Hashable):
 
     @utils.cached_slot_property('_cs_raw_mentions')
     def raw_mentions(self) -> List[int]:
-        """List[:class:`int`]: A property that returns an array of user IDs matched with
-        the syntax of ``<@user_id>`` in the message content.
-        This allows you to receive the user IDs of mentioned users
-        even in a private message context.
+        """List[:class:`int`]: 返回与消息内容中的```<@user_id>`` 语法匹配的用户 ID 数组的属性。
         """
         return [int(x) for x in re.findall(r'<@!?([0-9]{15,20})>', self.content)]
 
     @utils.cached_slot_property('_cs_raw_channel_mentions')
     def raw_channel_mentions(self) -> List[int]:
-        """List[:class:`int`]: A property that returns an array of channel IDs matched with
-        the syntax of ``<#channel_id>`` in the message content.
+        """List[:class:`int`]: 返回与消息内容中的 ``<#channel_id>`` 语法匹配的通道 ID 数组的属性。
         """
         return [int(x) for x in re.findall(r'<#([0-9]{15,20})>', self.content)]
+
+    @utils.cached_slot_property('_cs_raw_role_mentions')
+    def raw_role_mentions(self) -> List[int]:
+        """List[:class:`int`]: 返回与消息内容中的 ``<@&role_id>`` 语法匹配的通道 ID 数组的属性。
+        """
+        return [int(x) for x in re.findall(r'<@&([0-9]{15,20})>', self.content)]
+
+    @utils.cached_slot_property('_cs_channel_mentions')
+    def channel_mentions(self) -> List[GuildChannel]:
+        if self.guild is None:
+            return []
+        it = filter(None, map(self.guild.get_channel, self.raw_channel_mentions))
+        return utils._unique(it)
 
     @utils.cached_slot_property('_cs_channel_mentions')
     def channel_mentions(self) -> List[GuildChannel]:
@@ -417,6 +487,18 @@ class Message(Hashable):
 
     @utils.cached_slot_property('_cs_clean_content')
     def clean_content(self) -> str:
+        """:class:`str`:
+
+        以“清理”方式返回内容的属性。 这代表把提及转换成客户展示它的方式。 例如 ``<#id>`` 将转换为 ``#name``。
+        这也会将 @全体成员 提及转换为未提及。
+
+        .. note::
+
+        这 **不** 影响 Markdown 。
+        如果您想转义或删除 Markdown，请分别使用 :func:`utils.escape_markdown` 或 :func:`utils.remove_markdown` 以及此功能。
+
+        """
+
         # fmt: off
         transformations = {
             re.escape(f'<#{channel.id}>'): '#' + channel.name
@@ -430,7 +512,7 @@ class Message(Hashable):
 
         # add the <@!user_id> cases as well..
         second_mention_transforms = {
-            re.escape(f'<@{member.id}>'): '@' + member.display_name
+            re.escape(f'<@!{member.id}>'): '@' + member.display_name
             for member in self.mentions
         }
 
@@ -459,6 +541,22 @@ class Message(Hashable):
 
     async def reply(self, content: Optional[str] = None, **kwargs) -> Message:
         return await self.channel.send(content, reference=self, **kwargs)
+
+    def to_reference(self, *, fail_if_not_exists: bool = True) -> MessageReference:
+        """从当前消息创建一个 :class:`~qq.MessageReference`。
+
+        Parameters
+        ----------
+        fail_if_not_exists: :class:`bool`
+            如果消息不再存在或 QQ 无法获取消息，使用消息引用回复是否应该引发 :class:`HTTPException`
+
+        Returns
+        ---------
+        :class:`~discord.MessageReference`
+            对此消息的引用。
+        """
+
+        return MessageReference.from_message(self, fail_if_not_exists=fail_if_not_exists)
 
     def to_message_reference_dict(self) -> MessageReferencePayload:
         data: MessageReferencePayload = {

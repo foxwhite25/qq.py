@@ -366,6 +366,7 @@ class ConnectionState:
         self.dispatch('resumed')
 
     def parse_at_message_create(self, data) -> None:
+        print(data)
         channel, _ = self._get_guild_channel(data)
         # channel would be the correct type here
         message = Message(channel=channel, data=data, state=self)  # type: ignore
