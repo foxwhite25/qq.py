@@ -24,6 +24,7 @@ from . import utils, abc
 from .enum import *
 from .shard import *
 from .error import *
+from .embeds import *
 
 
 class VersionInfo(NamedTuple):
