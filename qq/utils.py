@@ -46,6 +46,34 @@ def utcnow() -> datetime.datetime:
     return datetime.datetime.now(datetime.timezone.utc)
 
 
+def _chunk(iterator: Iterator[T], max_size: int) -> Iterator[List[T]]:
+    ret = []
+    n = 0
+    for item in iterator:
+        ret.append(item)
+        n += 1
+        if n == max_size:
+            yield ret
+            ret = []
+            n = 0
+    if ret:
+        yield ret
+
+
+async def _achunk(iterator: AsyncIterator[T], max_size: int) -> AsyncIterator[List[T]]:
+    ret = []
+    n = 0
+    async for item in iterator:
+        ret.append(item)
+        n += 1
+        if n == max_size:
+            yield ret
+            ret = []
+            n = 0
+    if ret:
+        yield ret
+
+
 @overload
 def as_chunks(iterator: Iterator[T], max_size: int) -> Iterator[List[T]]:
     ...
@@ -81,6 +109,7 @@ def as_chunks(iterator: _Iter[T], max_size: int) -> _Iter[List[T]]:
 
 
 PY_310 = sys.version_info >= (3, 10)
+TimestampStyle = Literal['f', 'F', 'd', 'D', 't', 'T', 'R']
 
 
 def format_dt(dt: datetime.datetime, /, style: Optional[TimestampStyle] = None) -> str:
