@@ -510,10 +510,6 @@ Guild
 
 .. autoclass:: Guild()
     :members:
-    :exclude-members: fetch_members
-
-    .. automethod:: fetch_members
-        :async-for:
 
 Member
 ~~~~~~
@@ -648,14 +644,6 @@ PartialMessage
 .. autoclass:: PartialMessage
     :members:
 
-SelectOption
-~~~~~~~~~~~~~
-
-.. attributetable:: SelectOption
-
-.. autoclass:: SelectOption
-    :members:
-
 Intents
 ~~~~~~~~~~
 
@@ -696,7 +684,7 @@ ShardInfo
 
 库能够抛出以下异常。
 
-.. autoexception:: qqException
+.. autoexception:: QQException
 
 .. autoexception:: ClientException
 
@@ -721,28 +709,18 @@ ShardInfo
 
 .. autoexception:: ConnectionClosed
 
-.. autoexception:: PrivilegedIntentsRequired
-
-.. autoexception:: InteractionResponded
-
-.. autoexception:: qq.opus.OpusError
-
-.. autoexception:: qq.opus.OpusNotLoaded
-
 Exception Hierarchy
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. exception_hierarchy::
 
     - :exc:`Exception`
-        - :exc:`qqException`
+        - :exc:`QQException`
             - :exc:`ClientException`
                 - :exc:`InvalidData`
                 - :exc:`InvalidArgument`
                 - :exc:`LoginFailure`
                 - :exc:`ConnectionClosed`
-                - :exc:`PrivilegedIntentsRequired`
-                - :exc:`InteractionResponded`
             - :exc:`NoMoreItems`
             - :exc:`GatewayNotFound`
             - :exc:`HTTPException`
