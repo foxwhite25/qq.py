@@ -11,16 +11,17 @@ from .file import File
 from .member import Member
 from .mixins import Hashable
 from .role import Role
-from .state import ConnectionState
 from .utils import escape_mentions
+from .guild import Guild, GuildChannel
 
 if TYPE_CHECKING:
+    from .state import ConnectionState
     from .abc import MessageableChannel, PartialMessageableChannel
     from .channel import TextChannel
     from .embeds import Embed
     from .enum import ChannelType
-    from .guild import Guild, GuildChannel
-    from .types.message import Attachment as AttachmentPayload, Message as MessagePayload
+    from .types.message import Attachment as AttachmentPayload, Message as MessagePayload, \
+        MessageReference as MessageReferencePayload
     from .types.embed import Embed as EmbedPayload
     from .types.user import User as UserPayload
     from .types.member import Member as MemberPayload, UserWithMember as UserWithMemberPayload
@@ -128,11 +129,16 @@ class Message(Hashable):
     ):
         self._state: ConnectionState = state
         self.id: str = data['id']
-        self.attachments: List[Attachment] = [Attachment(data=a, state=self._state) for a in data['attachments']]
-        self.embeds: List[Embed] = [Embed.from_dict(a) for a in data['embeds']]
+        self.attachments: Optional[List[Attachment]] = \
+            [Attachment(data=a, state=self._state) for a in data['attachments']] \
+            if 'attachment' in data else None
+        self.embeds: Optional[List[Embed]] = [Embed.from_dict(a) for a in data['embeds']]\
+            if 'embeds' in data else None
         self.channel: MessageableChannel = channel
-        self._edited_timestamp: Optional[datetime.datetime] = utils.parse_time(data['edited_timestamp'])
-        self.mention_everyone: bool = data['mention_everyone']
+        self._edited_timestamp: Optional[datetime.datetime] = utils.parse_time(data['edited_timestamp']) \
+            if 'edited_timestamp' in data else None
+        self.mention_everyone: bool = data['mention_everyone'] \
+            if 'mention_everyone' in data else None
         self.content: str = data['content']
 
         try:
@@ -201,10 +207,7 @@ class Message(Hashable):
 
     def _handle_author(self, author: UserPayload) -> None:
         self.author = self._state.store_user(author)
-        if isinstance(self.guild, Guild):
-            found = self.guild.get_member(self.author.id)
-            if found is not None:
-                self.author = found
+        self.guild._add_member(self.author)
 
     def _handle_member(self, member: MemberPayload) -> None:
         author = self.author
@@ -302,6 +305,17 @@ class Message(Hashable):
 
     async def reply(self, content: Optional[str] = None, **kwargs) -> Message:
         return await self.channel.send(content, reference=self, **kwargs)
+
+    def to_message_reference_dict(self) -> MessageReferencePayload:
+        data: MessageReferencePayload = {
+            'message_id': self.id,
+            'channel_id': self.channel.id,
+        }
+
+        if self.guild is not None:
+            data['guild_id'] = self.guild.id
+
+        return data
 
 
 class PartialMessage(Hashable):

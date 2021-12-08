@@ -36,12 +36,14 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
         'category_id',
         'position',
         '_type',
+        'last_message_id'
     )
 
     def __init__(self, *, state: ConnectionState, guild: Guild, data: TextChannelPayload):
         self._state: ConnectionState = state
         self.id: int = int(data['id'])
         self._type: int = data['type']
+        self.last_message_id: Optional[int] = None
         self._update(guild, data)
 
     def __repr__(self) -> str:

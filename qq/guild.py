@@ -6,6 +6,8 @@ from typing import (
     Union, Optional, Tuple, TYPE_CHECKING,
 )
 
+from . import utils
+from .error import ClientException
 from .channel import _guild_channel_factory, TextChannel, CategoryChannel, AppChannel, LiveChannel, ThreadChannel
 from .member import Member
 from .role import Role
@@ -41,6 +43,7 @@ class Guild:
 
     def __init__(self, data: GuildPayload, state: ConnectionState):
         self._channels: Dict[int, GuildChannel] = {}
+        self._members: Dict[int, Member] = {}
         self._state: ConnectionState = state
         self._from_data(data)
 
@@ -106,9 +109,44 @@ class Guild:
         return list(self._channels.values())
 
     @property
+    def shard_id(self) -> int:
+        """:class:`int`: Returns the shard ID for this guild if applicable."""
+        count = self._state.shard_count
+        if count is None:
+            return 0
+        return (self.id >> 22) % count
+
+    @property
     def members(self) -> List[Member]:
         """List[:class:`Member`]: A list of members that belong to this guild."""
         return list(self._members.values())
+
+    async def query_members(
+            self,
+            query: Optional[str] = None,
+            *,
+            limit: int = 5,
+            user_ids: Optional[List[int]] = None,
+            presences: bool = False,
+            cache: bool = True,
+    ) -> List[Member]:
+        if query is None:
+            if query == '':
+                raise ValueError('Cannot pass empty query string.')
+
+            if user_ids is None:
+                raise ValueError('Must pass either query or user_ids')
+
+        if user_ids is not None and query is not None:
+            raise ValueError('Cannot pass both query and user_ids')
+
+        if user_ids is not None and not user_ids:
+            raise ValueError('user_ids must contain at least 1 value')
+
+        limit = min(100, limit or 5)
+        return await self._state.query_members(
+            self, query=query, limit=limit, user_ids=user_ids, presences=presences, cache=cache
+        )
 
     def get_role(self, role_id: int, /) -> Optional[Role]:
         return self._roles.get(role_id)
@@ -163,7 +201,7 @@ class Guild:
             channels.sort(key=lambda c: (c._sorting_bucket, c.position, c.id))
         return as_list
 
-    def _resolve_channel(self, id: Optional[int], /) -> Optional[Union[GuildChannel, ]]:
+    def _resolve_channel(self, id: Optional[int], /) -> Optional[Union[GuildChannel,]]:
         if id is None:
             return
 
@@ -189,4 +227,14 @@ class Guild:
             return False
         return count == len(self._members)
 
+    def get_member_named(self, name: str, /) -> Optional[Member]:
+        members = self.members
+        result = utils.get(members, name=name[:-5])
+        if result is not None:
+            return result
+
+        def pred(m: Member) -> bool:
+            return m.nick == name or m.name == name
+
+        return utils.find(pred, members)
 

@@ -39,3 +39,9 @@ class AllowedMentions(TypedDict):
     users: SnowflakeList
     replied_user: bool
 
+
+class MessageReference(TypedDict, total=False):
+    message_id: int
+    channel_id: int
+    guild_id: int
+    fail_if_not_exists: bool

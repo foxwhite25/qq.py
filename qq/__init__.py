@@ -23,7 +23,7 @@ from .object import *
 from . import utils, abc
 from .enum import *
 from .shard import *
-
+from .error import *
 
 class VersionInfo(NamedTuple):
     major: int

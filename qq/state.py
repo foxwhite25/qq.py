@@ -16,6 +16,7 @@ from .mention import AllowedMentions
 from .object import Object
 from .user import User, ClientUser
 from .guild import Guild
+from .message import Message
 
 if TYPE_CHECKING:
     from .abc import GuildChannel
@@ -23,7 +24,6 @@ if TYPE_CHECKING:
     from .http import HTTPClient
     from .client import Client
     from .gateway import QQWebSocket
-    from .message import Message
     from .types.user import User as UserPayload
     from .types.message import Message as MessagePayload
     from .types.guild import Guild as GuildPayload

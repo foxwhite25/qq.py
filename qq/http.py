@@ -13,8 +13,9 @@ import requests
 from . import __version__, utils, role
 from .error import HTTPException, Forbidden, NotFound, QQServerError, LoginFailure, GatewayNotFound
 from .gateway import QQClientWebSocketResponse
-from .message import Message
-from .types import user, guild
+from .types.message import Message
+from .types import user, guild, message
+from .types.embed import Embed
 from .utils import MISSING
 from .types.channel import Channel as ChannelPayload
 from .types.role import Role as RolePayload
@@ -365,4 +366,36 @@ class HTTPClient:
         }
 
         return await self.__session.ws_connect(url, **kwargs)
+
+    def send_message(
+            self,
+            channel_id: int,
+            content: Optional[str],
+            *,
+            tts: bool = False,
+            embed: Optional[Embed] = None,
+            embeds: Optional[List[Embed]] = None,
+            nonce: Optional[str] = None,
+            allowed_mentions: Optional[message.AllowedMentions] = None,
+            message_reference: Optional[message.MessageReference] = None,
+    ) -> Response[message.Message]:
+        r = Route('POST', '/channels/{channel_id}/messages', channel_id=channel_id)
+        payload = {}
+
+        if content:
+            payload['content'] = content
+
+        if tts:
+            payload['tts'] = True
+
+        if embed:
+            payload['embeds'] = [embed]
+
+        if embeds:
+            payload['embeds'] = embeds
+
+        if message_reference:
+            payload['msg_id'] = message_reference['message_id']
+
+        return self.request(r, json=payload)
 
