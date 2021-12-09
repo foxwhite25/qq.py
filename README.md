@@ -3,7 +3,6 @@
 # QQ.py
 
 [![GitHub issues](https://img.shields.io/github/issues/foxwhite25/qq.py?style=for-the-badge)](https://github.com/foxwhite25/qq.py/issues)
-[![GitHub pull requests](https://img.shields.io/github/issues-pr/foxwhite25/qq.py?style=for-the-badge)](https://github.com/foxwhite25/qq.py/pulls)
 [![PyPI - License](https://img.shields.io/pypi/l/qq.py?style=for-the-badge)](https://pypi.org/project/qq.py/)
 [![PyPI - Status](https://img.shields.io/pypi/status/qq.py?style=for-the-badge)](https://pypi.org/project/qq.py/)
 [![PyPI](https://img.shields.io/pypi/v/qq.py?style=for-the-badge)](https://pypi.org/project/qq.py/)
