@@ -362,7 +362,7 @@ API 为某些类型的字符串提供了一些枚举，以避免 API 被字符�
 
 这些异步迭代器可以按如下方式使用：::
 
-    async for elem in channel.history():
+    async for elem in await client.fetch_guilds():
         # do stuff with elem here
 
 某些实用程序可以更轻松地使用异步迭代器，详情如下。
@@ -392,9 +392,9 @@ API 为某些类型的字符串提供了一些枚举，以避免 API 被字符�
 
         类似于 :func:`utils.get` ，除了运行异步迭代器。
 
-        获取名为“Dave”或“None”的用户的最后一条消息： ::
+        获取名为 “Test” 的频道： ::
 
-            msg = await channel.history().get(author__name='Dave')
+            guild = await await client.fetch_guilds().get(name='Test')
 
     .. method:: find(predicate)
         :async:
@@ -435,11 +435,11 @@ API 为某些类型的字符串提供了一些枚举，以避免 API 被字符�
         这类似于内置的 :func:`map <py:map>` 函数。 另一个类：`AsyncIterator` 被返回，它在它迭代的每个元素上执行该函数。 这个函数可以是一个普通函数，也可以是一个 |coroutine_link|_。
         创建内容迭代器: ::
 
-            def transform(message):
-                return message.content
+            def transform(guild):
+                return guild.name
 
-            async for content in channel.history().map(transform):
-                message_length = len(content)
+            async for content in await client.fetch_guilds().map(transform):
+                guild_name = content
 
         :param func: 在每个元素上调用的函数。 可能是 |coroutine_link|_。
         :rtype: :class:`AsyncIterator`
@@ -448,12 +448,12 @@ API 为某些类型的字符串提供了一些枚举，以避免 API 被字符�
 
         这类似于内置的 :func:`filter <py:filter>` 函数。 返回另一个 :class:`AsyncIterator` 过滤原始异步迭代器。
         该谓词可以是常规函数或 |coroutine_link|_。
-        获取非机器人帐户消息： ::
+        获取非名为 'Test' 的频道： ::
 
-            def predicate(message):
-                return not message.author.bot
+            def predicate(guild):
+                return guild.name == 'Test'
 
-            async for elem in channel.history().filter(predicate):
+            async for elem in await client.fetch_guilds().filter(predicate):
                 ...
 
         :param predicate: 调用每个元素的谓词。 可能是 |coroutine_link|_。
@@ -481,13 +481,6 @@ Messageable
 
 .. autoclass:: qq.abc.Messageable()
     :members:
-    :exclude-members: history, typing
-
-    .. automethod:: qq.abc.Messageable.history
-        :async-for:
-
-    .. automethod:: qq.abc.Messageable.typing
-        :async-with:
 
 
 QQ 模型
