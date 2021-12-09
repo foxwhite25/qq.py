@@ -150,8 +150,8 @@ AutoShardedClient
 
         ``on_error`` 只会被分派到 :meth:`Client.event`。
 
-        它不会被:meth:`Client.wait_for` 接收，或者，如果有使用，:ref:`ext_commands_api_bot` 侦听器，
-        例如 :meth:`~ext.commands.Bot.listen` 或 :meth:`~ext。命令.Cog.listener`。
+        它不会被 :meth:`Client.wait_for` 接收，或者，如果有使用，:ref:`ext_commands_api_bot` 侦听器，
+        例如 :meth:`~ext.commands.Bot.listen` 或 :meth:`~ext.commands.Cog.listener`。
 
     :param event: 引发异常的事件的名称。
     :type event: :class:`str`
@@ -167,7 +167,7 @@ AutoShardedClient
 
     .. versionadded:: 2.0
 
-    :param event_type: 收到的来自 QQ 的事件类型，例如 ``'READY'``.
+    :param event_type: 收到的来自 QQ 的事件类型，例如 ``READY``.
     :type event_type: :class:`str`
 
 .. function:: on_socket_raw_receive(msg)

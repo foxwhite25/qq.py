@@ -184,6 +184,17 @@ class Shard:
 
 
 class ShardInfo:
+    """提供信息和控制特定分片的类。
+    你可以通过 :meth:`AutoShardedClient.get_shard` 或 :attr:`AutoShardedClient.shards` 检索这个对象。
+
+    Attributes
+    ------------
+    id: :class:`int`
+        此分片的分片 ID。
+    shard_count: Optional[:class:`int`]
+        此集群的分片计数。如果这是 ``None`` ，则机器人尚未启动。
+    """
+
     __slots__ = ('_parent', 'id', 'shard_count')
 
     def __init__(self, parent: Shard, shard_count: Optional[int]) -> None:
@@ -192,14 +203,13 @@ class ShardInfo:
         self.shard_count: Optional[int] = shard_count
 
     def is_closed(self) -> bool:
-        """:class:`bool`: Whether the shard connection is currently closed."""
+        """:class:`bool`: 分片连接当前是否关闭。"""
         return not self._parent.ws.open
 
     async def disconnect(self) -> None:
         """|coro|
-        Disconnects a shard. When this is called, the shard connection will no
-        longer be open.
-        If the shard is already disconnected this does nothing.
+        断开分片。当这个被调用时，分片连接将关闭。
+        如果分片已经断开连接，则不会执行任何操作。
         """
         if self.is_closed():
             return
@@ -208,7 +218,7 @@ class ShardInfo:
 
     async def reconnect(self) -> None:
         """|coro|
-        Disconnects and then connects the shard again.
+        断开连接，然后再次连接分片。
         """
         if not self.is_closed():
             await self._parent.disconnect()
@@ -216,7 +226,7 @@ class ShardInfo:
 
     async def connect(self) -> None:
         """|coro|
-        Connects a shard. If the shard is already connected this does nothing.
+        连接一个分片。如果分片已连接，则不会执行任何操作。
         """
         if not self.is_closed():
             return
@@ -225,19 +235,31 @@ class ShardInfo:
 
     @property
     def latency(self) -> float:
-        """:class:`float`: Measures latency between a HEARTBEAT and a HEARTBEAT_ACK in seconds for this shard."""
+        """:class:`float`: 测量此分片的 HEARTBEAT 和 HEARTBEAT_ACK 之间的延迟（以秒为单位）。"""
         return self._parent.ws.latency
 
     def is_ws_ratelimited(self) -> bool:
-        """:class:`bool`: Whether the websocket is currently rate limited.
-        This can be useful to know when deciding whether you should query members
-        using HTTP or via the gateway.
-        .. versionadded:: 1.6
+        """:class:`bool`: websocket 当前是否有速率限制。
         """
         return self._parent.ws.is_ratelimited()
 
 
 class AutoShardedClient(Client):
+    """一个类似于:class:`Client` 的客户端，
+    只是它将用户分片的复杂性处理成一个更易于管理和透明的单进程机器人。
+    当使用这个客户端时，你将能够像使用它一样使用它，就像它是一个带有单个分片的常规客户端，当在内部实现时，它被分成多个分片。
+    这使您不必处理 IPC 或其他复杂的基础。
+    建议人数超过1000人以上才使用此客户端。
+    如果没有提供 :attr:`.shard_count`，则库将使用 Bot Gateway 端点调用来确定要使用多少个分片。
+    如果给出了 ``shard_ids`` 参数，则这些分片 ID 将用于启动内部分片。
+    请注意，如果使用 :attr:`.shard_count` ，则必须提供。默认情况下，当省略时，客户端将启动从 0 到 ``shard_count - 1`` 的分片。
+
+    Attributes
+    ------------
+    shard_ids: Optional[List[:class:`int`]]
+        用于启动分片的可选 shard_id 列表。
+    """
+
     if TYPE_CHECKING:
         _connection: AutoShardedConnectionState
 
@@ -248,9 +270,9 @@ class AutoShardedClient(Client):
 
         if self.shard_ids is not None:
             if self.shard_count is None:
-                raise ClientException('When passing manual shard_ids, you must provide a shard_count.')
+                raise ClientException('在传递手动 shard_ids 时，您必须提供一个 shard_count。')
             elif not isinstance(self.shard_ids, (list, tuple)):
-                raise ClientException('shard_ids parameter must be a list or a tuple.')
+                raise ClientException('shard_ids 参数必须是列表或元组。')
 
         # instead of a single websocket, we have multiple
         # the key is the shard_id
@@ -277,10 +299,9 @@ class AutoShardedClient(Client):
 
     @property
     def latency(self) -> float:
-        """:class:`float`: Measures latency between a HEARTBEAT and a HEARTBEAT_ACK in seconds.
-        This operates similarly to :meth:`Client.latency` except it uses the average
-        latency of every shard's latency. To get a list of shard latency, check the
-        :attr:`latencies` property. Returns ``nan`` if there are no shards ready.
+        """:class:`float`: 以秒为单位测量 HEARTBEAT 和 HEARTBEAT_ACK 之间的延迟。
+        这与 :meth:`Client.latency` 的操作类似，但是它使用每个分片延迟的平均延迟。
+        要获取分片延迟列表，请检查 :attr:`latencies` 属性。如果没有分片，则返回 ``nan`` 。
         """
         if not self.__shards:
             return float('nan')
@@ -288,13 +309,13 @@ class AutoShardedClient(Client):
 
     @property
     def latencies(self) -> List[Tuple[int, float]]:
-        """List[Tuple[:class:`int`, :class:`float`]]: A list of latencies between a HEARTBEAT and a HEARTBEAT_ACK in seconds.
-        This returns a list of tuples with elements ``(shard_id, latency)``.
+        """List[Tuple[:class:`int`, :class:`float`]]: HEARTBEAT 和 HEARTBEAT_ACK 之间的延迟列表（以秒为单位）。
+        这将返回一个包含元素 ``(shard_id, latency)`` 的元组列表。
         """
         return [(shard_id, shard.ws.latency) for shard_id, shard in self.__shards.items()]
 
     def get_shard(self, shard_id: int) -> Optional[ShardInfo]:
-        """Optional[:class:`ShardInfo`]: Gets the shard information at a given shard ID or ``None`` if not found."""
+        """Optional[:class:`ShardInfo`]: 获取给定分片 ID 的分片信息，如果未找到则为 ``None`` 。"""
         try:
             parent = self.__shards[shard_id]
         except KeyError:
@@ -304,7 +325,7 @@ class AutoShardedClient(Client):
 
     @property
     def shards(self) -> Dict[int, ShardInfo]:
-        """Mapping[int, :class:`ShardInfo`]: Returns a mapping of shard IDs to their respective info object."""
+        """Mapping[int, :class:`ShardInfo`]: 返回分片 ID 到其各自信息对象的映射。"""
         return {shard_id: ShardInfo(parent, self.shard_count) for shard_id, parent in self.__shards.items()}
 
     async def launch_shard(self, gateway: str, shard_id: int, *, initial: bool = False) -> None:
@@ -312,7 +333,7 @@ class AutoShardedClient(Client):
             coro = QQWebSocket.from_client(self, initial=initial, gateway=gateway, shard_id=shard_id)
             ws = await asyncio.wait_for(coro, timeout=180.0)
         except Exception:
-            _log.exception('Failed to connect for shard_id: %s. Retrying...', shard_id)
+            _log.exception('无法连接 shard_id: %s。正在重试...', shard_id)
             await asyncio.sleep(5.0)
             return await self.launch_shard(gateway, shard_id)
 
@@ -361,7 +382,7 @@ class AutoShardedClient(Client):
 
     async def close(self) -> None:
         """|coro|
-        Closes the connection to Discord.
+        关闭与 QQ 的连接。
         """
         if self.is_closed():
             return
@@ -375,11 +396,7 @@ class AutoShardedClient(Client):
         self.__queue.put_nowait(EventItem(EventType.clean_close, None, None))
 
     def is_ws_ratelimited(self) -> bool:
-        """:class:`bool`: Whether the websocket is currently rate limited.
-        This can be useful to know when deciding whether you should query members
-        using HTTP or via the gateway.
-        This implementation checks if any of the shards are rate limited.
-        For more granular control, consider :meth:`ShardInfo.is_ws_ratelimited`.
-        .. versionadded:: 1.6
+        """:class:`bool`: websocket 当前是否有速率限制。
+        此实现检查是否有任何分片受速率限制。如需更精细的控制，请考虑 :meth:`ShardInfo.is_ws_ratelimited` 。
         """
         return any(shard.ws.is_ratelimited() for shard in self.__shards.values())

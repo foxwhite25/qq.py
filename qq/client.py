@@ -498,7 +498,7 @@ class Client:
 
     async def close(self) -> None:
         """|coro|
-        关闭与 Discord 的连接。
+        关闭与 QQ 的连接。
         """
         if self._closed:
             return
