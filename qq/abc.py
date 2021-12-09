@@ -38,11 +38,14 @@ _undefined: Any = _Undefined()
 
 class Messageable:
     """一个 记录了可以发送消息的模型上的常见操作的ABC。
+
     以下实现了这个 ABC：
+
     - :class:`~discord.TextChannel`
     - :class:`~discord.User`
     - :class:`~discord.Member`
     - :class:`~discord.ext.commands.Context`
+
     """
 
     __slots__ = ()
@@ -161,7 +164,9 @@ GCH = TypeVar('GCH', bound='GuildChannel')
 
 class GuildChannel:
     """详细介绍 QQ 子频道上常见操作的 ABC。
+
     以下实现了这个 ABC：
+
     - :class:`~discord.TextChannel`
     - :class:`~discord.VoiceChannel`
     - :class:`~discord.CategoryChannel`
