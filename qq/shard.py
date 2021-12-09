@@ -245,10 +245,10 @@ class ShardInfo:
 
 
 class AutoShardedClient(Client):
-    """一个类似于:class:`Client` 的客户端，
+    """一个类似于 :class:`Client` 的客户端，
     只是它将用户分片的复杂性处理成一个更易于管理和透明的单进程机器人。
     当使用这个客户端时，你将能够像使用它一样使用它，就像它是一个带有单个分片的常规客户端，当在内部实现时，它被分成多个分片。
-    这使您不必处理 IPC 或其他复杂的基础。
+    这使你不必处理 IPC 或其他复杂的基础。
     建议人数超过1000人以上才使用此客户端。
     如果没有提供 :attr:`.shard_count`，则库将使用 Bot Gateway 端点调用来确定要使用多少个分片。
     如果给出了 ``shard_ids`` 参数，则这些分片 ID 将用于启动内部分片。
@@ -270,7 +270,7 @@ class AutoShardedClient(Client):
 
         if self.shard_ids is not None:
             if self.shard_count is None:
-                raise ClientException('在传递手动 shard_ids 时，您必须提供一个 shard_count。')
+                raise ClientException('在传递手动 shard_ids 时，你必须提供一个 shard_count。')
             elif not isinstance(self.shard_ids, (list, tuple)):
                 raise ClientException('shard_ids 参数必须是列表或元组。')
 

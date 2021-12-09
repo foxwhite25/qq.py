@@ -123,7 +123,7 @@ class Intents(BaseFlags):
 
     @classmethod
     def all(cls: Type[Intents]) -> Intents:
-        """A factory method that creates a :class:`Intents` with everything enabled."""
+        """一个工厂方法，它创建一个 :class:`Intents` 并启用所有内容。"""
         value = 0
         for bits in cls.VALID_FLAGS.values():
             value |= bits
@@ -133,37 +133,177 @@ class Intents(BaseFlags):
 
     @classmethod
     def none(cls: Type[Intents]) -> Intents:
-        """A factory method that creates a :class:`Intents` with everything disabled."""
+        """一个工厂方法，它创建一个禁用一切的 :class:`Intents` 。"""
         self = cls.__new__(cls)
         self.value = self.DEFAULT_VALUE
         return self
 
     @classmethod
     def default(cls: Type[Intents]) -> Intents:
-        """A factory method that creates a :class:`Intents` with everything enabled
-        except :attr:`presences` and :attr:`members`.
+        """一个工厂方法，它创建一个 :class:`Intents`，
+        除了 :attr:`guilds`, :attr:`members` 和 :attr:`at_guild_messages` 之外的所有内容都禁用。
         """
-        self = cls.all()
-        self.audio = False
-        self.direct_messages = False
+        self = cls.none()
+        self.guilds = True
+        self.members = True
+        self.at_guild_messages = True
         return self
 
     @flag_value
     def guilds(self):
+        """:class:`bool`: 公会相关事件是否开启。
+
+        这对应于以下事件：
+
+        - :func:`on_guild_join`
+        - :func:`on_guild_update`
+        - :func:`on_guild_remove`
+        - :func:`on_guild_channel_update`
+        - :func:`on_guild_channel_create`
+        - :func:`on_guild_channel_delete`
+
+        这也对应于缓存方面的以下属性和类：
+
+        - :attr:`Client.guilds`
+        - :class:`Guild` 以及它的所有属性。
+        - :meth:`Client.get_channel`
+        - :meth:`Client.get_all_channels`
+
+        .. warning::
+
+            强烈建议您启用此意图，以便您的机器人正常运行。
+        """
+
         return 1 << 0
 
     @flag_value
     def members(self):
+        """:class:`bool`: 公会成员相关事件是否开启。
+
+        这对应于以下事件：
+
+        - :func:`on_member_join`
+        - :func:`on_member_remove`
+        - :func:`on_member_update`
+
+        这也对应于缓存方面的以下属性和类：
+
+        - :meth:`Client.get_all_members`
+        - :meth:`Client.get_user`
+        - :meth:`Guild.chunk`
+        - :meth:`Guild.fetch_members`
+        - :meth:`Guild.get_member`
+        - :attr:`Guild.members`
+        - :attr:`Member.roles`
+        - :attr:`Member.nick`
+        - :attr:`User.name`
+        - :attr:`User.avatar`
+        """
         return 1 << 1
 
+    @alias_flag_value
+    def messages(self):
+        """:class:`bool`: 是否启用公会和直接消息相关事件。
+        这是设置或获取 :attr:`guild_messages` 和 :attr:`dm_messages` 的快捷方式。
+
+        这对应于以下事件：
+        - :func:`on_message` (both guilds and DMs)
+
+        这也对应于缓存方面的以下属性和类：
+        - :class:`Message`
+        - :attr:`Client.cached_messages`
+
+        .. note::
+
+            现在来说，这个 Intents 需要额外的申请，如果没有适当的权限 Websocket 将无法连接。
+        """
+
+        return (1 << 12) | (1 << 9)
+
     @flag_value
-    def direct_messages(self):
+    def dm_messages(self):
+        """:class:`bool`: 是否启用直接消息相关事件。
+        另见 :attr:`guild_messages` 来获取频道信息或 :attr:`messages` 同时获取两者。
+
+        这对应于以下事件：
+
+        - :func:`on_message` (only for DMs)
+
+        这也对应于缓存方面的以下属性和类：
+
+        - :class:`Message`
+        - :attr:`Client.cached_messages` (only for DMs)
+
+        .. note::
+
+            现在来说，这个 Intents 需要额外的申请，如果没有适当的权限 Websocket 将无法连接。
+        """
         return 1 << 12
 
     @flag_value
     def audio(self):
+        """:class:`bool`: 公会提及机器人的消息相关事件是否开启。
+
+        这对应于以下事件：
+
+        - :func:`on_audio_start`
+        - :func:`on_audio_stop`
+        - :func:`on_mic_start`
+        - :func:`on_mic_stop`
+        """
         return 1 << 29
 
     @flag_value
-    def at_messages(self):
+    def at_guild_messages(self):
+        """:class:`bool`: 公会提及机器人的消息相关事件是否开启。
+
+        这对应于以下事件：
+
+        - :func:`on_message` (只适用于频道)
+
+        这也对应于缓存方面的以下属性和类：
+
+        - :class:`Message`
+        - :attr:`Client.cached_messages` (只适用于频道)
+        """
         return 1 << 30
+
+    @flag_value
+    def guild_messages(self):
+        """:class:`bool`: 公会消息相关事件是否开启。
+
+        这对应于以下事件：
+
+        - :func:`on_message` (只适用于频道)
+
+        这也对应于缓存方面的以下属性和类：
+
+        - :class:`Message`
+        - :attr:`Client.cached_messages` (只适用于频道)
+
+        .. note::
+
+            现在来说，这个 Intents 需要额外的申请，如果没有适当的权限 Websocket 将无法连接。
+        """
+        return 1 << 9
+
+    @flag_value
+    def guild_reactions(self):
+        """:class:`bool`: 公会消息反应相关事件是否开启。
+
+        这对应于以下事件：
+
+        - :func:`on_reaction_add` (只适用于频道)
+        - :func:`on_reaction_remove` (只适用于频道)
+        - :func:`on_raw_reaction_add` (只适用于频道)
+        - :func:`on_raw_reaction_remove` (只适用于频道)
+
+        这也对应于缓存方面的以下属性和类：
+
+        - :attr:`Message.reactions` (只适用于频道信息)
+
+        .. note::
+
+            现在来说，这个 Intents 需要额外的申请，如果没有适当的权限 Websocket 将无法连接。
+        """
+        return 1 << 10

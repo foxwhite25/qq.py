@@ -16,7 +16,7 @@ extras_require = {
 
 setup(
     name='qq.py',
-    version='0.1.3',
+    version='0.1.4',
     description='A Python wrapper for the QQ Channel API',
     py_modules=["qq"],
     packages=['qq', "qq.types"],

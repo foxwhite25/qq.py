@@ -1,7 +1,7 @@
 __title__ = 'qq'
 __author__ = 'Foxwhite'
 __license__ = 'MIT'
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
@@ -35,4 +35,4 @@ class VersionInfo(NamedTuple):
     serial: int
 
 
-version_info: VersionInfo = VersionInfo(major=0, minor=1, micro=3, releaselevel='alpha', serial=0)
+version_info: VersionInfo = VersionInfo(major=0, minor=1, micro=4, releaselevel='alpha', serial=0)
