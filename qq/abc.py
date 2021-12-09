@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from .channel import CategoryChannel, TextChannel, PartialMessageable
     from .guild import Guild
     from .state import ConnectionState
-    from .message import Message
+    from .message import Message, MessageReference, PartialMessage
     from .types.channel import (
         Channel as ChannelPayload,
     )
@@ -58,7 +58,7 @@ class Messageable:
             *,
             tts: bool = ...,
             image: str = ...,
-            reference: Union[Message] = ...,
+            reference: Union[Message, MessageReference, PartialMessage] = ...,
             mention_author: Member = ...,
     ) -> Message:
         ...
@@ -67,7 +67,6 @@ class Messageable:
             self,
             content=None,
             *,
-            tts=None,
             image=None,
             reference=None,
             mention_author=None,
@@ -75,54 +74,33 @@ class Messageable:
         """|coro|
         使用给定的内容向目的地发送消息。
         content 必须是可以通过 ``str(content)`` 转换为字符串的类型。
-        To upload a single file, the ``file`` parameter should be used with a
-        single :class:`~discord.File` object. To upload multiple files, the ``files``
-        parameter should be used with a :class:`list` of :class:`~discord.File` objects.
-        **Specifying both parameters will lead to an exception**.
+
         Parameters
         ------------
         content: Optional[:class:`str`]
-            The content of the message to send.
-        tts: :class:`bool`
-            Indicates if the message should be sent using text-to-speech.
+            发送的信息内容。
         image: :class:`str`
-            If provided, the number of seconds to wait in the background
-            before deleting the message we just sent. If the deletion fails,
-            then it is silently ignored.
-        allowed_mentions: :class:`~discord.AllowedMentions`
-            Controls the mentions being processed in this message. If this is
-            passed, then the object is merged with :attr:`~discord.Client.allowed_mentions`.
-            The merging behaviour only overrides attributes that have been explicitly passed
-            to the object, otherwise it uses the attributes set in :attr:`~discord.Client.allowed_mentions`.
-            If no object is passed at all then the defaults given by :attr:`~discord.Client.allowed_mentions`
-            are used instead.
-        reference: Union[:class:`~discord.Message`, :class:`~discord.MessageReference`, :class:`~discord.PartialMessage`]
-            A reference to the :class:`~discord.Message` to which you are replying, this can be created using
-            :meth:`~discord.Message.to_reference` or passed directly as a :class:`~discord.Message`. You can control
-            whether this mentions the author of the referenced message using the :attr:`~discord.AllowedMentions.replied_user`
-            attribute of ``allowed_mentions`` or by setting ``mention_author``.
-            .. versionadded:: 1.6
+            要发送的图片链接
+        reference: Union[:class:`~qq.Message`, :class:`~qq.MessageReference`, :class:`~qq.PartialMessage`]
+            对您正在回复的 :class:`~qq.Message` 的引用，可以使用 :meth:`~qq.Message.to_reference` 创建或直接作为 :class:`~discord.Message` 传递。
         mention_author: Optional[:class:`Member`]
-            If set, overrides the :attr:`~discord.AllowedMentions.replied_user` attribute of ``allowed_mentions``.
-            .. versionadded:: 1.6
+            如果设置了，将会在消息前面提及该用户。
+
 
         Raises
         --------
-        ~discord.HTTPException
-            Sending the message failed.
-        ~discord.Forbidden
-            You do not have the proper permissions to send the message.
-        ~discord.InvalidArgument
-            The ``files`` list is not of the appropriate size,
-            you specified both ``file`` and ``files``,
-            or you specified both ``embed`` and ``embeds``,
-            or the ``reference`` object is not a :class:`~discord.Message`,
-            :class:`~discord.MessageReference` or :class:`~discord.PartialMessage`.
+        ~qq.HTTPException
+            发送信息失败。
+        ~qq.Forbidden
+            您没有发送消息的适当权限。
+        ~qq.InvalidArgument
+            ``reference`` 不是 :class:`~discord.Message` 、
+            :class:`~discord.MessageReference` 或 :class:`~discord.PartialMessage` 。
 
         Returns
         ---------
-        :class:`~discord.Message`
-            The message that was sent.
+        :class:`~qq.Message`
+            发送的消息。
         """
 
         channel = await self._get_channel()
@@ -142,7 +120,6 @@ class Messageable:
         data = await state.http.send_message(
             channel.id,
             content,
-            tts=tts,
             message_reference=reference,
             image_url=image
         )
@@ -153,10 +130,12 @@ class Messageable:
     async def fetch_message(self, id: int, /) -> Message:
         """|coro|
         从目的地检索单个 :class:`~qq.Message`。
+
         Parameters
         ------------
         id: :class:`int`
             要查找的消息 ID。
+
         Raises
         --------
         ~qq.NotFound
@@ -165,6 +144,7 @@ class Messageable:
             您没有获取消息所需的权限。
         ~qq.HTTPException
             检索消息失败。
+
         Returns
         --------
         :class:`~discord.Message`
