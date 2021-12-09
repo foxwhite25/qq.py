@@ -28,32 +28,29 @@ __all__ = (
 
 
 class QQException(Exception):
-    """Base exception class for qq.py
-    Ideally speaking, this could be caught to handle any exceptions raised from this library.
-    """
-
+    """qq.py 的基本异常类，可以捕获从库引发的任何异常。"""
     pass
 
 
 class ClientException(QQException):
-    """Exception that's raised when an operation in the :class:`Client` fails.
-    These are usually for exceptions that happened due to user input.
+    """当 :class:`Client` 中的操作失败时引发的异常。
+    这些通常是由于用户输入而发生的异常。
     """
 
     pass
 
 
 class NoMoreItems(QQException):
-    """Exception that is raised when an async iteration operation has no more items."""
+    """当异步迭代操作没有更多项目时引发的异常。"""
 
     pass
 
 
 class GatewayNotFound(QQException):
-    """An exception that is raised when the gateway for QQ could not be found"""
+    """找不到QQ网关时引发的异常"""
 
     def __init__(self):
-        message = 'The gateway to connect to discord was not found.'
+        message = '未找到连接到 QQ 的网关。'
         super().__init__(message)
 
 
@@ -76,19 +73,20 @@ def _flatten_error_dict(d: Dict[str, Any], key: str = '') -> Dict[str, str]:
 
 
 class HTTPException(QQException):
-    """Exception that's raised when an HTTP request operation fails.
+    """HTTP 请求操作失败时引发的异常。
+
     Attributes
     ------------
     response: :class:`aiohttp.ClientResponse`
-        The response of the failed HTTP request. This is an
-        instance of :class:`aiohttp.ClientResponse`. In some cases
-        this could also be a :class:`requests.Response`.
+        失败的 HTTP 请求的响应。
+        这是 :class:`aiohttp.ClientResponse` 的一个实例。
+        在某些情况下，这也可能是一个 :class:`requests.Response`。
     text: :class:`str`
-        The text of the error. Could be an empty string.
+        错误的文本。可能是一个空字符串。
     status: :class:`int`
-        The status code of the HTTP request.
+        HTTP 请求的状态码。
     code: :class:`int`
-        The Discord specific error code for the failure.
+        失败的 QQ 特定错误代码。
     """
 
     def __init__(self, response: _ResponseType, message: Optional[Union[str, Dict[str, Any]]]):
@@ -118,69 +116,55 @@ class HTTPException(QQException):
 
 
 class Forbidden(HTTPException):
-    """Exception that's raised for when status code 403 occurs.
-    Subclass of :exc:`HTTPException`
+    """发生状态代码 403 时引发的异常。 :exc:`HTTPException` 的子类
     """
-
     pass
 
 
 class NotFound(HTTPException):
-    """Exception that's raised for when status code 404 occurs.
-    Subclass of :exc:`HTTPException`
+    """发生状态代码 404 时引发的异常。 :exc:`HTTPException` 的子类
     """
-
     pass
 
 
 class QQServerError(HTTPException):
-    """Exception that's raised for when a 500 range status code occurs.
-    Subclass of :exc:`HTTPException`.
-    .. versionadded:: 1.5
+    """发生 500 范围状态代码时引发的异常。 :exc:`HTTPException` 的子类。
     """
-
     pass
 
 
 class InvalidData(ClientException):
-    """Exception that's raised when the library encounters unknown
-    or invalid data from Discord.
+    """当库遇到来自 QQ 的未知或无效数据时引发的异常。
     """
-
     pass
 
 
 class InvalidArgument(ClientException):
-    """Exception that's raised when an argument to a function
-    is invalid some way (e.g. wrong value or wrong type).
-    This could be considered the analogous of ``ValueError`` and
-    ``TypeError`` except inherited from :exc:`ClientException` and thus
-    :exc:`DiscordException`.
+    """当函数的参数以某种方式无效时引发的异常（例如错误的值或错误的类型）。
+    除了继承自 :exc:`ClientException` 和 :exc:`QQException`，这可以被认为是类似于 ``ValueError`` 和 ``TypeError`` 。
     """
 
     pass
 
 
 class LoginFailure(ClientException):
-    """Exception that's raised when the :meth:`Client.login` function
-    fails to log you in from improper credentials or some other misc.
-    failure.
+    """当 :meth:`Client.login` 函数无法通过不正确的凭据或其他一些杂项登录时引发的异常。
     """
 
     pass
 
 
 class ConnectionClosed(ClientException):
-    """Exception that's raised when the gateway connection is
-    closed for reasons that could not be handled internally.
+    """由于无法在内部处理的原因关闭网关连接时引发的异常。
+
     Attributes
     -----------
     code: :class:`int`
-        The close code of the websocket.
+        websocket 的关闭代码。
     reason: :class:`str`
-        The reason provided for the closure.
+        提供了关闭的原因。
     shard_id: Optional[:class:`int`]
-        The shard ID that got closed if applicable.
+        如果适用，已关闭的分片 ID。
     """
 
     def __init__(self, socket: ClientWebSocketResponse, *, shard_id: Optional[int], code: Optional[int] = None):
@@ -190,4 +174,4 @@ class ConnectionClosed(ClientException):
         # aiohttp doesn't seem to consistently provide close reason
         self.reason: str = ''
         self.shard_id: Optional[int] = shard_id
-        super().__init__(f'Shard ID {self.shard_id} WebSocket closed with {self.code}')
+        super().__init__(f'分片 ID {self.shard_id} 用 {self.code} 关闭的 WebSocket')

@@ -19,24 +19,36 @@ CT = TypeVar('CT', bound='Colour')
 
 
 class Colour:
-    """Represents a Discord role colour. This class is similar
-    to a (red, green, blue) :class:`tuple`.
-    There is an alias for this called Color.
+    """
+    代表 QQ 颜色。这个类类似于（红、绿、蓝）:class:`tuple`。
+    这个有一个别名叫做 Color。
+
     .. container:: operations
+
         .. describe:: x == y
-             Checks if two colours are equal.
+
+             检查两种颜色是否相等。
+
         .. describe:: x != y
-             Checks if two colours are not equal.
+
+             检查两种颜色是否不相等。
+
         .. describe:: hash(x)
-             Return the colour's hash.
+
+             返回颜色的哈希值。
+
         .. describe:: str(x)
-             Returns the hex format for the colour.
+
+             返回颜色的十六进制格式。
+
         .. describe:: int(x)
-             Returns the raw colour value.
+
+             返回原始颜色值。
+
     Attributes
     ------------
     value: :class:`int`
-        The raw integer colour value.
+        原始整数颜色值。
     """
 
     __slots__ = ('value',)
@@ -70,212 +82,202 @@ class Colour:
 
     @property
     def r(self) -> int:
-        """:class:`int`: Returns the red component of the colour."""
+        """:class:`int`: 返回颜色的红色部分。"""
         return self._get_byte(2)
 
     @property
     def g(self) -> int:
-        """:class:`int`: Returns the green component of the colour."""
+        """:class:`int`: 返回颜色的绿色部分。"""
         return self._get_byte(1)
 
     @property
     def b(self) -> int:
-        """:class:`int`: Returns the blue component of the colour."""
+        """:class:`int`: 返回颜色的蓝色部分。"""
         return self._get_byte(0)
 
     def to_rgb(self) -> Tuple[int, int, int]:
-        """Tuple[:class:`int`, :class:`int`, :class:`int`]: Returns an (r, g, b) tuple representing the colour."""
+        """Tuple[:class:`int`, :class:`int`, :class:`int`]: 返回表示颜色的 (r, g, b) 元组。"""
         return (self.r, self.g, self.b)
 
     @classmethod
     def from_rgb(cls: Type[CT], r: int, g: int, b: int) -> CT:
-        """Constructs a :class:`Colour` from an RGB tuple."""
+        """Constructs a :class:`Colour` 来自 RGB 元组。"""
         return cls((r << 16) + (g << 8) + b)
 
     @classmethod
     def from_hsv(cls: Type[CT], h: float, s: float, v: float) -> CT:
-        """Constructs a :class:`Colour` from an HSV tuple."""
+        """Constructs a :class:`Colour` 来自 HSV 元组。"""
         rgb = colorsys.hsv_to_rgb(h, s, v)
         return cls.from_rgb(*(int(x * 255) for x in rgb))
 
     @classmethod
     def default(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0``."""
+        """一个工厂方法，它返回一个 :class:`Colour` 的值为 ``0`` 。"""
         return cls(0)
 
     @classmethod
     def random(cls: Type[CT], *, seed: Optional[Union[int, str, float, bytes, bytearray]] = None) -> CT:
-        """A factory method that returns a :class:`Colour` with a random hue.
+        """返回带有随机色调的 :class:`Colour` 的工厂方法。
+
         .. note::
-            The random algorithm works by choosing a colour with a random hue but
-            with maxed out saturation and value.
-        .. versionadded:: 1.6
+
+            随机算法的工作原理是选择具有随机色调但饱和度和值最大化的颜色。
+
         Parameters
         ------------
         seed: Optional[Union[:class:`int`, :class:`str`, :class:`float`, :class:`bytes`, :class:`bytearray`]]
-            The seed to initialize the RNG with. If ``None`` is passed the default RNG is used.
-            .. versionadded:: 1.7
+            用于初始化随机数生成器的种子。如果传递 ``None``，则使用默认随机数生成器。
+
         """
         rand = random if seed is None else random.Random(seed)
         return cls.from_hsv(rand.random(), 1, 1)
 
     @classmethod
     def teal(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x1abc9c``."""
+        """一个工厂方法，返回一个值为 ``0x1abc9c`` 的 :class:`Colour`  。"""
         return cls(0x1abc9c)
 
     @classmethod
     def dark_teal(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x11806a``."""
+        """一个工厂方法，返回一个值为 ``0x11806a`` 的 :class:`Colour`  。"""
         return cls(0x11806a)
 
     @classmethod
     def brand_green(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x57F287``.
-        .. versionadded:: 2.0
-        """
+        """一个工厂方法，返回一个值为 ``0x57F287`` 的 :class:`Colour`  。"""
         return cls(0x57F287)
 
     @classmethod
     def green(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x2ecc71``."""
+        """一个工厂方法，返回一个值为 ``0x2ecc71`` 的 :class:`Colour`  。"""
         return cls(0x2ecc71)
 
     @classmethod
     def dark_green(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x1f8b4c``."""
+        """一个工厂方法，返回一个值为 ``0x1f8b4c`` 的 :class:`Colour`  。"""
         return cls(0x1f8b4c)
 
     @classmethod
     def blue(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x3498db``."""
+        """一个工厂方法，返回一个值为 ``0x3498db`` 的 :class:`Colour`  。"""
         return cls(0x3498db)
 
     @classmethod
     def dark_blue(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x206694``."""
+        """一个工厂方法，返回一个值为 ``0x206694`` 的 :class:`Colour`  。"""
         return cls(0x206694)
 
     @classmethod
     def purple(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x9b59b6``."""
+        """一个工厂方法，返回一个值为 ``0x9b59b6`` 的 :class:`Colour`  。"""
         return cls(0x9b59b6)
 
     @classmethod
     def dark_purple(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x71368a``."""
+        """一个工厂方法，返回一个值为 ``0x71368a`` 的 :class:`Colour`  。"""
         return cls(0x71368a)
 
     @classmethod
     def magenta(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0xe91e63``."""
+        """一个工厂方法，返回一个值为 ``0xe91e63`` 的 :class:`Colour`  。"""
         return cls(0xe91e63)
 
     @classmethod
     def dark_magenta(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0xad1457``."""
+        """一个工厂方法，返回一个值为 ``0xad1457`` 的 :class:`Colour`  。"""
         return cls(0xad1457)
 
     @classmethod
     def gold(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0xf1c40f``."""
+        """一个工厂方法，返回一个值为 ``0xf1c40f`` 的 :class:`Colour`  。"""
         return cls(0xf1c40f)
 
     @classmethod
     def dark_gold(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0xc27c0e``."""
+        """一个工厂方法，返回一个值为 ``0xc27c0e`` 的 :class:`Colour`  。"""
         return cls(0xc27c0e)
 
     @classmethod
     def orange(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0xe67e22``."""
+        """一个工厂方法，返回一个值为 ``0xe67e22`` 的 :class:`Colour`  。"""
         return cls(0xe67e22)
 
     @classmethod
     def dark_orange(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0xa84300``."""
+        """一个工厂方法，返回一个值为 ``0xa84300`` 的 :class:`Colour`  。"""
         return cls(0xa84300)
 
     @classmethod
     def brand_red(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0xED4245``.
-        .. versionadded:: 2.0
-        """
+        """一个工厂方法，返回一个值为 ``0xED4245`` 的 :class:`Colour`  。"""
         return cls(0xED4245)
 
     @classmethod
     def red(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0xe74c3c``."""
+        """一个工厂方法，返回一个值为 ``0xe74c3c`` 的 :class:`Colour`  。"""
         return cls(0xe74c3c)
 
     @classmethod
     def dark_red(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x992d22``."""
+        """一个工厂方法，返回一个值为 ``0x992d22`` 的 :class:`Colour`  。"""
         return cls(0x992d22)
 
     @classmethod
     def lighter_grey(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x95a5a6``."""
+        """一个工厂方法，返回一个值为 ``0x95a5a6`` 的 :class:`Colour`  。"""
         return cls(0x95a5a6)
 
     lighter_gray = lighter_grey
 
     @classmethod
     def dark_grey(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x607d8b``."""
+        """一个工厂方法，返回一个值为 ``0x607d8b`` 的 :class:`Colour`  。"""
         return cls(0x607d8b)
 
     dark_gray = dark_grey
 
     @classmethod
     def light_grey(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x979c9f``."""
+        """一个工厂方法，返回一个值为 ``0x979c9f`` 的 :class:`Colour`  。"""
         return cls(0x979c9f)
 
     light_gray = light_grey
 
     @classmethod
     def darker_grey(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x546e7a``."""
+        """一个工厂方法，返回一个值为 ``0x546e7a`` 的 :class:`Colour`  。"""
         return cls(0x546e7a)
 
     darker_gray = darker_grey
 
     @classmethod
     def og_blurple(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x7289da``."""
+        """一个工厂方法，返回一个值为 ``0x7289da`` 的 :class:`Colour`  。"""
         return cls(0x7289da)
 
     @classmethod
     def blurple(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x5865F2``."""
+        """一个工厂方法，返回一个值为 ``0x5865F2`` 的 :class:`Colour`  。"""
         return cls(0x5865F2)
 
     @classmethod
     def greyple(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x99aab5``."""
+        """一个工厂方法，返回一个值为 ``0x99aab5`` 的 :class:`Colour`  。"""
         return cls(0x99aab5)
 
     @classmethod
     def dark_theme(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0x36393F``.
-        This will appear transparent on Discord's dark theme.
-        .. versionadded:: 1.5
-        """
+        """一个工厂方法，返回一个值为 ``0x36393F`` 的 :class:`Colour`  。"""
         return cls(0x36393F)
 
     @classmethod
     def fuchsia(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0xEB459E``.
-        .. versionadded:: 2.0
-        """
+        """一个工厂方法，返回一个值为 ``0xEB459E`` 的 :class:`Colour`  。"""
         return cls(0xEB459E)
 
     @classmethod
     def yellow(cls: Type[CT]) -> CT:
-        """A factory method that returns a :class:`Colour` with a value of ``0xFEE75C``.
-        .. versionadded:: 2.0
-        """
+        """一个工厂方法，返回一个值为 ``0xFEE75C`` 的 :class:`Colour`  。"""
         return cls(0xFEE75C)
 
 
