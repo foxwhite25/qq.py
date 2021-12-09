@@ -20,7 +20,7 @@ CT = TypeVar('CT', bound='Colour')
 
 class Colour:
     """
-    代表 QQ 颜色。这个类类似于（红、绿、蓝）:class:`tuple`。
+    代表 QQ 颜色。这个类类似于（红、绿、蓝）:class:`tuple` 。
     这个有一个别名叫做 Color。
 
     .. container:: operations

@@ -615,7 +615,9 @@ class Message(Hashable):
 class PartialMessage(Hashable):
     """当仅存在消息和通道 ID 时，只使用部分消息以帮助处理消息。
     有两种方法可以构造这个类。第一个是通过构造函数本身，第二个是通过以下方式：
+
     - :meth:`TextChannel.get_partial_message`
+
     注意这个类是被修剪过的，没有丰富的属性。
 
     .. container:: operations
