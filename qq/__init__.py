@@ -1,8 +1,3 @@
-__title__ = 'qq'
-__author__ = 'Foxwhite'
-__license__ = 'MIT'
-__version__ = '0.1.4'
-
 __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
 import logging
@@ -35,4 +30,8 @@ class VersionInfo(NamedTuple):
     serial: int
 
 
-version_info: VersionInfo = VersionInfo(major=0, minor=1, micro=4, releaselevel='alpha', serial=0)
+version_info: VersionInfo = VersionInfo(major=0, minor=2, micro=0, releaselevel='alpha', serial=0)
+__title__ = 'qq'
+__author__ = 'Foxwhite'
+__license__ = 'MIT'
+__version__ = f'{version_info.major}.{version_info.minor}.{version_info.micro}'

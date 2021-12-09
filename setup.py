@@ -16,8 +16,8 @@ extras_require = {
 
 setup(
     name='qq.py',
-    version='0.1.4',
-    description='A Python wrapper for the QQ Channel API',
+    version='0.2.0',
+    description='QQ 频道 API 的 Python Wrapper',
     py_modules=["qq"],
     packages=['qq', "qq.types"],
     license='MIT',
