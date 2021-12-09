@@ -469,24 +469,24 @@ API 为某些类型的字符串提供了一些枚举，以避免 API 被字符�
 GuildChannel
 ~~~~~~~~~~~~~
 
-.. attributetable:: discord.abc.GuildChannel
+.. attributetable:: qq.abc.GuildChannel
 
-.. autoclass:: discord.abc.GuildChannel()
+.. autoclass:: qq.abc.GuildChannel()
     :members:
 
 Messageable
 ~~~~~~~~~~~~
 
-.. attributetable:: discord.abc.Messageable
+.. attributetable:: qq.abc.Messageable
 
-.. autoclass:: discord.abc.Messageable()
+.. autoclass:: qq.abc.Messageable()
     :members:
     :exclude-members: history, typing
 
-    .. automethod:: discord.abc.Messageable.history
+    .. automethod:: qq.abc.Messageable.history
         :async-for:
 
-    .. automethod:: discord.abc.Messageable.typing
+    .. automethod:: qq.abc.Messageable.typing
         :async-with:
 
 
