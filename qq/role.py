@@ -21,6 +21,37 @@ R = TypeVar('R', bound='Role')
 
 
 class Role(Hashable):
+    """代表 :class:`Guild` 中的 QQ 身份组。
+
+    .. container:: operations
+
+        .. describe:: x == y
+
+            检查两个身份组是否相等。
+
+        .. describe:: x != y
+
+            检查两个身份组是否不相等。
+
+        .. describe:: hash(x)
+
+            返回身份组的哈希值。
+
+        .. describe:: str(x)
+
+            返回身份组的名称。
+
+    Attributes
+    ----------
+    id: :class:`int`
+        身份组的 ID。
+    name: :class:`str`
+        身份组名称。
+    guild: :class:`Guild`
+        身份组所属的公会。
+    hoist: :class:`bool`
+         指示身份组是否将与其他成员分开显示。
+    """
     __slots__ = (
         'id',
         'name',
@@ -84,27 +115,27 @@ class Role(Hashable):
         self.hoist: bool = data.get('hoist', False)
 
     def is_default(self) -> bool:
-        """:class:`bool`: Checks if the role is the default role."""
+        """:class:`bool`: 检查身份组是否为默认身份组。"""
         return self.guild.id == self.id
 
     @property
     def colour(self) -> Colour:
-        """:class:`Colour`: Returns the role colour. An alias exists under ``color``."""
+        """:class:`Colour`: 返回身份组颜色。 存在 ``color`` 别名。"""
         return Colour(self._colour)
 
     @property
     def color(self) -> Colour:
-        """:class:`Colour`: Returns the role color. An alias exists under ``colour``."""
+        """:class:`Colour`: 返回身份组颜色。 存在 ``color`` 别名。"""
         return self.colour
 
     @property
     def mention(self) -> str:
-        """:class:`str`: Returns a string that allows you to mention a role."""
+        """:class:`str`: 返回允许你提及身份组的字符串。"""
         return f'<@&{self.id}>'
 
     @property
     def members(self) -> List[Member]:
-        """List[:class:`Member`]: Returns all the members with this role."""
+        """List[:class:`Member`]: 返回具有此身份组的所有成员。"""
         all_members = self.guild.members
         if self.is_default():
             return all_members
@@ -147,4 +178,20 @@ class Role(Hashable):
         return Role(guild=self.guild, data=data, state=self._state)
 
     async def delete(self, *, reason: Optional[str] = None) -> None:
+        """|coro|
+        删除身份组。
+        
+        Parameters
+        -----------
+        reason: Optional[:class:`str`]
+            删除该身份组的原因。
+            
+        Raises
+        --------
+        Forbidden
+            你无权删除该身份组。
+        HTTPException
+            删除身份组失败。
+        """
+
         await self._state.http.delete_role(self.guild.id, self.id, reason=reason)
