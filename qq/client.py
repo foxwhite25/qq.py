@@ -62,7 +62,7 @@ def _cleanup_loop(loop: asyncio.AbstractEventLoop) -> None:
 class Client:
     r"""代表了客户端与 QQ 之间的连接
     此类用于与 QQ WebSocket 和 API 进行交互。
-    许多选项可以传递给:class:`Client`。
+    许多选项可以传递给 :class:`Client`。
 
     Parameters
     -----------
@@ -266,7 +266,7 @@ class Client:
         return self._connection.guilds
 
     def get_guild(self, id: int, /) -> Optional[Guild]:
-        """返回具有给定 ID 的公会。
+        """返回具有给定 ID 的频道。
 
         Parameters
         -----------
@@ -276,7 +276,7 @@ class Client:
         Returns
         --------
         Optional[:class:`.Guild`]
-            如果未找到公会则 ``None`` 。
+            如果未找到频道则 ``None`` 。
         """
         return self._connection._get_guild(id)
 
@@ -303,10 +303,44 @@ class Client:
             self,
             *,
             limit: Optional[int] = 100,
-            before: datetime.datetime = None,
-            after: datetime.datetime = None
     ):
-        return GuildIterator(self, limit=limit, before=before, after=after)
+        """获得一个 :class:`.AsyncIterator` 来接收你的频道。
+
+        .. note::
+
+            该方法是一个 API 调用。对于一般用法，请考虑 :attr:`guilds`。
+
+        Examples
+        ---------
+        用法 ::
+
+            async for guild in client.fetch_guilds(limit=150):
+                print(guild.name)
+
+        展平成一个列表 ::
+        
+            guilds = await client.fetch_guilds(limit=150).flatten()
+            # guilds is now a list of Guild...
+        
+        所有参数都是可选的。
+        
+        Parameters
+        -----------
+        limit: Optional[:class:`int`]
+            要检索的频道数量。如果为 ``None`` ，它将检索您有权访问的每个频道。但是请注意，这会使其操作变慢。默认为“100”。
+        
+        Raises
+        ------
+        :exc:`.HTTPException`
+            获取频道失败。
+        
+        Yields
+        --------
+        :class:`.Guild`
+            已解析频道数据的频道。
+        """
+
+        return GuildIterator(self, limit=limit)
 
     def run(self, *args: Any, **kwargs: Any) -> None:
         """一个阻塞调用，它从你那里抽象出事件循环初始化。
@@ -478,6 +512,25 @@ class Client:
         self._ready.clear()
 
     def event(self, coro: Coro) -> Coro:
+        """注册要监听的事件的装饰器。
+        您可以在 :ref:`下面的文档 <qq-api-events>` 上找到有关事件的更多信息.
+        事件必须是 :ref:`协程 <coroutine>` ，如果不是，则引发 :exc:`TypeError` 。
+
+        Example
+        ---------
+        .. code-block:: python3
+
+            @client.event
+            async def on_ready():
+            print('Ready!')
+
+
+        Raises
+        --------
+        TypeError
+            coro 需要是协程但实际上并不是协程。
+        """
+
         if not asyncio.iscoroutinefunction(coro):
             raise TypeError('注册的事件必须是协程函数')
 
