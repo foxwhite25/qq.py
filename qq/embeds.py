@@ -292,7 +292,7 @@ class Embed:
         请参阅 :meth:`set_footer` 以获取您可以访问的可能值。
         如果该属性没有值，则返回 :attr:`Empty`。
 
-         .. warning::
+        .. warning::
 
             本功能尚未被官方实现，实现为 Discord 的实现
         """
@@ -341,10 +341,12 @@ class Embed:
         """返回表示图像内容的 ``EmbedProxy`` 。
 
         您可以访问的可能属性是：
+
         - ``url``
         - ``proxy_url``
         - ``width``
         - ``height``
+
         如果该属性没有值，则返回 :attr:`Empty`。
 
         .. warning::
@@ -385,6 +387,7 @@ class Embed:
         """返回表示缩略图内容的 ``EmbedProxy`` 。
 
         您可以访问的可能属性是：
+
         - ``url``
         - ``proxy_url``
         - ``width``
@@ -428,9 +431,11 @@ class Embed:
         """返回表示视频内容的 ``EmbedProxy`` 。
 
         可能的属性包括：
+
         - ``url`` 视频网址。
         - ``height`` 视频高度。
         - ``width`` 视频宽度。
+
         如果该属性没有值，则返回 :attr:`Empty`。
 
         .. warning::

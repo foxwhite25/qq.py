@@ -12,19 +12,40 @@ __all__ = (
 
 
 class File:
-    __slots__ = ('fp', 'filename', 'spoiler', '_original_pos', '_owner', '_closer')
+    r"""用于 :meth:`abc.Messageable.send` 的参数对象，用于发送文件对象。
+
+    .. note::
+
+        文件对象是一次性的，不能在多个 :meth:`abc.Messageable.send` 中重复使用。
+
+    .. warning::
+
+        本功能尚未被官方实现，实现为 Discord 的实现
+
+    Attributes
+    -----------
+    fp: Union[:class:`os.PathLike`, :class:`io.BufferedIOBase`]
+        以二进制模式和读取模式打开的类文件对象或表示硬盘中要打开的文件的文件名。
+
+        .. note::
+
+            如果传递的类文件对象是通过 ``open`` 打开的，则应使用 ``rb`` 模式。 要传递二进制数据，请考虑使用 ``io.BytesIO``。
+
+    filename: Optional[:class:`str`]
+        上传到 QQ 时显示的文件名。
+        如果没有给出，那么它默认为 ``fp.name`` 或者如果 ``fp`` 是一个字符串，那么 ``filename`` 将默认为给定的字符串。
+    """
+
+    __slots__ = ('fp', 'filename', '_original_pos', '_owner', '_closer')
 
     if TYPE_CHECKING:
         fp: io.BufferedIOBase
         filename: Optional[str]
-        spoiler: bool
 
     def __init__(
         self,
         fp: Union[str, bytes, os.PathLike, io.BufferedIOBase],
         filename: Optional[str] = None,
-        *,
-        spoiler: bool = False,
     ):
         if isinstance(fp, io.IOBase):
             if not (fp.seekable() and fp.readable()):
@@ -51,11 +72,6 @@ class File:
                 self.filename = getattr(fp, 'name', None)
         else:
             self.filename = filename
-
-        if spoiler and self.filename is not None and not self.filename.startswith('SPOILER_'):
-            self.filename = 'SPOILER_' + self.filename
-
-        self.spoiler = spoiler or (self.filename is not None and self.filename.startswith('SPOILER_'))
 
     def reset(self, *, seek: Union[int, bool] = True) -> None:
         if seek:
