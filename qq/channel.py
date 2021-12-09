@@ -117,12 +117,56 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
         return [m for m in self.guild.members]
 
     def get_partial_message(self, message_id: int, /) -> PartialMessage:
+        """从消息 ID 创建一个 :class:`PartialMessage`。
+        如果您想处理消息并且只有它的 ID 而不进行不必要的 API 调用，这将非常有用。
+
+        Parameters
+        ------------
+        message_id: :class:`int`
+            要为其创建部分消息的消息 ID。
+        Returns
+        ---------
+        :class:`PartialMessage`
+            部分消息。
+        """
+
         from .message import PartialMessage
 
         return PartialMessage(channel=self, id=message_id)
 
 
 class VoiceChannel(abc.GuildChannel, Hashable):
+    """表示 QQ 语音子频道。
+
+    .. container:: operations
+
+        .. describe:: x == y
+
+            检查两个子频道是否相等。
+
+        .. describe:: x != y
+
+            检查两个子频道是否不相等。
+
+        .. describe:: hash(x)
+
+            返回子频道的哈希值。
+
+        .. describe:: str(x)
+
+            返回子频道的名称。
+
+    Attributes
+    -----------
+    name: :class:`str`
+        子频道名称。
+    guild: :class:`Guild`
+        子频道所属的频道。
+    id: :class:`int`
+        频道 ID。
+    position: :class:`int`
+        在类别列表中的位置。 这是一个从 0 开始的数字。例如顶部频道是位置 0。
+    """
     __slots__ = (
         'name',
         'id',
@@ -155,6 +199,38 @@ class VoiceChannel(abc.GuildChannel, Hashable):
 
 
 class LiveChannel(abc.GuildChannel, Hashable):
+    """表示 QQ 直播子频道。
+
+    .. container:: operations
+
+        .. describe:: x == y
+
+            检查两个子频道是否相等。
+
+        .. describe:: x != y
+
+            检查两个子频道是否不相等。
+
+        .. describe:: hash(x)
+
+            返回子频道的哈希值。
+
+        .. describe:: str(x)
+
+            返回子频道的名称。
+
+    Attributes
+    -----------
+    name: :class:`str`
+        子频道名称。
+    guild: :class:`Guild`
+        子频道所属的频道。
+    id: :class:`int`
+        频道 ID。
+    position: :class:`int`
+        在类别列表中的位置。 这是一个从 0 开始的数字。例如顶部频道是位置 0。
+    """
+
     __slots__ = (
         'name',
         'id',
@@ -187,6 +263,37 @@ class LiveChannel(abc.GuildChannel, Hashable):
 
 
 class AppChannel(abc.GuildChannel, Hashable):
+    """表示 QQ 应用子频道。
+
+    .. container:: operations
+
+        .. describe:: x == y
+
+            检查两个子频道是否相等。
+
+        .. describe:: x != y
+
+            检查两个子频道是否不相等。
+
+        .. describe:: hash(x)
+
+            返回子频道的哈希值。
+
+        .. describe:: str(x)
+
+            返回子频道的名称。
+
+    Attributes
+    -----------
+    name: :class:`str`
+        子频道名称。
+    guild: :class:`Guild`
+        子频道所属的频道。
+    id: :class:`int`
+        频道 ID。
+    position: :class:`int`
+        在类别列表中的位置。 这是一个从 0 开始的数字。例如顶部频道是位置 0。
+    """
     __slots__ = (
         'name',
         'id',
@@ -219,6 +326,37 @@ class AppChannel(abc.GuildChannel, Hashable):
 
 
 class ThreadChannel(abc.GuildChannel, Hashable):
+    """表示 QQ 论坛子频道。
+
+    .. container:: operations
+
+        .. describe:: x == y
+
+            检查两个子频道是否相等。
+
+        .. describe:: x != y
+
+            检查两个子频道是否不相等。
+
+        .. describe:: hash(x)
+
+            返回子频道的哈希值。
+
+        .. describe:: str(x)
+
+            返回子频道的名称。
+
+    Attributes
+    -----------
+    name: :class:`str`
+        子频道名称。
+    guild: :class:`Guild`
+        子频道所属的频道。
+    id: :class:`int`
+        频道 ID。
+    position: :class:`int`
+        在类别列表中的位置。 这是一个从 0 开始的数字。例如顶部频道是位置 0。
+    """
     __slots__ = (
         'name',
         'id',
@@ -251,6 +389,39 @@ class ThreadChannel(abc.GuildChannel, Hashable):
 
 
 class CategoryChannel(abc.GuildChannel, Hashable):
+    """表示 QQ 频道类别。
+    这些对于将频道分组到逻辑区间很有用。
+
+    .. container:: operations
+
+        .. describe:: x == y
+
+            检查两个频道是否相等。
+
+        .. describe:: x != y
+
+            检查两个频道是否不相等。
+
+        .. describe:: hash(x)
+
+            返回类别的哈希值。
+
+        .. describe:: str(x)
+
+            返回类别的名称。
+
+    Attributes
+    -----------
+    name: :class:`str`
+        类别名称。
+    guild: :class:`Guild`
+        类别所属的公会。
+    id: :class:`int`
+        类别频道 ID。
+    position: :class:`int`
+        在类别列表中的位置。 这是一个从 0 开始的数字。例如顶部频道是位置 0。
+    """
+
     __slots__ = ('name', 'id', 'guild', '_state', 'position', 'category_id')
 
     def __init__(self, *, state: ConnectionState, guild: Guild, data: CategoryChannelPayload):
@@ -273,12 +444,8 @@ class CategoryChannel(abc.GuildChannel, Hashable):
 
     @property
     def type(self) -> ChannelType:
-        """:class:`ChannelType`: The channel's Discord type."""
+        """:class:`ChannelType`: 频道的 QQ 类型。"""
         return ChannelType.category
-
-    def is_nsfw(self) -> bool:
-        """:class:`bool`: Checks if the category is NSFW."""
-        return self.nsfw
 
     @property
     def channels(self) -> List[GuildChannelType]:

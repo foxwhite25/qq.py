@@ -292,18 +292,14 @@ class Embed:
         请参阅 :meth:`set_footer` 以获取您可以访问的可能值。
         如果该属性没有值，则返回 :attr:`Empty`。
 
-        .. warning::
 
-            本功能尚未被官方实现，实现为 Discord 的实现
         """
         return EmbedProxy(getattr(self, '_footer', {}))  # type: ignore
 
     def set_footer(self: E, *, text: MaybeEmpty[Any] = EmptyEmbed, icon_url: MaybeEmpty[Any] = EmptyEmbed) -> E:
         """设置嵌入内容的页脚。此函数返回类实例以允许流式链接。
 
-        .. warning::
 
-            本功能尚未被官方实现，实现为 Discord 的实现
 
         Parameters
         -----------
@@ -325,9 +321,7 @@ class Embed:
     def remove_footer(self: E) -> E:
         """清除嵌入的页脚信息。此函数返回类实例以允许流式链接。
 
-        .. warning::
 
-            本功能尚未被官方实现，实现为 Discord 的实现
         """
         try:
             del self._footer
@@ -349,9 +343,7 @@ class Embed:
 
         如果该属性没有值，则返回 :attr:`Empty`。
 
-        .. warning::
 
-            本功能尚未被官方实现，实现为 Discord 的实现
         """
         return EmbedProxy(getattr(self, '_image', {}))  # type: ignore
 
@@ -360,9 +352,7 @@ class Embed:
         此函数返回类实例以允许流式链接。
         传递 :attr:`Empty` 会删除图像。
 
-        .. warning::
 
-            本功能尚未被官方实现，实现为 Discord 的实现
 
         Parameters
         -----------
@@ -395,9 +385,7 @@ class Embed:
 
         如果该属性没有值，则返回 :attr:`Empty`。
 
-        .. warning::
 
-            本功能尚未被官方实现，实现为 Discord 的实现
         """
         return EmbedProxy(getattr(self, '_thumbnail', {}))  # type: ignore
 
@@ -409,9 +397,7 @@ class Embed:
         url: :class:`str`
             缩略图的源 URL。仅支持 HTTP(S)。
 
-        .. warning::
 
-            本功能尚未被官方实现，实现为 Discord 的实现
         """
 
         if url is EmptyEmbed:
@@ -438,9 +424,7 @@ class Embed:
 
         如果该属性没有值，则返回 :attr:`Empty`。
 
-        .. warning::
 
-            本功能尚未被官方实现，实现为 Discord 的实现
         """
         return EmbedProxy(getattr(self, '_video', {}))  # type: ignore
 
@@ -449,9 +433,7 @@ class Embed:
         """返回表示提供者内容的 ``EmbedProxy`` 。
         可能被访问的唯一属性是 ``name`` 和 ``url`` 。如果该属性没有值，则返回 :attr:`Empty`。
 
-        .. warning::
 
-            本功能尚未被官方实现，实现为 Discord 的实现
         """
         return EmbedProxy(getattr(self, '_provider', {}))  # type: ignore
 
@@ -460,9 +442,7 @@ class Embed:
         """返回表示作者内容的 ``EmbedProxy`` 。有关您可以访问的可能值，请参阅 :meth:`set_author`。
         如果该属性没有值，则返回 :attr:`Empty`。
 
-        .. warning::
 
-            本功能尚未被官方实现，实现为 Discord 的实现
         """
         return EmbedProxy(getattr(self, '_author', {}))  # type: ignore
 
@@ -479,9 +459,7 @@ class Embed:
         icon_url: :class:`str`
             作者图标的 URL。仅支持 HTTP(S)。
 
-        .. warning::
 
-            本功能尚未被官方实现，实现为 Discord 的实现
         """
 
         self._author = {
@@ -498,10 +476,6 @@ class Embed:
 
     def remove_author(self: E) -> E:
         """清除嵌入的作者信息。此函数返回类实例以允许流式链接。
-
-        .. warning::
-
-            本功能尚未被官方实现，实现为 Discord 的实现
         """
         try:
             del self._author

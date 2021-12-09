@@ -37,7 +37,7 @@ class AllowedMentions:
     everyone: :class:`bool`
         是否允许所有人和这里提到。 默认为 ``True``。
     users: Union[:class:`bool`, List[:class:`Member`]]
-        控制被提及的用户。 如果为 ``True``（默认值），则根据消息内容提及用户。
+        控制被提及的用户。 如果为 ``True`` （默认值），则根据消息内容提及用户。
         如果 ``False`` 则根本不会提及用户。 如果给出了 :class:`Member` 的列表，则只提及所提供的用户，前提是这些用户在消息内容中。
     roles: Union[:class:`bool`, List[:class:`Role`]]
         控制提到的用户组。 如果为 ``True`` （默认值），则根据消息内容提及用户组。 如果 ``False`` 则根本不提及用户组。
