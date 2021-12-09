@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import datetime
 import io
 import re
@@ -129,18 +130,38 @@ class Attachment(Hashable):
 
     Attributes
     ------------
+    id: :class:`int`
+        附件的 ID。
+    size: :class:`int`
+        附件的大小。
+    height: Optional[:class:`int`]
+        附件的高度，只对视频和图片适用。
+    width: Optional[:class:`int`]
+        附件的宽度，只对视频和图片适用。
+    filename: :class:`str`
+        附件的文件名
     url: :class:`str`
         附件网址。 如果此附件被删除，则这将是 404。
+    content_type: Optional[:class:`str`]
+        附件的 `类型  <https://en.wikipedia.org/wiki/Media_type>`_
     """
 
-    __slots__ = ('url', '_http')
+    __slots__ = ('id', 'size', 'height', 'width', 'filename', 'url', '_http', 'content_type')
 
     def __init__(self, *, data: AttachmentPayload, state: ConnectionState):
-        self.url: str = data.get('url')
+        self.id: int = int(data['id'])
+        self.size: int = data['size']
+        self.height: Optional[int] = data.get('height')
+        self.width: Optional[int] = data.get('width')
+        self.filename: str = data['filename']
+        self.url: str = 'https://' + data.get('url')\
+                        if not data.get('url').startswith('https://') \
+                        else data.get('url')
         self._http = state.http
+        self.content_type: Optional[str] = data.get('content_type')
 
     def __repr__(self) -> str:
-        return f'<Attachment url={self.url!r}>'
+        return f'<Attachment id={self.id} filename={self.filename!r} url={self.url!r}>'
 
     def __str__(self) -> str:
         return self.url or ''
@@ -183,6 +204,10 @@ class Attachment(Hashable):
         else:
             with open(fp, 'wb') as f:
                 return f.write(data)
+
+    async def b64(self) -> str:
+        byte = self.read()
+        return 'base64://' + base64.b64encode(await byte).decode()
 
     async def read(self) -> bytes:
         """|coro|
@@ -227,10 +252,22 @@ class Attachment(Hashable):
         """
 
         data = await self.read()
-        return File(io.BytesIO(data))
+        return File(io.BytesIO(data), filename=self.filename)
 
     def to_dict(self) -> AttachmentPayload:
-        result: AttachmentPayload = {'url': self.url}
+        result: AttachmentPayload = {
+            'filename': self.filename,
+            'id': self.id,
+            'size': self.size,
+            'url': self.url,
+            'spoiler': self.is_spoiler(),
+        }
+        if self.height:
+            result['height'] = self.height
+        if self.width:
+            result['width'] = self.width
+        if self.content_type:
+            result['content_type'] = self.content_type
         return result
 
 
@@ -343,7 +380,7 @@ class Message(Hashable):
         self.id: str = data['id']
         self.attachments: Optional[List[Attachment]] = \
             [Attachment(data=a, state=self._state) for a in data['attachments']] \
-                if 'attachment' in data else None
+                if 'attachments' in data else None
         self.embeds: Optional[List[Embed]] = [Embed.from_dict(a) for a in data['embeds']] \
             if 'embeds' in data else None
         self.channel: MessageableChannel = channel

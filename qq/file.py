@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import base64
 from typing import Optional, TYPE_CHECKING, Union
 
 import os
@@ -56,14 +58,6 @@ class File:
         self.spoiler = spoiler or (self.filename is not None and self.filename.startswith('SPOILER_'))
 
     def reset(self, *, seek: Union[int, bool] = True) -> None:
-        # The `seek` parameter is needed because
-        # the retry-loop is iterated over multiple times
-        # starting from 0, as an implementation quirk
-        # the resetting must be done at the beginning
-        # before a request is done, since the first index
-        # is 0, and thus false, then this prevents an
-        # unnecessary seek since it's the first request
-        # done.
         if seek:
             self.fp.seek(self._original_pos)
 

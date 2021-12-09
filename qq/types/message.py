@@ -8,7 +8,16 @@ from .user import User
 from ..utils import SnowflakeList
 
 
-class Attachment(TypedDict, total=False):
+class _AttachmentOptional(TypedDict, total=False):
+    height: Optional[int]
+    width: Optional[int]
+    content_type: str
+
+
+class Attachment(_AttachmentOptional):
+    id: int
+    filename: str
+    size: int
     url: str
 
 

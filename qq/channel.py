@@ -28,6 +28,43 @@ async def _single_delete_strategy(messages: Iterable[Message]):
 
 
 class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
+
+    """代表 QQ 频道中的文字子频道
+
+    .. container:: operations
+        .. describe:: x == y
+
+            检查两个子频道是否相等。
+
+        .. describe:: x != y
+
+            检查两个子频道是否不相等。
+
+        .. describe:: hash(x)
+
+            返回子频道的哈希值。
+
+        .. describe:: str(x)
+
+            返回子频道的名称。
+
+    Attributes
+    -----------
+    name: :class:`str`
+        子频道的名称。
+    guild: :class:`Guild`
+        子频道所属的频道。
+    id: :class:`int`
+        子频道 ID。
+    category_id: Optional[:class:`int`]
+        这个子频道属于的分类频道，如果没有则返回 ``None`` 。
+    position: :class:`int`
+        在子频道列表中的位置。 这是一个从 0 开始的数字。例如顶部子频道是位置 0。
+    last_message_id: Optional[:class:`int`]
+        发送到此通道的消息的最后一个消息 ID。 它可能 *不* 指向现有的或有效的消息。
+
+    """
+
     __slots__ = (
         'name',
         'id',
@@ -76,6 +113,7 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
 
     @property
     def members(self) -> List[Member]:
+        """List[:class:`Member`]: 返回可以看到此子频道的所有成员。"""
         return [m for m in self.guild.members]
 
     def get_partial_message(self, message_id: int, /) -> PartialMessage:

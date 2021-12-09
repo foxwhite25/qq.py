@@ -5,12 +5,14 @@ import copy
 from datetime import datetime
 from typing import overload, Optional, Union, List, TYPE_CHECKING, TypeVar, Dict, Any
 
+from .asset import Asset
 from .enum import ChannelType
 from .error import InvalidArgument
 from .mention import AllowedMentions
 from .utils import MISSING
 
 if TYPE_CHECKING:
+    from .member import Member
     from .channel import CategoryChannel, TextChannel, PartialMessageable
     from .guild import Guild
     from .state import ConnectionState
@@ -55,10 +57,9 @@ class Messageable:
             content: Optional[str] = ...,
             *,
             tts: bool = ...,
-            nonce: Union[str, int] = ...,
-            allowed_mentions: AllowedMentions = ...,
+            image: str = ...,
             reference: Union[Message] = ...,
-            mention_author: bool = ...,
+            mention_author: Member = ...,
     ) -> Message:
         ...
 
@@ -67,27 +68,69 @@ class Messageable:
             content=None,
             *,
             tts=None,
-            nonce=None,
-            allowed_mentions=None,
+            image=None,
             reference=None,
             mention_author=None,
     ):
+        """|coro|
+        使用给定的内容向目的地发送消息。
+        content 必须是可以通过 ``str(content)`` 转换为字符串的类型。
+        To upload a single file, the ``file`` parameter should be used with a
+        single :class:`~discord.File` object. To upload multiple files, the ``files``
+        parameter should be used with a :class:`list` of :class:`~discord.File` objects.
+        **Specifying both parameters will lead to an exception**.
+        Parameters
+        ------------
+        content: Optional[:class:`str`]
+            The content of the message to send.
+        tts: :class:`bool`
+            Indicates if the message should be sent using text-to-speech.
+        image: :class:`str`
+            If provided, the number of seconds to wait in the background
+            before deleting the message we just sent. If the deletion fails,
+            then it is silently ignored.
+        allowed_mentions: :class:`~discord.AllowedMentions`
+            Controls the mentions being processed in this message. If this is
+            passed, then the object is merged with :attr:`~discord.Client.allowed_mentions`.
+            The merging behaviour only overrides attributes that have been explicitly passed
+            to the object, otherwise it uses the attributes set in :attr:`~discord.Client.allowed_mentions`.
+            If no object is passed at all then the defaults given by :attr:`~discord.Client.allowed_mentions`
+            are used instead.
+        reference: Union[:class:`~discord.Message`, :class:`~discord.MessageReference`, :class:`~discord.PartialMessage`]
+            A reference to the :class:`~discord.Message` to which you are replying, this can be created using
+            :meth:`~discord.Message.to_reference` or passed directly as a :class:`~discord.Message`. You can control
+            whether this mentions the author of the referenced message using the :attr:`~discord.AllowedMentions.replied_user`
+            attribute of ``allowed_mentions`` or by setting ``mention_author``.
+            .. versionadded:: 1.6
+        mention_author: Optional[:class:`Member`]
+            If set, overrides the :attr:`~discord.AllowedMentions.replied_user` attribute of ``allowed_mentions``.
+            .. versionadded:: 1.6
+
+        Raises
+        --------
+        ~discord.HTTPException
+            Sending the message failed.
+        ~discord.Forbidden
+            You do not have the proper permissions to send the message.
+        ~discord.InvalidArgument
+            The ``files`` list is not of the appropriate size,
+            you specified both ``file`` and ``files``,
+            or you specified both ``embed`` and ``embeds``,
+            or the ``reference`` object is not a :class:`~discord.Message`,
+            :class:`~discord.MessageReference` or :class:`~discord.PartialMessage`.
+
+        Returns
+        ---------
+        :class:`~discord.Message`
+            The message that was sent.
+        """
 
         channel = await self._get_channel()
         state = self._state
         content = str(content) if content is not None else None
 
-        if allowed_mentions is not None:
-            if state.allowed_mentions is not None:
-                allowed_mentions = state.allowed_mentions.merge(allowed_mentions).to_dict()
-            else:
-                allowed_mentions = allowed_mentions.to_dict()
-        else:
-            allowed_mentions = state.allowed_mentions and state.allowed_mentions.to_dict()
-
         if mention_author is not None:
-            allowed_mentions = allowed_mentions or AllowedMentions().to_dict()
-            allowed_mentions['replied_user'] = bool(mention_author)
+            content = mention_author.mention + content
 
         if reference is not None:
             try:
@@ -100,9 +143,8 @@ class Messageable:
             channel.id,
             content,
             tts=tts,
-            nonce=nonce,
-            allowed_mentions=allowed_mentions,
             message_reference=reference,
+            image_url=image
         )
 
         ret = state.create_message(channel=channel, data=data)

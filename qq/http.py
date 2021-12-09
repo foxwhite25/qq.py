@@ -438,12 +438,9 @@ class HTTPClient:
             self,
             channel_id: int,
             content: Optional[str],
+            image_url: Optional[str],
             *,
             tts: bool = False,
-            embed: Optional[Embed] = None,
-            embeds: Optional[List[Embed]] = None,
-            nonce: Optional[str] = None,
-            allowed_mentions: Optional[message.AllowedMentions] = None,
             message_reference: Optional[message.MessageReference] = None,
     ) -> Response[message.Message]:
         r = Route('POST', '/channels/{channel_id}/messages', channel_id=channel_id)
@@ -455,14 +452,10 @@ class HTTPClient:
         if tts:
             payload['tts'] = True
 
-        if embed:
-            payload['embeds'] = [embed]
-
-        if embeds:
-            payload['embeds'] = embeds
-
         if message_reference:
             payload['msg_id'] = message_reference['message_id']
+
+        payload['image'] = image_url
 
         return self.request(r, json=payload)
 
