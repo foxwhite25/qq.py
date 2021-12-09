@@ -95,7 +95,7 @@ def as_chunks(iterator: _Iter[T], max_size: int) -> _Iter[List[T]]:
 
     .. warning::
 
-        收集的最后一个块可能没有``max_size``那么大。
+        收集的最后一个块可能没有 ``max_size`` 那么大。
 
     Returns
     --------
@@ -216,9 +216,9 @@ def escape_markdown(text: str, *, as_needed: bool = False, ignore_links: bool = 
     text: :class:`str`
         转义 markdown 的文本。
     as_needed: :class:`bool`
-        是否根据需要转义降价字符。
-        这意味着如果没有必要，它不会转义无关的字符，例如 ``hello`` 转义为 ``\\hello`` 而不是 ``\\hello\\``。
-        但是请注意，这可能会让您面临一些奇怪的语法滥用。默认为 ``False`` 。
+        是否根据需要转义Markdown字符。
+        这意味着如果没有必要，它不会转义无关的字符，例如 ``hello`` 转义为 ``\\hello`` 而不是 ``\\hello\\`` 。
+        但是请注意，这可能会让你面临一些奇怪的语法滥用。默认为 ``False`` 。
 
     ignore_links: :class:`bool`
         转义 markdown 时是否留下链接。例如，如果文本中的 URL 包含诸如 ``_`` 之类的字符，则它将单独保留。 ``as_needed`` 不支持此选项。
