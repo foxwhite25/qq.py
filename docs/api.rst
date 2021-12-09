@@ -750,7 +750,7 @@ ShardInfo
 
 .. autoexception:: ConnectionClosed
 
-Exception Hierarchy
+异常层次结构
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. exception_hierarchy::
