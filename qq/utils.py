@@ -33,16 +33,14 @@ __all__ = (
 )
 
 
-
 def utcnow() -> datetime.datetime:
-    """A helper function to return an aware UTC datetime representing the current time.
-    This should be preferred to :meth:`datetime.datetime.utcnow` since it is an aware
-    datetime, compared to the naive datetime in the standard library.
-    .. versionadded:: 2.0
+    """一个辅助函数，用于返回表示当前时间的 UTC datetime。
+    这应该比 :meth:`datetime.datetime.utcnow` 更可取，因为与标准库中的原始日期时间相比，它是一个 aware 的 datetime。
+
     Returns
     --------
     :class:`datetime.datetime`
-        The current aware datetime in UTC.
+        UTC 中的当前 datetime datetime。
     """
     return datetime.datetime.now(datetime.timezone.utc)
 
@@ -86,21 +84,25 @@ def as_chunks(iterator: AsyncIterator[T], max_size: int) -> AsyncIterator[List[T
 
 
 def as_chunks(iterator: _Iter[T], max_size: int) -> _Iter[List[T]]:
-    """A helper function that collects an iterator into chunks of a given size.
-    .. versionadded:: 2.0
+    """将迭代器收集到给定大小的块中的辅助函数。
+
     Parameters
     ----------
     iterator: Union[:class:`collections.abc.Iterator`, :class:`collections.abc.AsyncIterator`]
-        The iterator to chunk, can be sync or async.
+        块的迭代器，可以是同步的或异步的。
     max_size: :class:`int`
-        The maximum chunk size.
+        最大块大小。
+
     .. warning::
-        The last chunk collected may not be as large as ``max_size``.
+
+        收集的最后一个块可能没有``max_size``那么大。
+
     Returns
     --------
     Union[:class:`Iterator`, :class:`AsyncIterator`]
-        A new iterator which yields chunks of a given size.
+        一个新的迭代器，它产生给定大小的块。
     """
+
     if max_size <= 0:
         raise ValueError('Chunk sizes must be greater than 0.')
 
@@ -114,38 +116,39 @@ TimestampStyle = Literal['f', 'F', 'd', 'D', 't', 'T', 'R']
 
 
 def format_dt(dt: datetime.datetime, /, style: Optional[TimestampStyle] = None) -> str:
-    """A helper function to format a :class:`datetime.datetime` for presentation within Discord.
-    This allows for a locale-independent way of presenting data using Discord specific Markdown.
+    """用于格式化 datetime.以在 QQ 中展示的辅助函数。
+
     +-------------+----------------------------+-----------------+
-    |    Style    |       Example Output       |   Description   |
+    |    样式      |       示例输出              |   描述           |
     +=============+============================+=================+
-    | t           | 22:57                      | Short Time      |
+    | t           | 22:57                      | 短时间           |
     +-------------+----------------------------+-----------------+
-    | T           | 22:57:58                   | Long Time       |
+    | T           | 22:57:58                   | 长时间           |
     +-------------+----------------------------+-----------------+
-    | d           | 17/05/2016                 | Short Date      |
+    | d           | 17/05/2016                 | 短日期           |
     +-------------+----------------------------+-----------------+
-    | D           | 17 May 2016                | Long Date       |
+    | D           | 17 May 2016                | 长日期           |
     +-------------+----------------------------+-----------------+
-    | f (default) | 17 May 2016 22:57          | Short Date Time |
+    | f (默认)     | 17 May 2016 22:57          | 短日期时间        |
     +-------------+----------------------------+-----------------+
-    | F           | Tuesday, 17 May 2016 22:57 | Long Date Time  |
+    | F           | Tuesday, 17 May 2016 22:57 | 长日期时间        |
     +-------------+----------------------------+-----------------+
-    | R           | 5 years ago                | Relative Time   |
+    | R           | 5 years ago                | 相对时间          |
     +-------------+----------------------------+-----------------+
-    Note that the exact output depends on the user's locale setting in the client. The example output
-    presented is using the ``en-GB`` locale.
-    .. versionadded:: 2.0
+
+    请注意，确切的输出取决于客户端中用户的区域设置。显示的示例输出使用 ``en-GB`` 语言环境。
+
     Parameters
     -----------
     dt: :class:`datetime.datetime`
-        The datetime to format.
+        要格式化的 datetime 。
     style: :class:`str`
-        The style to format the datetime with.
+        格式化日期时间的样式。
+
     Returns
     --------
     :class:`str`
-        The formatted string.
+        格式化的字符串。
     """
     if style is None:
         return f'<t:{int(dt.timestamp())}>'
@@ -161,22 +164,40 @@ def compute_timedelta(dt: datetime.datetime):
 
 async def sleep_until(when: datetime.datetime, result: Optional[T] = None) -> Optional[T]:
     """|coro|
-    Sleep until a specified time.
-    If the time supplied is in the past this function will yield instantly.
-    .. versionadded:: 1.3
+    睡眠到指定时间。
+    如果提供的时间在过去，则此函数将立即返回。
+
     Parameters
     -----------
     when: :class:`datetime.datetime`
-        The timestamp in which to sleep until. If the datetime is naive then
-        it is assumed to be local time.
+        休眠到的时间戳。如果日期时间是 native 的，那么它被假定为本地时间。
     result: Any
-        If provided is returned to the caller when the coroutine completes.
+        如果提供，则在协程完成时返回给调用者。
     """
     delta = compute_timedelta(when)
     return await asyncio.sleep(delta, result)
 
 
 def remove_markdown(text: str, *, ignore_links: bool = True) -> str:
+    """删除 Markdown 字符的辅助函数。
+
+    .. note::
+    
+            此功能不会解析 Markdown ，可能会从原文中删除含义。 例如，
+            如果输入包含 ``10 * 5`` ，那么它将被转换为 ``10 5`` 。
+
+    Parameters
+    -----------
+    text: :class:`str`
+        要从中删除Markdown的文本。
+    ignore_links: :class:`bool`
+        删除 Markdown 时是否留下链接。 例如，如果文本中的 URL 包含诸如 ``_`` 之类的字符，则它将单独保留。默认为 ``True`` 。
+
+    Returns
+    --------
+    :class:`str`
+        删除了 Markdown 特殊字符的文本。
+    """
     def replacement(match):
         groupdict = match.groupdict()
         return groupdict.get('url', '')
@@ -188,6 +209,27 @@ def remove_markdown(text: str, *, ignore_links: bool = True) -> str:
 
 
 def escape_markdown(text: str, *, as_needed: bool = False, ignore_links: bool = True) -> str:
+    r"""转义 Markdown 的辅助函数。
+
+    Parameters
+    -----------
+    text: :class:`str`
+        转义 markdown 的文本。
+    as_needed: :class:`bool`
+        是否根据需要转义降价字符。
+        这意味着如果没有必要，它不会转义无关的字符，例如 ``hello`` 转义为 ``\\hello`` 而不是 ``\\hello\\``。
+        但是请注意，这可能会让您面临一些奇怪的语法滥用。默认为 ``False`` 。
+
+    ignore_links: :class:`bool`
+        转义 markdown 时是否留下链接。例如，如果文本中的 URL 包含诸如 ``_`` 之类的字符，则它将单独保留。 ``as_needed`` 不支持此选项。
+        默认为 ``True`` 。
+
+    Returns
+    --------
+    :class:`str`
+        带有 Markdown 特殊字符的文本用斜杠转义。
+    """
+
     if not as_needed:
 
         def replacement(match):
@@ -367,10 +409,47 @@ def cached_slot_property(name: str) -> Callable[[Callable[[T], T_co]], CachedSlo
 
 
 def escape_mentions(text: str) -> str:
-    return re.sub(r'@(everyone|here|[!&]?[0-9]{17,20})', '@\u200b\\1', text)
+    """一个帮助函数，可以转义所有成员，身份组和用户提及。
+
+    .. note::
+
+        这不包括频道提及。
+
+    .. note::
+
+        要对消息中的提及内容进行更精细的控制，请参阅 :class:`~qq.AllowedMentions` 类。
+
+    Parameters
+    -----------
+    text: :class:`str`
+        要转义的文本。
+
+    Returns
+    --------
+    :class:`str`
+        删除了提及的文本。
+    """
+
+    return re.sub(r'@(所有成员|[!&]?[0-9]{17,20})', '@\u200b\\1', text)
 
 
 def find(predicate: Callable[[T], Any], seq: Iterable[T]) -> Optional[T]:
+    """返回在满足 predicate 的序列中找到的第一个元素的帮助器。例如： ::
+
+        member = qq.utils.find(lambda m: m.name == 'Foo', channel.guild.members)
+
+    会找到第一个名字是 ``Mighty`` 的  :class:`~qq.Member` 并返回它。
+    如果未找到条目，则返回 ``None`` 。
+    这与 :func:`py:filter` 不同，因为它在找到有效条目时停止。
+
+    Parameters
+    -----------
+    predicate
+        返回类似布尔值的结果的函数。
+    seq: :class:`collections.abc.Iterable`
+        要搜索的可迭代对象。
+    """
+
     for element in seq:
         if predicate(element):
             return element
@@ -378,6 +457,39 @@ def find(predicate: Callable[[T], Any], seq: Iterable[T]) -> Optional[T]:
 
 
 def get(iterable: Iterable[T], **attrs: Any) -> Optional[T]:
+    r"""一个帮助器，它返回可迭代对象中满足 ``attrs`` 中传递的所有特征的第一个元素。这是 :func:`~qq.utils.find` 的替代方案。
+    指定多个属性时，将使用逻辑 AND 而不是逻辑 OR 检查它们。
+    这意味着他们必须满足传入的每个属性，而不是其中之一。
+    要进行嵌套属性搜索（即通过 ``x.y`` 搜索），然后传入 ``x__y`` 作为关键字参数。
+    如果没有找到与传递的属性匹配的属性，则返回 ``None`` 。
+
+    Examples
+    ---------
+    基本用法:
+
+    .. code-block:: python3
+
+        member = qq.utils.get(message.guild.members, name='Foo')
+
+    多属性匹配:
+
+    .. code-block:: python3
+
+        member = qq.utils.get(message.guild.members, name='Foo', bot=False)
+
+    嵌套属性匹配：
+    .. code-block:: python3
+
+        member = qq.utils.get(message.guild.members, avatar__url='xxx', name='Foo')
+
+    Parameters
+    -----------
+    iterable
+        一个可迭代的搜索对象。
+    \*\*attrs
+        表示要搜索的属性的关键字参数。
+    """
+
     _all = all
     attrget = attrgetter
 
