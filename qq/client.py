@@ -60,6 +60,47 @@ def _cleanup_loop(loop: asyncio.AbstractEventLoop) -> None:
 
 
 class Client:
+    r"""代表了客户端与 QQ 之间的连接
+    此类用于与 QQ WebSocket 和 API 进行交互。
+    许多选项可以传递给:class:`Client`。
+
+    Parameters
+    -----------
+    max_messages: Optional[:class:`int`]
+        要存储在内部消息缓存中的最大消息数。
+        这默认为 ``1000`` 。传入 ``None`` 会禁用消息缓存。
+   loop: Optional[:class:`asyncio.AbstractEventLoop`]
+        用于异步操作的 :class:`asyncio.AbstractEventLoop` 。
+        默认为 ``None`` ，在这种情况下，默认事件循环通过 :func:`asyncio.get_event_loop()` 使用。
+    connector: Optional[:class:`aiohttp.BaseConnector`]
+        用于连接池的连接器。
+    proxy: Optional[:class:`str`]
+        代理网址。
+    proxy_auth: Optional[:class:`aiohttp.BasicAuth`]
+        代表代理 HTTP 基本授权的对象。
+    shard_id: Optional[:class:`int`]
+        从 0 开始并且小于 :attr:`.shard_count` 的整数。
+    shard_count: Optional[:class:`int`]
+        分片总数。
+    app_id: :class:`int`
+        客户端的 App ID。
+    intents: :class:`Intents`
+        您要为会话启用的意图。 这是一种禁用和启用某些网关事件触发和发送的方法。
+        如果未给出，则默认为默认的 Intents 类。
+    heartbeat_timeout: :class:`float`
+        在未收到 HEARTBEAT_ACK 的情况下超时和重新启动 WebSocket 之前的最大秒数。
+        如果处理初始数据包花费的时间太长而导致您断开连接，则很有用。默认超时为 59 秒。
+    guild_ready_timeout: :class:`float`
+        在准备成员缓存和触发 READY 之前等待 GUILD_CREATE 流结束的最大秒数。默认超时为 2 秒。
+
+    Attributes
+    -----------
+    ws
+        客户端当前连接到的 websocket 网关。可能是 ``None`` 。
+    loop: :class:`asyncio.AbstractEventLoop`
+        客户端用于异步操作的事件循环。
+    """
+
     def __init__(
             self,
             *,
@@ -115,6 +156,12 @@ class Client:
             await asyncio.sleep(5.0)
 
     async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
+        """|coro|
+        客户端提供的默认错误处理程序。
+        默认情况下，这会打印到 :data:`sys.stderr` 但是它可以被覆盖以使用不同的实现。
+        看看 :func:`~qq.on_error` 以获取更多详细信息。
+        """
+
         print(f'忽略 {event_method} 中的异常', file=sys.stderr)
         traceback.print_exc()
 
@@ -177,44 +224,74 @@ class Client:
             self._schedule_event(coro, method, *args, **kwargs)
 
     async def login(self, token: str) -> None:
+        """|coro|
+        使用指定的凭据登录客户端。
+
+        Parameters
+        -----------
+        token: :class:`str`
+            身份验证令牌。不要在这个令牌前面加上任何东西，因为库会为你做这件事。
+
+        Raises
+        ------
+        :exc:`.LoginFailure`
+            传递了错误的凭据。
+        :exc:`.HTTPException`
+            发生未知的 HTTP 相关错误，通常是当它不是 200 或已知的错误。
+        """
         _log.info('使用静态令牌登录')
 
         data = await self.http.static_login(token.strip())
         self._connection.user = ClientUser(state=self._connection, data=data)
 
     @property
+    def latency(self) -> float:
+        """:class:`float`: 以秒为单位测量 HEARTBEAT 和 HEARTBEAT_ACK 之间的延迟。这可以称为 QQ WebSocket 协议延迟。
+        """
+        ws = self.ws
+        return float('nan') if not ws else ws.latency
+
+    def is_ready(self) -> bool:
+        """:class:`bool`: 指定客户端的内部缓存是否可以使用。"""
+        return self._ready.is_set()
+
+    @property
     def user(self) -> Optional[ClientUser]:
-        """Optional[:class:`.ClientUser`]: Represents the connected client. ``None`` if not logged in."""
+        """Optional[:class:`.ClientUser`]: 代表连接的客户端。如果未登录，则为 ``None`` 。"""
         return self._connection.user
 
     @property
     def guilds(self) -> List[Guild]:
-        """List[:class:`.Guild`]: The guilds that the connected client is a member of."""
+        """List[:class:`.Guild`]: 连接的客户端所属的频道。"""
         return self._connection.guilds
 
     def get_guild(self, id: int, /) -> Optional[Guild]:
-        """Returns a guild with the given ID.
+        """返回具有给定 ID 的公会。
+
         Parameters
         -----------
         id: :class:`int`
-            The ID to search for.
+            要搜索的 ID。
+
         Returns
         --------
         Optional[:class:`.Guild`]
-            The guild or ``None`` if not found.
+            如果未找到公会则 ``None`` 。
         """
         return self._connection._get_guild(id)
 
     def get_user(self, id: int, /) -> Optional[User]:
-        """Returns a user with the given ID.
+        """返回具有给定 ID 的用户。
+
         Parameters
         -----------
         id: :class:`int`
-            The ID to search for.
+            要搜索的 ID。
+
         Returns
         --------
         Optional[:class:`~discord.User`]
-            The user or ``None`` if not found.
+            如果未找到，则为 ``None`` 。
         """
         return self._connection.get_user(id)
 
@@ -232,6 +309,25 @@ class Client:
         return GuildIterator(self, limit=limit, before=before, after=after)
 
     def run(self, *args: Any, **kwargs: Any) -> None:
+        """一个阻塞调用，它从你那里抽象出事件循环初始化。
+        如果您想对事件循环进行更多控制，则不应使用此函数。使用 :meth:`start` 协程或 :meth:`connect` + :meth:`login`。
+
+        大致相当于： ::
+
+            try:
+                loop.run_until_complete(start(*args, **kwargs))
+            except KeyboardInterrupt:
+                loop.run_until_complete(close())
+                # cancel all tasks lingering
+            finally:
+                loop.close()
+
+        .. warning::
+
+            由于它是阻塞的，因此该函数必须是最后一个调用的函数。
+            这意味着在此函数调用之后注册的事件或任何被调用的东西在它返回之前不会执行。
+
+        """
         loop = self.loop
 
         try:
@@ -269,10 +365,21 @@ class Client:
                 return None
 
     async def start(self, reconnect: bool = True) -> None:
+        """|coro|
+        :meth:`login` + :meth:`connect` 的协程。
+
+        Raises
+        -------
+        TypeError
+            收到意外的关键字参数。
+        """
         await self.login(self.token)
         await self.connect(reconnect=reconnect)
 
     def clear(self) -> None:
+        """清除机器人的内部状态。在此之后，机器人可以被视为 ``重新连接`` ，
+        即 :meth:`is_closed` 和 :meth:`is_ready` 都返回 ``False`` 以及清除机器人的内部缓存。
+        """
         self._closed = False
         self._ready.clear()
         self._connection.clear()
@@ -282,6 +389,22 @@ class Client:
         return self._closed
 
     async def connect(self, *, reconnect: bool = True) -> None:
+        """|coro|
+        创建一个 websocket 连接并让 websocket 监听来自 QQ 的消息。这运行整个事件系统和库的其他方面的循环。在 WebSocket 连接终止之前，不会恢复控制。
+
+        Parameters
+        -----------
+        reconnect: :class:`bool`
+            我们应不应该尝试重新连接，无论是由于互联网故障还是 QQ 的特定故障。
+            某些导致错误状态的断开连接将不会得到处理（例如无效的分片或错误的令牌）。
+
+        Raises
+        -------
+        :exc:`.GatewayNotFound`
+            如果找不到连接到 QQ 的网关。通常，如果抛出此问题，则会导致 QQ API 中断。
+        :exc:`.ConnectionClosed`
+            websocket 连接已终止。
+        """
         backoff = ExponentialBackoff()
         ws_params = {
             'initial': True,
@@ -341,7 +464,7 @@ class Client:
 
     async def close(self) -> None:
         """|coro|
-        Closes the connection to Discord.
+        关闭与 Discord 的连接。
         """
         if self._closed:
             return

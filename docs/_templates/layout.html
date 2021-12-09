@@ -89,7 +89,6 @@
         <option value="{{ pathto(p + '/index')|e }}" {% if pagename is prefixedwith p %}selected{% endif %}>{{ ext }}</option>
         {%- endfor %}
       </select>
-	  <label for="documentation_select">{{ _(' 的文档') }}</label>
       <form role="search" class="search" action="{{ pathto('search') }}" method="get">
         <div class="search-wrapper">
           <input type="search" name="q" placeholder="{{ _('Search documentation') }}" />

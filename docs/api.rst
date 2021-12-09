@@ -20,12 +20,12 @@ API 参考
 
     一个命名元组，类似于 :obj:`py:sys.version_info`.
 
-    就像 :obj:`py:sys.version_info` the ``releaselevel`` 的有效值为
-     'alpha'、'beta'、'candidate' 和 'final'。
+    就像 :obj:`py:sys.version_info` ， ``releaselevel`` 的有效值为
+     ``alpha`` 、 ``beta`` 、 ``candidate`` 和 ``final`` 。
 
 .. data:: __version__
 
-    版本的字符串表示。 e.g. ``'1.0.0rc1'``。 这是基于:pep:`440`。
+    版本的字符串表示。 e.g. ``'1.0.0rc1'``。 这是基于 :pep:`440` 。
 
 客户端
 --------
