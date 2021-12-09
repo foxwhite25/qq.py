@@ -69,7 +69,7 @@ class Client:
     max_messages: Optional[:class:`int`]
         要存储在内部消息缓存中的最大消息数。
         这默认为 ``1000`` 。传入 ``None`` 会禁用消息缓存。
-   loop: Optional[:class:`asyncio.AbstractEventLoop`]
+    loop: Optional[:class:`asyncio.AbstractEventLoop`]
         用于异步操作的 :class:`asyncio.AbstractEventLoop` 。
         默认为 ``None`` ，在这种情况下，默认事件循环通过 :func:`asyncio.get_event_loop()` 使用。
     connector: Optional[:class:`aiohttp.BaseConnector`]
@@ -86,7 +86,7 @@ class Client:
         客户端的 App ID。
     intents: :class:`Intents`
         您要为会话启用的意图。 这是一种禁用和启用某些网关事件触发和发送的方法。
-        如果未给出，则默认为默认的 Intents 类。
+         如果未给出，则默认为默认的 Intents 类。
     heartbeat_timeout: :class:`float`
         在未收到 HEARTBEAT_ACK 的情况下超时和重新启动 WebSocket 之前的最大秒数。
         如果处理初始数据包花费的时间太长而导致您断开连接，则很有用。默认超时为 59 秒。
