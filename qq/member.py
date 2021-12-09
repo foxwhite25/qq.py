@@ -74,11 +74,42 @@ M = TypeVar('M', bound='Member')
 
 @flatten_user
 class Member(Messageable, _UserTag):
+    """代表一个 :class:`Guild` 的 QQ 成员。这实现了 :class:`User` 的很多功能。
+
+    .. container:: operations
+
+        .. describe:: x == y
+
+            检查两个成员是否相等。
+            请注意，这也适用于 :class:`User` 实例。
+
+        .. describe:: x != y
+
+            检查两个成员是否不相等。
+            请注意，这也适用于 :class:`User` 实例。
+
+        .. describe:: hash(x)
+
+            返回成员的哈希值。
+
+        .. describe:: str(x)
+
+            返回成员的名称。
+
+    Attributes
+    ----------
+    joined_at: Optional[:class:`datetime.datetime`]
+        一个 datetime 对象，它指定成员加入频道的日期和时间。
+        如果成员离开并重新加入频道，这将是最新的日期。在某些情况下，这可以是 ``None`` 。
+    guild: :class:`Guild`
+        成员所属的频道。
+    nick: Optional[:class:`str`]
+        用户的频道特定昵称。
+    """
+
     __slots__ = (
         '_roles',
         'joined_at',
-        'premium_since',
-        'activities',
         'guild',
         'nick',
         '_user',
@@ -187,10 +218,9 @@ class Member(Messageable, _UserTag):
 
     @property
     def colour(self) -> Colour:
-        """:class:`Colour`: A property that returns a colour denoting the rendered colour
-        for the member. If the default colour is the one rendered then an instance
-        of :meth:`Colour.default` is returned.
-        There is an alias for this named :attr:`color`.
+        """:class:`Colour`: 返回颜色的 property，该颜色表示成员的呈现颜色。
+        如果默认颜色是渲染的颜色，则返回一个 :meth:`Colour.default` 实例。
+        这个 property 有一个别名:attr:`color`。
         """
 
         roles = self.roles[1:]  # remove @everyone
@@ -205,19 +235,15 @@ class Member(Messageable, _UserTag):
 
     @property
     def color(self) -> Colour:
-        """:class:`Colour`: A property that returns a color denoting the rendered color for
-        the member. If the default color is the one rendered then an instance of :meth:`Colour.default`
-        is returned.
-        There is an alias for this named :attr:`colour`.
+        """:class:`Colour`: 返回颜色的 property，该颜色表示成员的呈现颜色。
+        如果默认颜色是渲染的颜色，则返回一个 :meth:`Colour.default` 实例。
+        这个 property 有一个别名:attr:`colour`。
         """
         return self.colour
 
     @property
     def roles(self) -> List[Role]:
-        """List[:class:`Role`]: A :class:`list` of :class:`Role` that the member belongs to. Note
-        that the first element of this list is always the default '@everyone'
-        role.
-        These roles are sorted by their position in the role hierarchy.
+        """List[:class:`Role`]: 成员所属的 :class:`Role` 的 :class:`list` 。
         """
         result = []
         g = self.guild
@@ -225,44 +251,39 @@ class Member(Messageable, _UserTag):
             role = g.get_role(role_id)
             if role:
                 result.append(role)
-        result.append(g.default_role)
         result.sort()
         return result
 
     @property
     def mention(self) -> str:
-        """:class:`str`: Returns a string that allows you to mention the member."""
+        """:class:`str`: 返回一个字符串，允许你提及该成员。"""
         return f'<@{self._user.id}>'
 
     @property
     def display_name(self) -> str:
-        """:class:`str`: Returns the user's display name.
-        For regular users this is just their username, but
-        if they have a guild specific nickname then that
-        is returned instead.
+        """:class:`str`: 返回用户的显示名称。
+        对于普通用户，这只是他们的用户名，但如果他们有频道特定的昵称，则返回该昵称。
         """
         return self.nick or self.name
 
     @property
     def display_avatar(self) -> Asset:
-        """:class:`Asset`: Returns the member's display avatar.
-        For regular members this is just their avatar, but
-        if they have a guild specific avatar then that
-        is returned instead.
-        .. versionadded:: 2.0
+        """:class:`Asset`: 返回成员的显示头像。
         """
         return self._user.avatar
 
     def mentioned_in(self, message: Message) -> bool:
-        """Checks if the member is mentioned in the specified message.
+        """检查指定消息中是否提及该成员。
+
         Parameters
         -----------
         message: :class:`Message`
-            The message to check if you're mentioned in.
+            用于检查是否被提及的消息。
+
         Returns
         -------
         :class:`bool`
-            Indicates if the member is mentioned in the message.
+            指示消息中是否提及该成员。
         """
         if message.guild is None or message.guild.id != self.guild.id:
             return False
@@ -272,19 +293,27 @@ class Member(Messageable, _UserTag):
 
         return any(self._roles.has(role.id) for role in message.role_mentions)
 
-    @property
-    def top_role(self) -> Role:
-        """:class:`Role`: Returns the member's highest role.
-        This is useful for figuring where a member stands in the role
-        hierarchy chain.
+    async def add_roles(self, *roles: Role, reason: Optional[str] = None, atomic: bool = True) -> None:
+        r"""|coro|
+        给成员一些 :class:`Role` 。
+
+        Parameters
+        -----------
+        \*roles: :class:`Role`
+            一个给成员的 :class:`Role` 。
+        reason: Optional[:class:`str`]
+            添加这些身份组的原因。
+        atomic: :class:`bool`
+            是否以 atomic 方式添加身份组。这将确保无论缓存的当前状态如何，都将始终应用多个操作。
+
+        Raises
+        -------
+        Forbidden
+            你无权添加这些身份组。
+        HTTPException
+            添加身份组失败。
         """
-        guild = self.guild
-        if len(self._roles) == 0:
-            return guild.default_role
 
-        return max(guild.get_role(rid) or guild.default_role for rid in self._roles)
-
-    async def add_roles(self, *roles: str, reason: Optional[str] = None, atomic: bool = True) -> None:
         if not atomic:
             new_roles = utils._unique(Object(id=r.id) for s in (self.roles[1:], roles) for r in s)
             await self.edit(roles=new_roles, reason=reason)
@@ -293,9 +322,29 @@ class Member(Messageable, _UserTag):
             guild_id = self.guild.id
             user_id = self.id
             for role in roles:
-                await req(guild_id, user_id, role, reason=reason)
+                await req(guild_id, user_id, role.id, reason=reason)
 
-    async def remove_roles(self, *roles: str, reason: Optional[str] = None, atomic: bool = True) -> None:
+    async def remove_roles(self, *roles: int, reason: Optional[str] = None, atomic: bool = True) -> None:
+        r"""|coro|
+        从此成员中删除一些 :class:`Role` 。
+
+        Parameters
+        -----------
+        \*roles: :class:`Role`
+            一个给成员的 :class:`Role` 。
+        reason: Optional[:class:`str`]
+            删除这些身份组的原因。 
+        atomic: :class:`bool`
+            是否以 atomic 方式删除身份组。这将确保无论缓存的当前状态如何，都将始终应用多个操作。
+        Raises
+        -------
+        Forbidden
+            你无权删除这些身份组。
+        HTTPException
+            删除身份组失败。
+        """
+
+
         if not atomic:
             new_roles = [Object(id=r.id) for r in self.roles[1:]]  # remove @everyone
             for role in roles:
@@ -310,7 +359,7 @@ class Member(Messageable, _UserTag):
             guild_id = self.guild.id
             user_id = self.id
             for role in roles:
-                await req(guild_id, user_id, role, reason=reason)
+                await req(guild_id, user_id, role.id, reason=reason)
 
     def get_role(self, role_id: int, /) -> Optional[Role]:
         return self.guild.get_role(role_id) if self._roles.has(role_id) else None

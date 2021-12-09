@@ -398,6 +398,8 @@ class QQWebSocket:
                       self.shard_id, ', '.join(trace), self.session_id)
 
         elif event == 'RESUMED':
+            if not data:
+                data = {}
             self._trace = trace = data.get('_trace', [])
             # pass back the shard ID to the resumed handler
             data['__shard_id__'] = self.shard_id

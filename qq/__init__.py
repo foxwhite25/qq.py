@@ -7,7 +7,6 @@ __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
 import logging
 from typing import NamedTuple
-
 from .client import *
 from .user import *
 from .channel import *
@@ -27,6 +26,7 @@ from .error import *
 from .embeds import *
 from .mention import *
 
+
 class VersionInfo(NamedTuple):
     major: int
     minor: int
@@ -36,5 +36,3 @@ class VersionInfo(NamedTuple):
 
 
 version_info: VersionInfo = VersionInfo(major=0, minor=1, micro=3, releaselevel='alpha', serial=0)
-
-logging.getLogger(__name__).addHandler(logging.NullHandler())

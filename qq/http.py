@@ -301,7 +301,7 @@ class HTTPClient:
         return self.request(r, reason=reason)
 
     def remove_role(
-            self, guild_id: str, user_id: str, role_id: str, *, reason: Optional[str] = None
+            self, guild_id: int, user_id: int, role_id: int, *, reason: Optional[str] = None
     ) -> Response[None]:
         r = Route(
             'DELETE',
