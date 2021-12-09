@@ -118,13 +118,11 @@ class Embed:
     """
     __slots__ = (
         'title',
-        'timestamp',
         '_fields',
         'description',
         'prompt',
         '_fields',
         '_timestamp',
-        'colour',
         '_author',
         '_footer',
         '_colour'
