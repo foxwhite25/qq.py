@@ -345,13 +345,30 @@ API 为某些类型的字符串提供了一些枚举，以避免 API 被字符�
         一个分类频道。
     .. attribute:: app
 
-        一个应用频道
+        一个应用频道。
     .. attribute:: thread
 
-        一个论坛频道
+        一个论坛频道。
     .. attribute:: live
 
-        一个直播频道
+        一个直播频道。
+
+.. class:: AudioStatusType
+
+    音频的状态。
+
+    .. attribute:: START
+
+        开始播放操作。
+    .. attribute:: PAUSE
+
+        暂停播放操作。
+    .. attribute:: RESUME
+
+        继续播放操作。
+    .. attribute:: STOP
+
+        停止播放操作
 
 异步迭代器
 ----------------

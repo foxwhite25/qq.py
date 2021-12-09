@@ -129,6 +129,16 @@ class ChannelType(Enum):
         return self.name
 
 
+class AudioStatusType(Enum):
+    START = 0
+    PAUSE = 1
+    RESUME = 2
+    STOP = 3
+
+    def __str__(self):
+        return self.name
+
+
 T = TypeVar('T')
 
 

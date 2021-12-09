@@ -30,8 +30,8 @@ class VersionInfo(NamedTuple):
     serial: int
 
 
-version_info: VersionInfo = VersionInfo(major=0, minor=2, micro=0, releaselevel='alpha', serial=0)
+version_info: VersionInfo = VersionInfo(major=0, minor=2, micro=1, releaselevel='alpha', serial=0)
 __title__ = 'qq'
 __author__ = 'Foxwhite'
 __license__ = 'MIT'
-__version__ = f'0.2.0'
+__version__ = f'0.2.1'

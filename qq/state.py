@@ -376,6 +376,9 @@ class ConnectionState:
         if channel and channel.__class__ in (TextChannel,):
             channel.last_message_id = message.id  # type: ignore
 
+    def parse_message_create(self, data) -> None:
+        self.parse_at_message_create(data)
+
     def parse_channel_delete(self, data) -> None:
         guild = self._get_guild(data.get('guild_id'))
         channel_id = int(data['id'])
@@ -563,6 +566,18 @@ class ConnectionState:
 
         self._remove_guild(guild)
         self.dispatch('guild_remove', guild)
+
+    def parse_audio_start(self, data) -> None:
+        self.dispatch('audio_start', data)
+
+    def parse_audio_finish(self, data) -> None:
+        self.dispatch('audio_stop', data)
+
+    def parse_audio_on_mic(self, data) -> None:
+        self.dispatch('mic_start', data)
+
+    def parse_audio_off_mic(self, data) -> None:
+        self.dispatch('mic_stop', data)
 
     def get_channel(self, id: Optional[int]) -> Optional[Union[Channel]]:
         if id is None:
