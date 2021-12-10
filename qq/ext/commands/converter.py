@@ -34,14 +34,22 @@ __all__ = (
     'MessageConverter',
     'PartialMessageConverter',
     'TextChannelConverter',
+    'InviteConverter',
     'GuildConverter',
     'RoleConverter',
+    'GameConverter',
     'ColourConverter',
     'ColorConverter',
     'VoiceChannelConverter',
+    'StageChannelConverter',
+    'EmojiConverter',
+    'PartialEmojiConverter',
     'CategoryChannelConverter',
     'IDConverter',
+    'StoreChannelConverter',
+    'ThreadConverter',
     'GuildChannelConverter',
+    'GuildStickerConverter',
     'clean_content',
     'Greedy',
     'run_converters',
@@ -61,30 +69,37 @@ _utils_get = qq.utils.get
 T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)
 CT = TypeVar('CT', bound=qq.abc.GuildChannel)
+TT = TypeVar('TT', bound=qq.Thread)
 
 
 @runtime_checkable
 class Converter(Protocol[T_co]):
     """The base class of custom converters that require the :class:`.Context`
     to be passed to be useful.
+
     This allows you to implement converters that function similar to the
     special cased ``qq`` classes.
+
     Classes that derive from this should override the :meth:`~.Converter.convert`
     method to do its conversion logic. This method must be a :ref:`coroutine <coroutine>`.
     """
 
     async def convert(self, ctx: Context, argument: str) -> T_co:
         """|coro|
+
         The method to override to do conversion logic.
+
         If an error is found while converting, it is recommended to
         raise a :exc:`.CommandError` derived exception as it will
         properly propagate to the error handlers.
+
         Parameters
         -----------
         ctx: :class:`.Context`
             The invocation context that the argument is being used in.
         argument: :class:`str`
             The argument that is being converted.
+
         Raises
         -------
         :exc:`.CommandError`
@@ -106,9 +121,13 @@ class IDConverter(Converter[T_co]):
 
 class ObjectConverter(IDConverter[qq.Object]):
     """Converts to a :class:`~qq.Object`.
+
     The argument must follow the valid ID or mention formats (e.g. `<@80088516616269824>`).
+
     .. versionadded:: 2.0
+
     The lookup strategy is as follows (in order):
+
     1. Lookup by ID.
     2. Lookup by member, role, or channel mention.
     """
@@ -126,16 +145,21 @@ class ObjectConverter(IDConverter[qq.Object]):
 
 class MemberConverter(IDConverter[qq.Member]):
     """Converts to a :class:`~qq.Member`.
+
     All lookups are via the local guild. If in a DM context, then the lookup
     is done by the global cache.
+
     The lookup strategy is as follows (in order):
+
     1. Lookup by ID.
     2. Lookup by mention.
     3. Lookup by name#discrim
     4. Lookup by name
     5. Lookup by nickname
+
     .. versionchanged:: 1.5
          Raise :exc:`.MemberNotFound` instead of generic :exc:`.BadArgument`
+
     .. versionchanged:: 1.5.1
         This converter now lazily fetches members from the gateway and HTTP APIs,
         optionally caching the result if :attr:`.MemberCacheFlags.joined` is enabled.
@@ -208,14 +232,19 @@ class MemberConverter(IDConverter[qq.Member]):
 
 class UserConverter(IDConverter[qq.User]):
     """Converts to a :class:`~qq.User`.
+
     All lookups are via the global user cache.
+
     The lookup strategy is as follows (in order):
+
     1. Lookup by ID.
     2. Lookup by mention.
     3. Lookup by name#discrim
     4. Lookup by name
+
     .. versionchanged:: 1.5
          Raise :exc:`.UserNotFound` instead of generic :exc:`.BadArgument`
+
     .. versionchanged:: 1.6
         This converter now lazily fetches users from the HTTP APIs if an ID is passed
         and it's not available in cache.
@@ -264,8 +293,11 @@ class UserConverter(IDConverter[qq.User]):
 
 class PartialMessageConverter(Converter[qq.PartialMessage]):
     """Converts to a :class:`qq.PartialMessage`.
+
     .. versionadded:: 1.7
+
     The creation strategy is as follows (in order):
+
     1. By "{channel ID}-{message ID}" (retrieved by shift-clicking on "Copy ID")
     2. By message ID (The message is assumed to be in the context channel.)
     3. By message URL
@@ -283,7 +315,7 @@ class PartialMessageConverter(Converter[qq.PartialMessage]):
         if not match:
             raise MessageNotFound(argument)
         data = match.groupdict()
-        channel_id = data.get('channel_id')
+        channel_id = qq.utils._get_as_snowflake(data, 'channel_id')
         message_id = int(data['message_id'])
         guild_id = data.get('guild_id')
         if guild_id is None:
@@ -315,11 +347,15 @@ class PartialMessageConverter(Converter[qq.PartialMessage]):
 
 class MessageConverter(IDConverter[qq.Message]):
     """Converts to a :class:`qq.Message`.
+
     .. versionadded:: 1.1
+
     The lookup strategy is as follows (in order):
+
     1. Lookup by "{channel ID}-{message ID}" (retrieved by shift-clicking on "Copy ID")
     2. Lookup by message ID (the message **must** be in the context channel)
     3. Lookup by message URL
+
     .. versionchanged:: 1.5
          Raise :exc:`.ChannelNotFound`, :exc:`.MessageNotFound` or :exc:`.ChannelNotReadable` instead of generic :exc:`.BadArgument`
     """
@@ -342,12 +378,16 @@ class MessageConverter(IDConverter[qq.Message]):
 
 class GuildChannelConverter(IDConverter[qq.abc.GuildChannel]):
     """Converts to a :class:`~qq.abc.GuildChannel`.
+
     All lookups are via the local guild. If in a DM context, then the lookup
     is done by the global cache.
+
     The lookup strategy is as follows (in order):
+
     1. Lookup by ID.
     2. Lookup by mention.
     3. Lookup by name.
+
     .. versionadded:: 2.0
     """
 
@@ -385,38 +425,172 @@ class GuildChannelConverter(IDConverter[qq.abc.GuildChannel]):
 
         return result
 
+    @staticmethod
+    def _resolve_thread(ctx: Context, argument: str, attribute: str, type: Type[TT]) -> TT:
+        bot = ctx.bot
+
+        match = IDConverter._get_id_match(argument) or re.match(r'<#([0-9]{15,20})>$', argument)
+        result = None
+        guild = ctx.guild
+
+        if match is None:
+            # not a mention
+            if guild:
+                iterable: Iterable[TT] = getattr(guild, attribute)
+                result: Optional[TT] = qq.utils.get(iterable, name=argument)
+        else:
+            thread_id = int(match.group(1))
+            if guild:
+                result = guild.get_thread(thread_id)
+
+        if not result or not isinstance(result, type):
+            raise ThreadNotFound(argument)
+
+        return result
+
 
 class TextChannelConverter(IDConverter[qq.TextChannel]):
+    """Converts to a :class:`~qq.TextChannel`.
+
+    All lookups are via the local guild. If in a DM context, then the lookup
+    is done by the global cache.
+
+    The lookup strategy is as follows (in order):
+
+    1. Lookup by ID.
+    2. Lookup by mention.
+    3. Lookup by name
+
+    .. versionchanged:: 1.5
+         Raise :exc:`.ChannelNotFound` instead of generic :exc:`.BadArgument`
+    """
+
     async def convert(self, ctx: Context, argument: str) -> qq.TextChannel:
         return GuildChannelConverter._resolve_channel(ctx, argument, 'text_channels', qq.TextChannel)
 
 
 class VoiceChannelConverter(IDConverter[qq.VoiceChannel]):
+    """Converts to a :class:`~qq.VoiceChannel`.
+
+    All lookups are via the local guild. If in a DM context, then the lookup
+    is done by the global cache.
+
+    The lookup strategy is as follows (in order):
+
+    1. Lookup by ID.
+    2. Lookup by mention.
+    3. Lookup by name
+
+    .. versionchanged:: 1.5
+         Raise :exc:`.ChannelNotFound` instead of generic :exc:`.BadArgument`
+    """
+
     async def convert(self, ctx: Context, argument: str) -> qq.VoiceChannel:
         return GuildChannelConverter._resolve_channel(ctx, argument, 'voice_channels', qq.VoiceChannel)
 
 
+class StageChannelConverter(IDConverter[qq.StageChannel]):
+    """Converts to a :class:`~qq.StageChannel`.
+
+    .. versionadded:: 1.7
+
+    All lookups are via the local guild. If in a DM context, then the lookup
+    is done by the global cache.
+
+    The lookup strategy is as follows (in order):
+
+    1. Lookup by ID.
+    2. Lookup by mention.
+    3. Lookup by name
+    """
+
+    async def convert(self, ctx: Context, argument: str) -> qq.StageChannel:
+        return GuildChannelConverter._resolve_channel(ctx, argument, 'stage_channels', qq.StageChannel)
+
+
 class CategoryChannelConverter(IDConverter[qq.CategoryChannel]):
+    """Converts to a :class:`~qq.CategoryChannel`.
+
+    All lookups are via the local guild. If in a DM context, then the lookup
+    is done by the global cache.
+
+    The lookup strategy is as follows (in order):
+
+    1. Lookup by ID.
+    2. Lookup by mention.
+    3. Lookup by name
+
+    .. versionchanged:: 1.5
+         Raise :exc:`.ChannelNotFound` instead of generic :exc:`.BadArgument`
+    """
+
     async def convert(self, ctx: Context, argument: str) -> qq.CategoryChannel:
         return GuildChannelConverter._resolve_channel(ctx, argument, 'categories', qq.CategoryChannel)
 
 
-class LiveChannelConverter(IDConverter[qq.CategoryChannel]):
-    async def convert(self, ctx: Context, argument: str) -> qq.CategoryChannel:
-        return GuildChannelConverter._resolve_channel(ctx, argument, 'live_channels', qq.CategoryChannel)
+class StoreChannelConverter(IDConverter[qq.StoreChannel]):
+    """Converts to a :class:`~qq.StoreChannel`.
+
+    All lookups are via the local guild. If in a DM context, then the lookup
+    is done by the global cache.
+
+    The lookup strategy is as follows (in order):
+
+    1. Lookup by ID.
+    2. Lookup by mention.
+    3. Lookup by name.
+
+    .. versionadded:: 1.7
+    """
+
+    async def convert(self, ctx: Context, argument: str) -> qq.StoreChannel:
+        return GuildChannelConverter._resolve_channel(ctx, argument, 'channels', qq.StoreChannel)
 
 
-class AppChannelConverter(IDConverter[qq.CategoryChannel]):
-    async def convert(self, ctx: Context, argument: str) -> qq.CategoryChannel:
-        return GuildChannelConverter._resolve_channel(ctx, argument, 'app_channels', qq.CategoryChannel)
+class ThreadConverter(IDConverter[qq.Thread]):
+    """Coverts to a :class:`~qq.Thread`.
 
+    All lookups are via the local guild.
 
-class ThreadChannelConverter(IDConverter[qq.CategoryChannel]):
-    async def convert(self, ctx: Context, argument: str) -> qq.CategoryChannel:
-        return GuildChannelConverter._resolve_channel(ctx, argument, 'thread_channels', qq.CategoryChannel)
+    The lookup strategy is as follows (in order):
+
+    1. Lookup by ID.
+    2. Lookup by mention.
+    3. Lookup by name.
+
+    .. versionadded: 2.0
+    """
+
+    async def convert(self, ctx: Context, argument: str) -> qq.Thread:
+        return GuildChannelConverter._resolve_thread(ctx, argument, 'threads', qq.Thread)
 
 
 class ColourConverter(Converter[qq.Colour]):
+    """Converts to a :class:`~qq.Colour`.
+
+    .. versionchanged:: 1.5
+        Add an alias named ColorConverter
+
+    The following formats are accepted:
+
+    - ``0x<hex>``
+    - ``#<hex>``
+    - ``0x#<hex>``
+    - ``rgb(<number>, <number>, <number>)``
+    - Any of the ``classmethod`` in :class:`~qq.Colour`
+
+        - The ``_`` in the name can be optionally replaced with spaces.
+
+    Like CSS, ``<number>`` can be either 0-255 or 0-100% and ``<hex>`` can be
+    either a 6 digit hex number or a 3 digit hex shortcut (e.g. #fff).
+
+    .. versionchanged:: 1.5
+         Raise :exc:`.BadColourArgument` instead of generic :exc:`.BadArgument`
+
+    .. versionchanged:: 1.7
+        Added support for ``rgb`` function and 3-digit hex shortcuts
+    """
+
     RGB_REGEX = re.compile(r'rgb\s*\((?P<r>[0-9]{1,3}%?)\s*,\s*(?P<g>[0-9]{1,3}%?)\s*,\s*(?P<b>[0-9]{1,3}%?)\s*\)')
 
     def parse_hex_number(self, argument):
@@ -478,6 +652,21 @@ ColorConverter = ColourConverter
 
 
 class RoleConverter(IDConverter[qq.Role]):
+    """Converts to a :class:`~qq.Role`.
+
+    All lookups are via the local guild. If in a DM context, the converter raises
+    :exc:`.NoPrivateMessage` exception.
+
+    The lookup strategy is as follows (in order):
+
+    1. Lookup by ID.
+    2. Lookup by mention.
+    3. Lookup by name
+
+    .. versionchanged:: 1.5
+         Raise :exc:`.RoleNotFound` instead of generic :exc:`.BadArgument`
+    """
+
     async def convert(self, ctx: Context, argument: str) -> qq.Role:
         guild = ctx.guild
         if not guild:
@@ -494,11 +683,38 @@ class RoleConverter(IDConverter[qq.Role]):
         return result
 
 
+class GameConverter(Converter[qq.Game]):
+    """Converts to :class:`~qq.Game`."""
+
+    async def convert(self, ctx: Context, argument: str) -> qq.Game:
+        return qq.Game(name=argument)
+
+
+class InviteConverter(Converter[qq.Invite]):
+    """Converts to a :class:`~qq.Invite`.
+
+    This is done via an HTTP request using :meth:`.Bot.fetch_invite`.
+
+    .. versionchanged:: 1.5
+         Raise :exc:`.BadInviteArgument` instead of generic :exc:`.BadArgument`
+    """
+
+    async def convert(self, ctx: Context, argument: str) -> qq.Invite:
+        try:
+            invite = await ctx.bot.fetch_invite(argument)
+            return invite
+        except Exception as exc:
+            raise BadInviteArgument(argument) from exc
+
+
 class GuildConverter(IDConverter[qq.Guild]):
     """Converts to a :class:`~qq.Guild`.
+
     The lookup strategy is as follows (in order):
+
     1. Lookup by ID.
     2. Lookup by name. (There is no disambiguation for Guilds with multiple matching names).
+
     .. versionadded:: 1.7
     """
 
@@ -518,7 +734,130 @@ class GuildConverter(IDConverter[qq.Guild]):
         return result
 
 
+class EmojiConverter(IDConverter[qq.Emoji]):
+    """Converts to a :class:`~qq.Emoji`.
+
+    All lookups are done for the local guild first, if available. If that lookup
+    fails, then it checks the client's global cache.
+
+    The lookup strategy is as follows (in order):
+
+    1. Lookup by ID.
+    2. Lookup by extracting ID from the emoji.
+    3. Lookup by name
+
+    .. versionchanged:: 1.5
+         Raise :exc:`.EmojiNotFound` instead of generic :exc:`.BadArgument`
+    """
+
+    async def convert(self, ctx: Context, argument: str) -> qq.Emoji:
+        match = self._get_id_match(argument) or re.match(r'<a?:[a-zA-Z0-9\_]{1,32}:([0-9]{15,20})>$', argument)
+        result = None
+        bot = ctx.bot
+        guild = ctx.guild
+
+        if match is None:
+            # Try to get the emoji by name. Try local guild first.
+            if guild:
+                result = qq.utils.get(guild.emojis, name=argument)
+
+            if result is None:
+                result = qq.utils.get(bot.emojis, name=argument)
+        else:
+            emoji_id = int(match.group(1))
+
+            # Try to look up emoji by id.
+            result = bot.get_emoji(emoji_id)
+
+        if result is None:
+            raise EmojiNotFound(argument)
+
+        return result
+
+
+class PartialEmojiConverter(Converter[qq.PartialEmoji]):
+    """Converts to a :class:`~qq.PartialEmoji`.
+
+    This is done by extracting the animated flag, name and ID from the emoji.
+
+    .. versionchanged:: 1.5
+         Raise :exc:`.PartialEmojiConversionFailure` instead of generic :exc:`.BadArgument`
+    """
+
+    async def convert(self, ctx: Context, argument: str) -> qq.PartialEmoji:
+        match = re.match(r'<(a?):([a-zA-Z0-9\_]{1,32}):([0-9]{15,20})>$', argument)
+
+        if match:
+            emoji_animated = bool(match.group(1))
+            emoji_name = match.group(2)
+            emoji_id = int(match.group(3))
+
+            return qq.PartialEmoji.with_state(
+                ctx.bot._connection, animated=emoji_animated, name=emoji_name, id=emoji_id
+            )
+
+        raise PartialEmojiConversionFailure(argument)
+
+
+class GuildStickerConverter(IDConverter[qq.GuildSticker]):
+    """Converts to a :class:`~qq.GuildSticker`.
+
+    All lookups are done for the local guild first, if available. If that lookup
+    fails, then it checks the client's global cache.
+
+    The lookup strategy is as follows (in order):
+
+    1. Lookup by ID.
+    3. Lookup by name
+
+    .. versionadded:: 2.0
+    """
+
+    async def convert(self, ctx: Context, argument: str) -> qq.GuildSticker:
+        match = self._get_id_match(argument)
+        result = None
+        bot = ctx.bot
+        guild = ctx.guild
+
+        if match is None:
+            # Try to get the sticker by name. Try local guild first.
+            if guild:
+                result = qq.utils.get(guild.stickers, name=argument)
+
+            if result is None:
+                result = qq.utils.get(bot.stickers, name=argument)
+        else:
+            sticker_id = int(match.group(1))
+
+            # Try to look up sticker by id.
+            result = bot.get_sticker(sticker_id)
+
+        if result is None:
+            raise GuildStickerNotFound(argument)
+
+        return result
+
+
 class clean_content(Converter[str]):
+    """Converts the argument to mention scrubbed version of
+    said content.
+
+    This behaves similarly to :attr:`~qq.Message.clean_content`.
+
+    Attributes
+    ------------
+    fix_channel_mentions: :class:`bool`
+        Whether to clean channel mentions.
+    use_nicknames: :class:`bool`
+        Whether to use nicknames when transforming mentions.
+    escape_markdown: :class:`bool`
+        Whether to also escape special markdown characters.
+    remove_markdown: :class:`bool`
+        Whether to also remove special markdown characters. This option is not supported with ``escape_markdown``
+
+        .. versionadded:: 1.7
+    """
+
     def __init__(
             self,
             *,
@@ -589,6 +928,27 @@ class clean_content(Converter[str]):
 
 
 class Greedy(List[T]):
+    r"""A special converter that greedily consumes arguments until it can't.
+    As a consequence of this behaviour, most input errors are silently discarded,
+    since it is used as an indicator of when to stop parsing.
+
+    When a parser error is met the greedy converter stops converting, undoes the
+    internal string parsing routine, and continues parsing regularly.
+
+    For example, in the following code:
+
+    .. code-block:: python3
+
+        @commands.command()
+        async def test(ctx, numbers: Greedy[int], reason: str):
+            await ctx.send("numbers: {}, reason: {}".format(numbers, reason))
+
+    An invocation of ``[p]test 1 2 3 4 5 6 hello`` would pass ``numbers`` with
+    ``[1, 2, 3, 4, 5, 6]`` and ``reason`` with ``hello``\.
+
+    For more information, check :ref:`ext_commands_special_converters`.
+    """
+
     __slots__ = ('converter',)
 
     def __init__(self, *, converter: T):
@@ -654,12 +1014,20 @@ CONVERTER_MAPPING: Dict[Type[Any], Any] = {
     qq.Message: MessageConverter,
     qq.PartialMessage: PartialMessageConverter,
     qq.TextChannel: TextChannelConverter,
+    qq.Invite: InviteConverter,
     qq.Guild: GuildConverter,
     qq.Role: RoleConverter,
+    qq.Game: GameConverter,
     qq.Colour: ColourConverter,
     qq.VoiceChannel: VoiceChannelConverter,
+    qq.StageChannel: StageChannelConverter,
+    qq.Emoji: EmojiConverter,
+    qq.PartialEmoji: PartialEmojiConverter,
     qq.CategoryChannel: CategoryChannelConverter,
+    qq.StoreChannel: StoreChannelConverter,
+    qq.Thread: ThreadConverter,
     qq.abc.GuildChannel: GuildChannelConverter,
+    qq.GuildSticker: GuildStickerConverter,
 }
 
 
@@ -702,6 +1070,35 @@ async def _actual_conversion(ctx: Context, converter, argument: str, param: insp
 
 
 async def run_converters(ctx: Context, converter, argument: str, param: inspect.Parameter):
+    """|coro|
+
+    Runs converters for a given converter, argument, and parameter.
+
+    This function does the same work that the library does under the hood.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ------------
+    ctx: :class:`Context`
+        The invocation context to run the converters under.
+    converter: Any
+        The converter to run, this corresponds to the annotation in the function.
+    argument: :class:`str`
+        The argument to convert to.
+    param: :class:`inspect.Parameter`
+        The parameter being converted. This is mainly for error reporting.
+
+    Raises
+    -------
+    CommandError
+        The converter failed to convert.
+
+    Returns
+    --------
+    Any
+        The resulting conversion.
+    """
     origin = getattr(converter, '__origin__', None)
 
     if origin is Union:

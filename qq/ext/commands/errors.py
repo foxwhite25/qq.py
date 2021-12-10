@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import Optional, Any, TYPE_CHECKING, List, Callable, Type, Tuple, Union
 
-from discord.errors import ClientException, DiscordException
+from qq.error import ClientException, QQException
+from ... import Role
 
 if TYPE_CHECKING:
     from inspect import Parameter
@@ -51,7 +52,6 @@ __all__ = (
     'BotMissingAnyRole',
     'MissingPermissions',
     'BotMissingPermissions',
-    'NSFWChannelRequired',
     'ConversionError',
     'BadUnionArgument',
     'BadLiteralArgument',
@@ -74,9 +74,11 @@ __all__ = (
 )
 
 
-class CommandError(DiscordException):
+class CommandError(QQException):
     r"""The base exception type for all command related errors.
-    This inherits from :exc:`discord.DiscordException`.
+
+    This inherits from :exc:`qq.qqException`.
+
     This exception and exceptions inherited from it are handled
     in a special way as they are caught and passed into a special event
     from :class:`.Bot`\, :func:`.on_command_error`.
@@ -93,10 +95,12 @@ class CommandError(DiscordException):
 
 class ConversionError(CommandError):
     """Exception raised when a Converter class raises non-CommandError.
+
     This inherits from :exc:`CommandError`.
+
     Attributes
     ----------
-    converter: :class:`discord.ext.commands.Converter`
+    converter: :class:`qq.ext.commands.Converter`
         The converter that failed.
     original: :exc:`Exception`
         The original exception that was raised. You can also get this via
@@ -111,6 +115,7 @@ class ConversionError(CommandError):
 class UserInputError(CommandError):
     """The base exception type for errors that involve errors
     regarding user input.
+
     This inherits from :exc:`CommandError`.
     """
     pass
@@ -119,8 +124,10 @@ class UserInputError(CommandError):
 class CommandNotFound(CommandError):
     """Exception raised when a command is attempted to be invoked
     but no command under that name is found.
+
     This is not raised for invalid subcommands, rather just the
     initial main command that is attempted to be invoked.
+
     This inherits from :exc:`CommandError`.
     """
     pass
@@ -129,7 +136,9 @@ class CommandNotFound(CommandError):
 class MissingRequiredArgument(UserInputError):
     """Exception raised when parsing a command and a parameter
     that is required is not encountered.
+
     This inherits from :exc:`UserInputError`
+
     Attributes
     -----------
     param: :class:`inspect.Parameter`
@@ -144,6 +153,7 @@ class MissingRequiredArgument(UserInputError):
 class TooManyArguments(UserInputError):
     """Exception raised when the command was passed too many arguments and its
     :attr:`.Command.ignore_extra` attribute was not set to ``True``.
+
     This inherits from :exc:`UserInputError`
     """
     pass
@@ -152,6 +162,7 @@ class TooManyArguments(UserInputError):
 class BadArgument(UserInputError):
     """Exception raised when a parsing or conversion failure is encountered
     on an argument to pass into a command.
+
     This inherits from :exc:`UserInputError`
     """
     pass
@@ -159,6 +170,7 @@ class BadArgument(UserInputError):
 
 class CheckFailure(CommandError):
     """Exception raised when the predicates in :attr:`.Command.checks` have failed.
+
     This inherits from :exc:`CommandError`
     """
     pass
@@ -166,8 +178,11 @@ class CheckFailure(CommandError):
 
 class CheckAnyFailure(CheckFailure):
     """Exception raised when all predicates in :func:`check_any` fail.
+
     This inherits from :exc:`CheckFailure`.
+
     .. versionadded:: 1.3
+
     Attributes
     ------------
     errors: List[:class:`CheckFailure`]
@@ -185,6 +200,7 @@ class CheckAnyFailure(CheckFailure):
 class PrivateMessageOnly(CheckFailure):
     """Exception raised when an operation does not work outside of private
     message contexts.
+
     This inherits from :exc:`CheckFailure`
     """
 
@@ -195,6 +211,7 @@ class PrivateMessageOnly(CheckFailure):
 class NoPrivateMessage(CheckFailure):
     """Exception raised when an operation does not work in private message
     contexts.
+
     This inherits from :exc:`CheckFailure`
     """
 
@@ -204,6 +221,7 @@ class NoPrivateMessage(CheckFailure):
 
 class NotOwner(CheckFailure):
     """Exception raised when the message author is not the owner of the bot.
+
     This inherits from :exc:`CheckFailure`
     """
     pass
@@ -212,8 +230,11 @@ class NotOwner(CheckFailure):
 class ObjectNotFound(BadArgument):
     """Exception raised when the argument provided did not match the format
     of an ID or a mention.
+
     This inherits from :exc:`BadArgument`
+
     .. versionadded:: 2.0
+
     Attributes
     -----------
     argument: :class:`str`
@@ -228,8 +249,11 @@ class ObjectNotFound(BadArgument):
 class MemberNotFound(BadArgument):
     """Exception raised when the member provided was not found in the bot's
     cache.
+
     This inherits from :exc:`BadArgument`
+
     .. versionadded:: 1.5
+
     Attributes
     -----------
     argument: :class:`str`
@@ -243,8 +267,11 @@ class MemberNotFound(BadArgument):
 
 class GuildNotFound(BadArgument):
     """Exception raised when the guild provided was not found in the bot's cache.
+
     This inherits from :exc:`BadArgument`
+
     .. versionadded:: 1.7
+
     Attributes
     -----------
     argument: :class:`str`
@@ -259,8 +286,11 @@ class GuildNotFound(BadArgument):
 class UserNotFound(BadArgument):
     """Exception raised when the user provided was not found in the bot's
     cache.
+
     This inherits from :exc:`BadArgument`
+
     .. versionadded:: 1.5
+
     Attributes
     -----------
     argument: :class:`str`
@@ -274,8 +304,11 @@ class UserNotFound(BadArgument):
 
 class MessageNotFound(BadArgument):
     """Exception raised when the message provided was not found in the channel.
+
     This inherits from :exc:`BadArgument`
+
     .. versionadded:: 1.5
+
     Attributes
     -----------
     argument: :class:`str`
@@ -290,23 +323,29 @@ class MessageNotFound(BadArgument):
 class ChannelNotReadable(BadArgument):
     """Exception raised when the bot does not have permission to read messages
     in the channel.
+
     This inherits from :exc:`BadArgument`
+
     .. versionadded:: 1.5
+
     Attributes
     -----------
     argument: Union[:class:`.abc.GuildChannel`, :class:`.Thread`]
         The channel supplied by the caller that was not readable
     """
 
-    def __init__(self, argument: GuildChannel) -> None:
-        self.argument: GuildChannel = argument
+    def __init__(self, argument: Union[GuildChannel]) -> None:
+        self.argument: Union[GuildChannel] = argument
         super().__init__(f"Can't read messages in {argument.mention}.")
 
 
 class ChannelNotFound(BadArgument):
     """Exception raised when the bot can not find the channel.
+
     This inherits from :exc:`BadArgument`
+
     .. versionadded:: 1.5
+
     Attributes
     -----------
     argument: :class:`str`
@@ -320,8 +359,11 @@ class ChannelNotFound(BadArgument):
 
 class ThreadNotFound(BadArgument):
     """Exception raised when the bot can not find the thread.
+
     This inherits from :exc:`BadArgument`
+
     .. versionadded:: 2.0
+
     Attributes
     -----------
     argument: :class:`str`
@@ -335,8 +377,11 @@ class ThreadNotFound(BadArgument):
 
 class BadColourArgument(BadArgument):
     """Exception raised when the colour is not valid.
+
     This inherits from :exc:`BadArgument`
+
     .. versionadded:: 1.5
+
     Attributes
     -----------
     argument: :class:`str`
@@ -353,8 +398,11 @@ BadColorArgument = BadColourArgument
 
 class RoleNotFound(BadArgument):
     """Exception raised when the bot can not find the role.
+
     This inherits from :exc:`BadArgument`
+
     .. versionadded:: 1.5
+
     Attributes
     -----------
     argument: :class:`str`
@@ -368,7 +416,9 @@ class RoleNotFound(BadArgument):
 
 class BadInviteArgument(BadArgument):
     """Exception raised when the invite is invalid or expired.
+
     This inherits from :exc:`BadArgument`
+
     .. versionadded:: 1.5
     """
 
@@ -379,8 +429,11 @@ class BadInviteArgument(BadArgument):
 
 class EmojiNotFound(BadArgument):
     """Exception raised when the bot can not find the emoji.
+
     This inherits from :exc:`BadArgument`
+
     .. versionadded:: 1.5
+
     Attributes
     -----------
     argument: :class:`str`
@@ -395,8 +448,11 @@ class EmojiNotFound(BadArgument):
 class PartialEmojiConversionFailure(BadArgument):
     """Exception raised when the emoji provided does not match the correct
     format.
+
     This inherits from :exc:`BadArgument`
+
     .. versionadded:: 1.5
+
     Attributes
     -----------
     argument: :class:`str`
@@ -410,8 +466,11 @@ class PartialEmojiConversionFailure(BadArgument):
 
 class GuildStickerNotFound(BadArgument):
     """Exception raised when the bot can not find the sticker.
+
     This inherits from :exc:`BadArgument`
+
     .. versionadded:: 2.0
+
     Attributes
     -----------
     argument: :class:`str`
@@ -425,8 +484,11 @@ class GuildStickerNotFound(BadArgument):
 
 class BadBoolArgument(BadArgument):
     """Exception raised when a boolean argument was not convertable.
+
     This inherits from :exc:`BadArgument`
+
     .. versionadded:: 1.5
+
     Attributes
     -----------
     argument: :class:`str`
@@ -440,6 +502,7 @@ class BadBoolArgument(BadArgument):
 
 class DisabledCommand(CommandError):
     """Exception raised when the command being invoked is disabled.
+
     This inherits from :exc:`CommandError`
     """
     pass
@@ -447,7 +510,9 @@ class DisabledCommand(CommandError):
 
 class CommandInvokeError(CommandError):
     """Exception raised when the command being invoked raised an exception.
+
     This inherits from :exc:`CommandError`
+
     Attributes
     -----------
     original: :exc:`Exception`
@@ -462,7 +527,9 @@ class CommandInvokeError(CommandError):
 
 class CommandOnCooldown(CommandError):
     """Exception raised when the command being invoked is on cooldown.
+
     This inherits from :exc:`CommandError`
+
     Attributes
     -----------
     cooldown: :class:`.Cooldown`
@@ -483,7 +550,9 @@ class CommandOnCooldown(CommandError):
 
 class MaxConcurrencyReached(CommandError):
     """Exception raised when the command being invoked has reached its maximum concurrency.
+
     This inherits from :exc:`CommandError`.
+
     Attributes
     ------------
     number: :class:`int`
@@ -504,8 +573,11 @@ class MaxConcurrencyReached(CommandError):
 
 class MissingRole(CheckFailure):
     """Exception raised when the command invoker lacks a role to run a command.
+
     This inherits from :exc:`CheckFailure`
+
     .. versionadded:: 1.1
+
     Attributes
     -----------
     missing_role: Union[:class:`str`, :class:`int`]
@@ -513,16 +585,19 @@ class MissingRole(CheckFailure):
         This is the parameter passed to :func:`~.commands.has_role`.
     """
 
-    def __init__(self, missing_role: int) -> None:
-        self.missing_role: int = missing_role
+    def __init__(self, missing_role: Role) -> None:
+        self.missing_role: Role = missing_role
         message = f'Role {missing_role!r} is required to run this command.'
         super().__init__(message)
 
 
 class BotMissingRole(CheckFailure):
     """Exception raised when the bot's member lacks a role to run a command.
+
     This inherits from :exc:`CheckFailure`
+
     .. versionadded:: 1.1
+
     Attributes
     -----------
     missing_role: Union[:class:`str`, :class:`int`]
@@ -530,8 +605,8 @@ class BotMissingRole(CheckFailure):
         This is the parameter passed to :func:`~.commands.has_role`.
     """
 
-    def __init__(self, missing_role: int) -> None:
-        self.missing_role: int = missing_role
+    def __init__(self, missing_role: Role) -> None:
+        self.missing_role: Role = missing_role
         message = f'Bot requires the role {missing_role!r} to run this command'
         super().__init__(message)
 
@@ -539,8 +614,11 @@ class BotMissingRole(CheckFailure):
 class MissingAnyRole(CheckFailure):
     """Exception raised when the command invoker lacks any of
     the roles specified to run a command.
+
     This inherits from :exc:`CheckFailure`
+
     .. versionadded:: 1.1
+
     Attributes
     -----------
     missing_roles: List[Union[:class:`str`, :class:`int`]]
@@ -548,8 +626,8 @@ class MissingAnyRole(CheckFailure):
         These are the parameters passed to :func:`~.commands.has_any_role`.
     """
 
-    def __init__(self, missing_roles: List[int]) -> None:
-        self.missing_roles: List[int] = missing_roles
+    def __init__(self, missing_roles: Role) -> None:
+        self.missing_roles: Role = missing_roles
 
         missing = [f"'{role}'" for role in missing_roles]
 
@@ -565,17 +643,21 @@ class MissingAnyRole(CheckFailure):
 class BotMissingAnyRole(CheckFailure):
     """Exception raised when the bot's member lacks any of
     the roles specified to run a command.
+
     This inherits from :exc:`CheckFailure`
+
     .. versionadded:: 1.1
+
     Attributes
     -----------
     missing_roles: List[Union[:class:`str`, :class:`int`]]
         The roles that the bot's member is missing.
         These are the parameters passed to :func:`~.commands.has_any_role`.
+
     """
 
-    def __init__(self, missing_roles: List[int]) -> None:
-        self.missing_roles: List[int] = missing_roles
+    def __init__(self, missing_roles: List[Role]) -> None:
+        self.missing_roles: List[Role] = missing_roles
 
         missing = [f"'{role}'" for role in missing_roles]
 
@@ -588,25 +670,12 @@ class BotMissingAnyRole(CheckFailure):
         super().__init__(message)
 
 
-class NSFWChannelRequired(CheckFailure):
-    """Exception raised when a channel does not have the required NSFW setting.
-    This inherits from :exc:`CheckFailure`.
-    .. versionadded:: 1.1
-    Parameters
-    -----------
-    channel: Union[:class:`.abc.GuildChannel`, :class:`.Thread`]
-        The channel that does not have NSFW enabled.
-    """
-
-    def __init__(self, channel: GuildChannel) -> None:
-        self.channel: GuildChannel = channel
-        super().__init__(f"Channel '{channel}' needs to be NSFW for this command to work.")
-
-
 class MissingPermissions(CheckFailure):
     """Exception raised when the command invoker lacks permissions to run a
     command.
+
     This inherits from :exc:`CheckFailure`
+
     Attributes
     -----------
     missing_permissions: List[:class:`str`]
@@ -629,7 +698,9 @@ class MissingPermissions(CheckFailure):
 class BotMissingPermissions(CheckFailure):
     """Exception raised when the bot's member lacks permissions to run a
     command.
+
     This inherits from :exc:`CheckFailure`
+
     Attributes
     -----------
     missing_permissions: List[:class:`str`]
@@ -652,7 +723,9 @@ class BotMissingPermissions(CheckFailure):
 class BadUnionArgument(UserInputError):
     """Exception raised when a :data:`typing.Union` converter fails for all
     its associated types.
+
     This inherits from :exc:`UserInputError`
+
     Attributes
     -----------
     param: :class:`inspect.Parameter`
@@ -688,8 +761,11 @@ class BadUnionArgument(UserInputError):
 class BadLiteralArgument(UserInputError):
     """Exception raised when a :data:`typing.Literal` converter fails for all
     its associated values.
+
     This inherits from :exc:`UserInputError`
+
     .. versionadded:: 2.0
+
     Attributes
     -----------
     param: :class:`inspect.Parameter`
@@ -716,7 +792,9 @@ class BadLiteralArgument(UserInputError):
 
 class ArgumentParsingError(UserInputError):
     """An exception raised when the parser fails to parse a user's input.
+
     This inherits from :exc:`UserInputError`.
+
     There are child classes that implement more granular parsing errors for
     i18n purposes.
     """
@@ -725,7 +803,9 @@ class ArgumentParsingError(UserInputError):
 
 class UnexpectedQuoteError(ArgumentParsingError):
     """An exception raised when the parser encounters a quote mark inside a non-quoted string.
+
     This inherits from :exc:`ArgumentParsingError`.
+
     Attributes
     ------------
     quote: :class:`str`
@@ -740,7 +820,9 @@ class UnexpectedQuoteError(ArgumentParsingError):
 class InvalidEndOfQuotedStringError(ArgumentParsingError):
     """An exception raised when a space is expected after the closing quote in a string
     but a different character is found.
+
     This inherits from :exc:`ArgumentParsingError`.
+
     Attributes
     -----------
     char: :class:`str`
@@ -754,7 +836,9 @@ class InvalidEndOfQuotedStringError(ArgumentParsingError):
 
 class ExpectedClosingQuoteError(ArgumentParsingError):
     """An exception raised when a quote character is expected but not found.
+
     This inherits from :exc:`ArgumentParsingError`.
+
     Attributes
     -----------
     close_quote: :class:`str`
@@ -766,9 +850,11 @@ class ExpectedClosingQuoteError(ArgumentParsingError):
         super().__init__(f'Expected closing {close_quote}.')
 
 
-class ExtensionError(DiscordException):
+class ExtensionError(QQException):
     """Base exception for extension related errors.
-    This inherits from :exc:`~discord.DiscordException`.
+
+    This inherits from :exc:`~qq.qqException`.
+
     Attributes
     ------------
     name: :class:`str`
@@ -785,6 +871,7 @@ class ExtensionError(DiscordException):
 
 class ExtensionAlreadyLoaded(ExtensionError):
     """An exception raised when an extension has already been loaded.
+
     This inherits from :exc:`ExtensionError`
     """
 
@@ -794,6 +881,7 @@ class ExtensionAlreadyLoaded(ExtensionError):
 
 class ExtensionNotLoaded(ExtensionError):
     """An exception raised when an extension was not loaded.
+
     This inherits from :exc:`ExtensionError`
     """
 
@@ -803,6 +891,7 @@ class ExtensionNotLoaded(ExtensionError):
 
 class NoEntryPointError(ExtensionError):
     """An exception raised when an extension does not have a ``setup`` entry point function.
+
     This inherits from :exc:`ExtensionError`
     """
 
@@ -812,7 +901,9 @@ class NoEntryPointError(ExtensionError):
 
 class ExtensionFailed(ExtensionError):
     """An exception raised when an extension failed to load during execution of the module or ``setup`` entry point.
+
     This inherits from :exc:`ExtensionError`
+
     Attributes
     -----------
     name: :class:`str`
@@ -830,9 +921,12 @@ class ExtensionFailed(ExtensionError):
 
 class ExtensionNotFound(ExtensionError):
     """An exception raised when an extension is not found.
+
     This inherits from :exc:`ExtensionError`
+
     .. versionchanged:: 1.3
         Made the ``original`` attribute always None.
+
     Attributes
     -----------
     name: :class:`str`
@@ -847,8 +941,11 @@ class ExtensionNotFound(ExtensionError):
 class CommandRegistrationError(ClientException):
     """An exception raised when the command can't be added
     because the name is already taken by a different command.
-    This inherits from :exc:`discord.ClientException`
+
+    This inherits from :exc:`qq.ClientException`
+
     .. versionadded:: 1.4
+
     Attributes
     ----------
     name: :class:`str`
@@ -866,7 +963,9 @@ class CommandRegistrationError(ClientException):
 
 class FlagError(BadArgument):
     """The base exception type for all flag parsing related errors.
+
     This inherits from :exc:`BadArgument`.
+
     .. versionadded:: 2.0
     """
     pass
@@ -874,11 +973,14 @@ class FlagError(BadArgument):
 
 class TooManyFlags(FlagError):
     """An exception raised when a flag has received too many values.
+
     This inherits from :exc:`FlagError`.
+
     .. versionadded:: 2.0
+
     Attributes
     ------------
-    flag: :class:`~discord.ext.commands.Flag`
+    flag: :class:`~qq.ext.commands.Flag`
         The flag that received too many values.
     values: List[:class:`str`]
         The values that were passed.
@@ -892,11 +994,14 @@ class TooManyFlags(FlagError):
 
 class BadFlagArgument(FlagError):
     """An exception raised when a flag failed to convert a value.
+
     This inherits from :exc:`FlagError`
+
     .. versionadded:: 2.0
+
     Attributes
     -----------
-    flag: :class:`~discord.ext.commands.Flag`
+    flag: :class:`~qq.ext.commands.Flag`
         The flag that failed to convert.
     """
 
@@ -912,11 +1017,14 @@ class BadFlagArgument(FlagError):
 
 class MissingRequiredFlag(FlagError):
     """An exception raised when a required flag was not given.
+
     This inherits from :exc:`FlagError`
+
     .. versionadded:: 2.0
+
     Attributes
     -----------
-    flag: :class:`~discord.ext.commands.Flag`
+    flag: :class:`~qq.ext.commands.Flag`
         The required flag that was not found.
     """
 
@@ -927,11 +1035,14 @@ class MissingRequiredFlag(FlagError):
 
 class MissingFlagArgument(FlagError):
     """An exception raised when a flag did not get a value.
+
     This inherits from :exc:`FlagError`
+
     .. versionadded:: 2.0
+
     Attributes
     -----------
-    flag: :class:`~discord.ext.commands.Flag`
+    flag: :class:`~qq.ext.commands.Flag`
         The flag that did not get a value.
     """
 

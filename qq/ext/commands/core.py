@@ -183,6 +183,61 @@ class _CaseInsensitiveDict(dict):
 
 
 class Command(_BaseCommand, Generic[CogT, P, T]):
+    r"""一个实现机器人文本命令协议的类。
+
+    这些不是手动创建的，而是通过装饰器或功能接口创建的。
+
+    Attributes
+    -----------
+    name: :class:`str`
+        命令的名称。
+    callback: :ref:`coroutine <coroutine>`
+        调用命令时执行的协程。
+    help: Optional[:class:`str`]
+        命令的长帮助文本。
+    brief: Optional[:class:`str`]
+        命令的简短帮助文本。
+    usage: Optional[:class:`str`]
+        替换默认帮助文本中的参数。
+    aliases: Union[List[:class:`str`], Tuple[:class:`str`]]
+        可以在其下调用命令的别名列表。
+    enabled: :class:`bool`
+        指示当前是否启用命令的布尔值。
+        如果命令在禁用时被调用，则 :exc:`.DisabledCommand` 将引发 :func:`.on_command_error` 事件。默认为 ``True`` 。
+    parent: Optional[:class:`Group`]
+        此命令所属的父组。 ``None`` 如果没有的话。
+    cog: Optional[:class:`Cog`]
+        该命令所属的齿轮。 ``None`` 如果没有的话。
+    checks: List[Callable[[:class:`.Context`], :class:`bool`]]
+        一个谓词列表，用于验证是否可以使用给定的 :class:`.Context` 作为唯一参数来执行命令。
+         如果必须抛出异常以表示失败，则应使用继承自 :exc:`.CommandError` 的异常。
+         请注意，如果检查失败，则 :exc:`.CheckFailure` 异常将引发到 :func:`.on_command_error` 事件。
+    description: :class:`str`
+        默认帮助命令中带有前缀的消息。
+    hidden: :class:`bool`
+        如果为  ``True``\ ，则默认帮助命令不会在帮助输出中显示此内容。
+    rest_is_raw: :class:`bool`
+        如果 ``False`` 则仅关键字参数，则仅关键字参数将被剥离并处理，
+        就好像它是处理 :exc:`.MissingRequiredArgument` 和默认值的常规参数一样，
+        而不是传递原始数据。 如果 ``True`` 则仅关键字参数将以完全原始的方式传递其余参数。 默认为 ``False`` 。
+    invoked_subcommand: Optional[:class:`Command`]
+        调用的子命令（如果有）。
+    require_var_positional: :class:`bool`
+        如果 ``True`` 并且指定了可变参数位置参数，则要求用户至少指定一个参数。 默认为 ``False`` 。
+
+    ignore_extra: :class:`bool`
+        如果 ``True``\，如果它的所有要求都得到满足，则忽略传递给命令的无关字符串
+        （例如 ``?foo a b c`` 当只需要 ``a`` 和 ``b`` 时）。
+        否则 :func:`.on_command_error` 和本地错误处理程序使用 :exc:`.TooManyArguments` 调用。 默认为 ``True`` 。
+    cooldown_after_parsing: :class:`bool`
+        如果为“True”\，则在参数解析后完成冷却处理，这会调用转换器。 如果 ``False`` 则首先完成冷却处理，然后再调用转换器。 默认为 ``False``  。
+    extras: :class:`dict`
+        用户的字典提供了附加到命令的附加内容。
+        
+        .. note::
+            该对象可由库复制。
+
+    """
     __original_kwargs__: Dict[str, Any]
 
     def __new__(cls: Type[CommandT], *args: Any, **kwargs: Any) -> CommandT:
@@ -206,11 +261,11 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         Callable[Concatenate[ContextT, P], Coro[T]],
     ], **kwargs: Any):
         if not asyncio.iscoroutinefunction(func):
-            raise TypeError('Callback must be a coroutine.')
+            raise TypeError('回调必须是协程。')
 
         name = kwargs.get('name') or func.__name__
         if not isinstance(name, str):
-            raise TypeError('Name of a command must be a string.')
+            raise TypeError('命令的名称必须是字符串。')
         self.name: str = name
 
         self.callback = func
@@ -233,7 +288,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         self.extras: Dict[str, Any] = kwargs.get('extras', {})
 
         if not isinstance(self.aliases, (list, tuple)):
-            raise TypeError("Aliases of a command must be a list or a tuple of strings.")
+            raise TypeError("命令的别名必须是一个列表或一个字符串元组。")
 
         self.description: str = inspect.cleandoc(kwargs.get('description', ''))
         self.hidden: bool = kwargs.get('hidden', False)
@@ -256,7 +311,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         elif isinstance(cooldown, CooldownMapping):
             buckets = cooldown
         else:
-            raise TypeError("Cooldown must be a an instance of CooldownMapping or None.")
+            raise TypeError("Cooldown 必须是 CooldownMapping 或 None 的一个实例。")
         self._buckets: CooldownMapping = buckets
 
         try:
@@ -315,26 +370,28 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         self.params = get_signature_parameters(function, globalns)
 
     def add_check(self, func: Check) -> None:
-        """Adds a check to the command.
-        This is the non-decorator interface to :func:`.check`.
-        .. versionadded:: 1.3
+        """向命令添加检查。
+
+        这是 :func:`.check` 的非装饰器接口。
+
+
         Parameters
         -----------
         func
-            The function that will be used as a check.
+            将用作检查的函数。
         """
 
         self.checks.append(func)
 
     def remove_check(self, func: Check) -> None:
-        """Removes a check from the command.
-        This function is idempotent and will not raise an exception
-        if the function is not in the command's checks.
-        .. versionadded:: 1.3
+        """从命令中删除检查。
+
+        此函数是幂等的，如果该函数不在命令的检查中，则不会引发异常。
+
         Parameters
         -----------
         func
-            The function to remove from the checks.
+            要从检查中删除的函数。
         """
 
         try:
@@ -343,21 +400,20 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             pass
 
     def update(self, **kwargs: Any) -> None:
-        """Updates :class:`Command` instance with updated attribute.
-        This works similarly to the :func:`.command` decorator in terms
-        of parameters in that they are passed to the :class:`Command` or
-        subclass constructors, sans the name and callback.
+        """使用更新的属性更新 :class:`Command` 实例。
+
+        这在参数方面与 :func:`.command` 装饰器类似，因为它们被传递给 :class:`Command` 或子类构造函数，没有名称和回调。
         """
         self.__init__(self.callback, **dict(self.__original_kwargs__, **kwargs))
 
     async def __call__(self, context: Context, *args: P.args, **kwargs: P.kwargs) -> T:
         """|coro|
-        Calls the internal callback that the command holds.
+
+        调用命令持有的内部回调。
+
         .. note::
-            This bypasses all mechanisms -- including checks, converters,
-            invoke hooks, cooldowns, etc. You must take care to pass
-            the proper arguments and types to this function.
-        .. versionadded:: 1.3
+
+            这绕过了所有机制——包括检查、转换器、调用钩子、冷却等。您必须小心地将正确的参数和类型传递给这个函数。
         """
         if self.cog is not None:
             return await self.callback(self.cog, context, *args, **kwargs)  # type: ignore
@@ -382,11 +438,12 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         return other
 
     def copy(self: CommandT) -> CommandT:
-        """Creates a copy of this command.
+        """创建此命令的副本。
+
         Returns
         --------
         :class:`Command`
-            A new instance of this command.
+            此命令的新实例。
         """
         ret = self.__class__(self.callback, **self.__original_kwargs__)
         return self._ensure_assignment_on_copy(ret)
@@ -508,8 +565,9 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
     @property
     def clean_params(self) -> Dict[str, inspect.Parameter]:
         """Dict[:class:`str`, :class:`inspect.Parameter`]:
-        Retrieves the parameter dictionary without the context or self parameters.
-        Useful for inspecting signature.
+        检索没有上下文或自身参数的参数字典。
+
+        用于检查签名。
         """
         result = self.params.copy()
         if self.cog is not None:
@@ -517,21 +575,21 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             try:
                 del result[next(iter(result))]
             except StopIteration:
-                raise ValueError("missing 'self' parameter") from None
+                raise ValueError("缺少 'self' 参数") from None
 
         try:
             # first/second parameter is context
             del result[next(iter(result))]
         except StopIteration:
-            raise ValueError("missing 'context' parameter") from None
+            raise ValueError("缺少 'context' 参数") from None
 
         return result
 
     @property
     def full_parent_name(self) -> str:
-        """:class:`str`: Retrieves the fully qualified parent command name.
-        This the base command name required to execute it. For example,
-        in ``?one two three`` the parent name would be ``one two``.
+        """:class:`str`: 检索完全限定的父命令名称。
+
+        这是执行它所需的基本命令名称。 例如，在“?one two three”中，父名称将是“one two”。
         """
         entries = []
         command = self
@@ -544,10 +602,11 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
     @property
     def parents(self) -> List[Group]:
-        """List[:class:`Group`]: Retrieves the parents of this command.
-        If the command has no parents then it returns an empty :class:`list`.
-        For example in commands ``?a b c test``, the parents are ``[c, b, a]``.
-        .. versionadded:: 1.1
+        """List[:class:`Group`]: 检索此命令的父级。
+
+        如果该命令没有父级，则它返回一个空的 :class:`list`。
+
+        例如在命令 ``?a b c test`` 中，父级是 ``[c, b, a]``。
         """
         entries = []
         command = self
@@ -559,9 +618,11 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
     @property
     def root_parent(self) -> Optional[Group]:
-        """Optional[:class:`Group`]: Retrieves the root parent of this command.
-        If the command has no parents then it returns ``None``.
-        For example in commands ``?a b c test``, the root parent is ``a``.
+        """Optional[:class:`Group`]: 检索此命令的根父级。
+
+        如果该命令没有父级，则返回 ``None`` 。
+
+        例如在命令 ``?a b c test`` 中，根父节点是 ``a`` 。
         """
         if not self.parent:
             return None
@@ -569,10 +630,9 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
     @property
     def qualified_name(self) -> str:
-        """:class:`str`: Retrieves the fully qualified command name.
-        This is the full parent name with the command name as well.
-        For example, in ``?one two three`` the qualified name would be
-        ``one two three``.
+        """:class:`str`: 检索完全限定的命令名称。
+
+        这也是带有命令名称的完整父名称。 例如，在 ``?one two three`` 中，限定名称将是 ``one two three`` 。
         """
 
         parent = self.full_parent_name
@@ -599,13 +659,13 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             try:
                 next(iterator)
             except StopIteration:
-                raise qq.ClientException(f'Callback for {self.name} command is missing "self" parameter.')
+                raise qq.ClientException(f'{self.name} 命令的回调缺少 "self" 参数。')
 
         # next we have the 'ctx' as the next parameter
         try:
             next(iterator)
         except StopIteration:
-            raise qq.ClientException(f'Callback for {self.name} command is missing "ctx" parameter.')
+            raise qq.ClientException(f'{self.name} 命令的回调缺少 "ctx" 参数。')
 
         for name, param in iterator:
             ctx.current_parameter = param
@@ -632,7 +692,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                         break
 
         if not self.ignore_extra and not view.eof:
-            raise TooManyArguments('Too many arguments passed to ' + self.qualified_name)
+            raise TooManyArguments(f'传递给{self.qualified_name}的参数太多')
 
     async def call_before_hooks(self, ctx: Context) -> None:
         # now that we're done preparing we can call the pre-command hooks
@@ -692,7 +752,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         ctx.command = self
 
         if not await self.can_run(ctx):
-            raise CheckFailure(f'The check functions for command {self.qualified_name} failed.')
+            raise CheckFailure(f'命令 {self.qualified_name} 的检查函数失败。')
 
         if self._max_concurrency is not None:
             # For this application, context can be duck-typed as a Message
@@ -713,15 +773,17 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             raise
 
     def is_on_cooldown(self, ctx: Context) -> bool:
-        """Checks whether the command is currently on cooldown.
+        """检查命令当前是否处于冷却状态。
+
         Parameters
         -----------
         ctx: :class:`.Context`
-            The invocation context to use when checking the commands cooldown status.
+            检查命令冷却状态时使用的调用上下文。
+
         Returns
         --------
         :class:`bool`
-            A boolean indicating if the command is on cooldown.
+            指示命令是否处于冷却状态的布尔值。
         """
         if not self._buckets.valid:
             return False
@@ -732,28 +794,30 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         return bucket.get_tokens(current) == 0
 
     def reset_cooldown(self, ctx: Context) -> None:
-        """Resets the cooldown on this command.
+        """重置此命令的冷却时间。
+
         Parameters
         -----------
         ctx: :class:`.Context`
-            The invocation context to reset the cooldown under.
+            重置冷却时间的调用上下文。
         """
         if self._buckets.valid:
             bucket = self._buckets.get_bucket(ctx.message)
             bucket.reset()
 
     def get_cooldown_retry_after(self, ctx: Context) -> float:
-        """Retrieves the amount of seconds before this command can be tried again.
-        .. versionadded:: 1.4
+        """检索可以再次尝试此命令之前的秒数。
+
         Parameters
         -----------
         ctx: :class:`.Context`
-            The invocation context to retrieve the cooldown from.
+            从中检索冷却时间的调用上下文。
+
         Returns
         --------
         :class:`float`
-            The amount of time left on this command's cooldown in seconds.
-            If this is ``0.0`` then the command isn't on cooldown.
+            此命令的冷却剩余时间（以秒为单位）。
+            如果这是 ``0.0`` ，则该命令不在冷却中。
         """
         if self._buckets.valid:
             bucket = self._buckets.get_bucket(ctx.message)
@@ -792,18 +856,20 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 await self.call_after_hooks(ctx)
 
     def error(self, coro: ErrorT) -> ErrorT:
-        """A decorator that registers a coroutine as a local error handler.
-        A local error handler is an :func:`.on_command_error` event limited to
-        a single command. However, the :func:`.on_command_error` is still
-        invoked afterwards as the catch-all.
+        """将协程注册为本地错误处理程序的装饰器。
+
+        本地错误处理程序是一个仅限于单个命令的 :func:`.on_command_error` 事件。
+        然而， :func:`.on_command_error` 之后仍然会被调用。
+
         Parameters
         -----------
         coro: :ref:`coroutine <coroutine>`
-            The coroutine to register as the local error handler.
+            要注册为本地错误处理程序的协程。
+
         Raises
         -------
         TypeError
-            The coroutine passed is not actually a coroutine.
+            传递的协程实际上并不是协程。
         """
 
         if not asyncio.iscoroutinefunction(coro):
@@ -813,66 +879,71 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         return coro
 
     def has_error_handler(self) -> bool:
-        """:class:`bool`: Checks whether the command has an error handler registered.
-        .. versionadded:: 1.7
+        """:class:`bool`: 检查命令是否已注册错误处理程序。
         """
         return hasattr(self, 'on_error')
 
     def before_invoke(self, coro: HookT) -> HookT:
-        """A decorator that registers a coroutine as a pre-invoke hook.
-        A pre-invoke hook is called directly before the command is
-        called. This makes it a useful function to set up database
-        connections or any type of set up required.
-        This pre-invoke hook takes a sole parameter, a :class:`.Context`.
-        See :meth:`.Bot.before_invoke` for more info.
+        """将协程注册为调用前钩的装饰器。
+
+        在调用命令之前直接调用调用前钩。 这使得它成为设置数据库连接或所需的任何类型的设置的有用功能。
+
+        这个调用前钩有一个唯一的参数，一个 :class:`.Context`。
+
+        有关更多信息，请参阅 :meth:`.Bot.before_invoke`。
+
         Parameters
         -----------
         coro: :ref:`coroutine <coroutine>`
-            The coroutine to register as the pre-invoke hook.
+            要注册为调用前钩的协程。
+
         Raises
         -------
         TypeError
-            The coroutine passed is not actually a coroutine.
+            传递的协程实际上并不是协程。
         """
         if not asyncio.iscoroutinefunction(coro):
-            raise TypeError('The pre-invoke hook must be a coroutine.')
+            raise TypeError('调用前钩必须是一个协程。')
 
         self._before_invoke = coro
         return coro
 
     def after_invoke(self, coro: HookT) -> HookT:
-        """A decorator that registers a coroutine as a post-invoke hook.
-        A post-invoke hook is called directly after the command is
-        called. This makes it a useful function to clean-up database
-        connections or any type of clean up required.
-        This post-invoke hook takes a sole parameter, a :class:`.Context`.
-        See :meth:`.Bot.after_invoke` for more info.
+        """将协程注册为调用后钩的装饰器。
+
+        在调用命令后直接调用后钩。 这使其成为清理数据库连接或任何类型的清理所需的有用功能。
+
+        这个调用后钩有一个唯一的参数，一个 :class:`.Context`。
+
+        有关更多信息，请参阅 :meth:`.Bot.after_invoke`。
+
         Parameters
         -----------
         coro: :ref:`coroutine <coroutine>`
             The coroutine to register as the post-invoke hook.
+
         Raises
         -------
         TypeError
             The coroutine passed is not actually a coroutine.
         """
         if not asyncio.iscoroutinefunction(coro):
-            raise TypeError('The post-invoke hook must be a coroutine.')
+            raise TypeError('调用后钩必须是一个协程。')
 
         self._after_invoke = coro
         return coro
 
     @property
     def cog_name(self) -> Optional[str]:
-        """Optional[:class:`str`]: The name of the cog this command belongs to, if any."""
+        """Optional[:class:`str`]: 此命令所属的 cog 的名称（如果有）。"""
         return type(self.cog).__cog_name__ if self.cog is not None else None
 
     @property
     def short_doc(self) -> str:
-        """:class:`str`: Gets the "short" documentation of a command.
-        By default, this is the :attr:`.brief` attribute.
-        If that lookup leads to an empty string then the first line of the
-        :attr:`.help` attribute is used instead.
+        """:class:`str`: 获取命令的 ``简短`` 文档。
+
+        默认情况下，这是 :attr:`.brief` 属性。
+        如果该查找导致空字符串，则使用 :attr:`.help` 属性的第一行。
         """
         if self.brief is not None:
             return self.brief
@@ -885,7 +956,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
     @property
     def signature(self) -> str:
-        """:class:`str`: Returns a POSIX-like signature useful for help command output."""
+        """:class:`str`: 返回对帮助命令输出有用的类似 POSIX 的签名。"""
         if self.usage is not None:
             return self.usage
 
@@ -939,35 +1010,34 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
     async def can_run(self, ctx: Context) -> bool:
         """|coro|
-        Checks if the command can be executed by checking all the predicates
-        inside the :attr:`~Command.checks` attribute. This also checks whether the
-        command is disabled.
-        .. versionchanged:: 1.3
-            Checks whether the command is disabled or not
+
+        通过检查 :attr:`~Command.checks` 属性中的所有谓词来检查命令是否可以执行。 这还会检查命令是否被禁用。
+
         Parameters
         -----------
         ctx: :class:`.Context`
-            The ctx of the command currently being invoked.
+            当前正在调用的命令的 ctx。
+
         Raises
         -------
         :class:`CommandError`
-            Any command error that was raised during a check call will be propagated
-            by this function.
+            在检查调用期间引发的任何命令错误都将由此函数传播。
+
         Returns
         --------
         :class:`bool`
-            A boolean indicating if the command can be invoked.
+            指示是否可以调用命令的布尔值。
         """
 
         if not self.enabled:
-            raise DisabledCommand(f'{self.name} command is disabled')
+            raise DisabledCommand(f'{self.name} 命令被禁用')
 
         original = ctx.command
         ctx.command = self
 
         try:
             if not await ctx.bot.can_run(ctx):
-                raise CheckFailure(f'The global check functions for command {self.qualified_name} failed.')
+                raise CheckFailure(f'命令 {self.qualified_name} 的全局检查函数失败。')
 
             cog = self.cog
             if cog is not None:
@@ -988,15 +1058,14 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
 
 class GroupMixin(Generic[CogT]):
-    """A mixin that implements common functionality for classes that behave
-    similar to :class:`.Group` and are allowed to register commands.
+    """一个 mixin，它为行为类似于 :class:`.Group` 的类实现通用功能，并允许注册命令。
+
     Attributes
     -----------
     all_commands: :class:`dict`
-        A mapping of command name to :class:`.Command`
-        objects.
+        命令名称到 :class:`.Command` 对象的映射。
     case_insensitive: :class:`bool`
-        Whether the commands should be case insensitive. Defaults to ``False``.
+        命令是否应该不区分大小写。 默认为 ``False`` 。
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -1007,7 +1076,7 @@ class GroupMixin(Generic[CogT]):
 
     @property
     def commands(self) -> Set[Command[CogT, Any, Any]]:
-        """Set[:class:`.Command`]: A unique set of commands without aliases that are registered."""
+        """Set[:class:`.Command`]: 一组独特的没有注册别名的命令。"""
         return set(self.all_commands.values())
 
     def recursively_remove_all_commands(self) -> None:
@@ -1017,25 +1086,25 @@ class GroupMixin(Generic[CogT]):
             self.remove_command(command.name)
 
     def add_command(self, command: Command[CogT, Any, Any]) -> None:
-        """Adds a :class:`.Command` into the internal list of commands.
-        This is usually not called, instead the :meth:`~.GroupMixin.command` or
-        :meth:`~.GroupMixin.group` shortcut decorators are used instead.
-        .. versionchanged:: 1.4
-             Raise :exc:`.CommandRegistrationError` instead of generic :exc:`.ClientException`
+        """将 :class:`.Command` 添加到内部命令列表中。
+
+        这通常不被调用，而是使用 :meth:`~.GroupMixin.command` 或 :meth:`~.GroupMixin.group` 快捷装饰器。
+
         Parameters
         -----------
         command: :class:`Command`
-            The command to add.
+            要添加的命令。
+
         Raises
         -------
         :exc:`.CommandRegistrationError`
-            If the command or its alias is already registered by different command.
+            如果该命令或其别名已被不同的命令注册。
         TypeError
-            If the command passed is not a subclass of :class:`.Command`.
+            如果传递的命令不是 :class:`.Command` 的子类。
         """
 
         if not isinstance(command, Command):
-            raise TypeError('The command passed must be a subclass of Command')
+            raise TypeError('传递的命令必须是 Command 的子类')
 
         if isinstance(self, Command):
             command.parent = self
@@ -1051,18 +1120,19 @@ class GroupMixin(Generic[CogT]):
             self.all_commands[alias] = command
 
     def remove_command(self, name: str) -> Optional[Command[CogT, Any, Any]]:
-        """Remove a :class:`.Command` from the internal list
-        of commands.
-        This could also be used as a way to remove aliases.
+        """从内部命令列表中删除 :class:`.Command`。
+
+        这也可以用作删除别名的方法。
+
         Parameters
         -----------
         name: :class:`str`
-            The name of the command to remove.
+            要删除的命令的名称。
+
         Returns
         --------
         Optional[:class:`.Command`]
-            The command that was removed. If the name is not valid then
-            ``None`` is returned instead.
+            删除的命令。 如果名称无效，则返回 ``None`` 。
         """
         command = self.all_commands.pop(name, None)
 
@@ -1085,13 +1155,12 @@ class GroupMixin(Generic[CogT]):
         return command
 
     def walk_commands(self) -> Generator[Command[CogT, Any, Any], None, None]:
-        """An iterator that recursively walks through all commands and subcommands.
-        .. versionchanged:: 1.4
-            Duplicates due to aliases are no longer returned
+        """递归遍历所有命令和子命令的迭代器。
+
         Yields
         ------
         Union[:class:`.Command`, :class:`.Group`]
-            A command or group from the internal list of commands.
+            来自内部命令列表的命令或组。
         """
         for command in self.commands:
             yield command
@@ -1099,20 +1168,22 @@ class GroupMixin(Generic[CogT]):
                 yield from command.walk_commands()
 
     def get_command(self, name: str) -> Optional[Command[CogT, Any, Any]]:
-        """Get a :class:`.Command` from the internal list
-        of commands.
-        This could also be used as a way to get aliases.
-        The name could be fully qualified (e.g. ``'foo bar'``) will get
-        the subcommand ``bar`` of the group command ``foo``. If a
-        subcommand is not found then ``None`` is returned just as usual.
+        """从内部命令列表中获取 :class:`.Command` 。
+
+        这也可以用作获取别名的一种方式。
+
+        该名称可以是完全限定的（例如 ``foo bar`` ）将获得组命令 ``foo`` 的子命令 ``bar`` 。
+        如果未找到子命令，则像往常一样返回 ``None`` 。
+
         Parameters
         -----------
         name: :class:`str`
-            The name of the command to get.
+            要获取的命令的名称。
+
         Returns
         --------
         Optional[:class:`Command`]
-            The command that was requested. If not found, returns ``None``.
+            请求的命令。 如果未找到，则返回 ``None`` 。
         """
 
         # fast path, no space in name.
@@ -1167,12 +1238,12 @@ class GroupMixin(Generic[CogT]):
             *args: Any,
             **kwargs: Any,
     ) -> Callable[[Callable[Concatenate[ContextT, P], Coro[Any]]], CommandT]:
-        """A shortcut decorator that invokes :func:`.command` and adds it to
-        the internal command list via :meth:`~.GroupMixin.add_command`.
+        """调用 :func:`.command` 并通过 :meth:`~.GroupMixin.add_command` 将其添加到内部命令列表的快捷方式装饰器。
+
         Returns
         --------
         Callable[..., :class:`Command`]
-            A decorator that converts the provided method into a Command, adds it to the bot, then returns it.
+            将提供的方法转换为命令的装饰器，将其添加到机器人，然后返回它。
         """
 
         def decorator(func: Callable[Concatenate[ContextT, P], Coro[Any]]) -> CommandT:
@@ -1215,6 +1286,14 @@ class GroupMixin(Generic[CogT]):
             *args: Any,
             **kwargs: Any,
     ) -> Callable[[Callable[Concatenate[ContextT, P], Coro[Any]]], GroupT]:
+        """调用 :func:`.group` 并通过 :meth:`~.GroupMixin.add_command` 将其添加到内部命令列表的快捷方式装饰器。
+
+        Returns
+        --------
+        Callable[..., :class:`Group`]
+            将提供的方法转换为 Group 的装饰器，将其添加到机器人，然后返回它。
+        """
+
         def decorator(func: Callable[Concatenate[ContextT, P], Coro[Any]]) -> GroupT:
             kwargs.setdefault('parent', self)
             result = group(name=name, cls=cls, *args, **kwargs)(func)
@@ -1225,11 +1304,33 @@ class GroupMixin(Generic[CogT]):
 
 
 class Group(GroupMixin[CogT], Command[CogT, P, T]):
+    """为作为子命令执行的命令实现分组协议的类。
+
+    这个类是:class:`.Command` 的子类，因此所有在:class:`.Command` 中有效的选项在这里也有效。
+
+    Attributes
+    -----------
+    invoke_without_command: :class:`bool`
+        指示组回调是否应仅在未找到子命令时才开始解析和调用。
+        用于制作一个错误处理函数以告诉用户未找到子命令或在未找到子命令的情况下具有不同的功能。
+        如果这是 ``False`` ，则总是首先调用组回调。
+        这意味着将执行由其参数指示的检查和解析。 默认为 ``False`` 。
+    case_insensitive: :class:`bool`
+        指示组的命令是否应不区分大小写。 默认为 ``False`` 。
+    """
+
     def __init__(self, *args: Any, **attrs: Any) -> None:
         self.invoke_without_command: bool = attrs.pop('invoke_without_command', False)
         super().__init__(*args, **attrs)
 
     def copy(self: GroupT) -> GroupT:
+        """创建此 :class:`Group` 的副本。
+
+        Returns
+        --------
+        :class:`Group`
+            组的新实例。
+        """
         ret = super().copy()
         for cmd in self.commands:
             ret.add_command(cmd.copy())
@@ -1353,30 +1454,26 @@ def command(
         ]
     ]
     , Union[Command[CogT, P, T], CommandT]]:
-    """A decorator that transforms a function into a :class:`.Command`
-    or if called with :func:`.group`, :class:`.Group`.
-    By default the ``help`` attribute is received automatically from the
-    docstring of the function and is cleaned up with the use of
-    ``inspect.cleandoc``. If the docstring is ``bytes``, then it is decoded
-    into :class:`str` using utf-8 encoding.
-    All checks added using the :func:`.check` & co. decorators are added into
-    the function. There is no way to supply your own checks through this
-    decorator.
+    """将函数转换为 :class:`.Command` 或如果使用 :func:`.group` 则转为 :class:`.Group` 的装饰器。
+
+    默认情况下，``help`` 属性是从函数的文档字符串中自动接收的，并使用``inspect.cleandoc`` 进行清理。
+    如果 docstring 是 ``bytes``，则使用 utf-8 编码将其解码为 :class:`str`。
+
+    所有使用 :func:`.check` 添加的检查都被添加到函数中。 无法通过此装饰器提供您自己的检查。
+
     Parameters
     -----------
     name: :class:`str`
-        The name to create the command with. By default this uses the
-        function name unchanged.
+        用于创建命令的名称。 默认情况下，这使用未更改的函数名称。
     cls
-        The class to construct with. By default this is :class:`.Command`.
-        You usually do not change this.
+        要构造的类。 默认情况下，这是 :class:`.Command` 。 您通常不会更改此设置。
     attrs
-        Keyword arguments to pass into the construction of the class denoted
-        by ``cls``.
+        传递到由 ``cls`` 表示的类的构造中的关键字参数。
+
     Raises
     -------
     TypeError
-        If the function is not a coroutine or is already a command.
+        如果函数不是协程或已经是命令。
     """
     if cls is MISSING:
         cls = Command  # type: ignore
@@ -1436,11 +1533,9 @@ def group(
         ]
     ]
     , Union[Group[CogT, P, T], GroupT]]:
-    """A decorator that transforms a function into a :class:`.Group`.
-    This is similar to the :func:`.command` decorator but the ``cls``
-    parameter is set to :class:`Group` by default.
-    .. versionchanged:: 1.1
-        The ``cls`` parameter can now be passed.
+    """将函数转换为 :class:`.Group` 的装饰器。
+
+     这类似于 :func:`.command` 装饰器，但 ``cls`` 参数默认设置为 :class:`Group` 。
     """
     if cls is MISSING:
         cls = Group  # type: ignore
@@ -1448,20 +1543,18 @@ def group(
 
 
 def check(predicate: Check) -> Callable[[T], T]:
-    r"""A decorator that adds a check to the :class:`.Command` or its
-    subclasses. These checks could be accessed via :attr:`.Command.checks`.
-    These checks should be predicates that take in a single parameter taking
-    a :class:`.Context`. If the check returns a ``False``\-like value then
-    during invocation a :exc:`.CheckFailure` exception is raised and sent to
-    the :func:`.on_command_error` event.
-    If an exception should be thrown in the predicate then it should be a
-    subclass of :exc:`.CommandError`. Any exception not subclassed from it
-    will be propagated while those subclassed will be sent to
-    :func:`.on_command_error`.
-    A special attribute named ``predicate`` is bound to the value
-    returned by this decorator to retrieve the predicate passed to the
-    decorator. This allows the following introspection and chaining to be done:
+    r"""向 :class:`.Command` 或其子类添加检查的装饰器。 这些检查可以通过 :attr:`.Command.checks` 访问。
+
+    这些检查应该是接受单个参数的谓词，参数为 :class:`.Context`。
+    如果检查返回类似 ``False``\ 的值，则在调用期间会引发 :exc:`.CheckFailure` 异常并将其发送到 :func:`.on_command_error` 事件。
+
+    如果谓词中应该抛出异常，那么它应该是 :exc:`.CommandError` 的子类。
+    任何不是从它子类化的异常都将被传播，而那些子类将被发送到 :func:`.on_command_error`。
+
+    名为 ``predicate`` 的特殊属性绑定到此装饰器返回的值，以检索传递给装饰器的谓词。 这允许完成以下内省和链接：
+
     .. code-block:: python3
+
         def owner_or_permissions(**perms):
             original = commands.has_permissions(**perms).predicate
             async def extended_check(ctx):
@@ -1469,35 +1562,44 @@ def check(predicate: Check) -> Callable[[T], T]:
                     return False
                 return ctx.guild.owner_id == ctx.author.id or await original(ctx)
             return commands.check(extended_check)
+
     .. note::
-        The function returned by ``predicate`` is **always** a coroutine,
-        even if the original function was not a coroutine.
-    .. versionchanged:: 1.3
-        The ``predicate`` attribute was added.
+
+        ``predicate`` 返回的函数 **始终** 是一个协程，即使原始函数不是协程。
+
     Examples
     ---------
-    Creating a basic check to see if the command invoker is you.
+
+    创建一个基本检查以查看命令调用者是否是您。
+
     .. code-block:: python3
+
         def check_if_it_is_me(ctx):
-            return ctx.message.author.id == 85309593344815104
+            return ctx.message.author.id == 114514
+
         @bot.command()
         @commands.check(check_if_it_is_me)
         async def only_for_me(ctx):
-            await ctx.send('I know you!')
-    Transforming common checks into its own decorator:
+            await ctx.send('我知道你!')
+
+    将常见检查转换为装饰器：
+
     .. code-block:: python3
+
         def is_me():
             def predicate(ctx):
-                return ctx.message.author.id == 85309593344815104
+                return ctx.message.author.id == 114514
             return commands.check(predicate)
+
         @bot.command()
         @is_me()
         async def only_me(ctx):
-            await ctx.send('Only you!')
+            await ctx.send('只有你!')
+
     Parameters
     -----------
     predicate: Callable[[:class:`Context`], :class:`bool`]
-        The predicate to check if the command should be invoked.
+        检查是否应调用命令的谓词。
     """
 
     def decorator(func: Union[Command, CoroFunc]) -> Union[Command, CoroFunc]:
@@ -1524,36 +1626,40 @@ def check(predicate: Check) -> Callable[[T], T]:
 
 
 def check_any(*checks: Check) -> Callable[[T], T]:
-    r"""A :func:`check` that is added that checks if any of the checks passed
-    will pass, i.e. using logical OR.
-    If all checks fail then :exc:`.CheckAnyFailure` is raised to signal the failure.
-    It inherits from :exc:`.CheckFailure`.
+    r"""添加了一个 :func:`check` 来检查是否有任何通过的检查会通过，即使用逻辑 OR。
+
+    如果所有检查都失败，则引发 :exc:`.CheckAnyFailure` 以表示失败。 它继承自 :exc:`.CheckFailure`。
+
     .. note::
-        The ``predicate`` attribute for this function **is** a coroutine.
-    .. versionadded:: 1.3
+
+        这个函数的 ``predicate`` 属性 **是** 一个协程。
+
     Parameters
     ------------
     \*checks: Callable[[:class:`Context`], :class:`bool`]
-        An argument list of checks that have been decorated with
-        the :func:`check` decorator.
+        已用 :func:`check` 装饰器装饰的检查的参数列表。
+
     Raises
     -------
     TypeError
-        A check passed has not been decorated with the :func:`check`
-        decorator.
+        通过的检查没有用 :func:`check` 装饰器装饰。
+
     Examples
     ---------
-    Creating a basic check to see if it's the bot owner or
-    the server owner:
+
+    创建基本检查以查看它是机器人所有者还是频道所有者：
+
     .. code-block:: python3
+
         def is_guild_owner():
             def predicate(ctx):
                 return ctx.guild is not None and ctx.guild.owner_id == ctx.author.id
             return commands.check(predicate)
+
         @bot.command()
         @commands.check_any(commands.is_owner(), is_guild_owner())
         async def only_for_owners(ctx):
-            await ctx.send('Hello mister owner!')
+            await ctx.send('先生您好！')
     """
 
     unwrapped = []
@@ -1561,7 +1667,7 @@ def check_any(*checks: Check) -> Callable[[T], T]:
         try:
             pred = wrapped.predicate
         except AttributeError:
-            raise TypeError(f'{wrapped!r} must be wrapped by commands.check decorator') from None
+            raise TypeError(f'{wrapped!r} 必须由 commands.check 装饰器包装') from None
         else:
             unwrapped.append(pred)
 
@@ -1582,23 +1688,22 @@ def check_any(*checks: Check) -> Callable[[T], T]:
 
 
 def has_role(item: Union[int, str]) -> Callable[[T], T]:
-    """A :func:`.check` that is added that checks if the member invoking the
-    command has the role specified via the name or ID specified.
-    If a string is specified, you must give the exact name of the role, including
-    caps and spelling.
-    If an integer is specified, you must give the exact snowflake ID of the role.
-    If the message is invoked in a private message context then the check will
-    return ``False``.
-    This check raises one of two special exceptions, :exc:`.MissingRole` if the user
-    is missing a role, or :exc:`.NoPrivateMessage` if it is used in a private message.
-    Both inherit from :exc:`.CheckFailure`.
-    .. versionchanged:: 1.1
-        Raise :exc:`.MissingRole` or :exc:`.NoPrivateMessage`
-        instead of generic :exc:`.CheckFailure`
+    """添加的 :func:`.check` 用于检查调用命令的成员是否具有通过指定的名称或 ID 指定的用户组。
+
+    如果指定了字符串，则必须给出用户组的确切名称，包括大写和拼写。
+
+    如果指定了整数，则必须提供用户组的确切 ID。
+
+    如果消息是在私人消息上下文中调用的，则检查将返回 ``False`` 。
+
+    此检查会引发两个特殊异常之一，如果用户缺少用户组，则为 :exc:`.MissingRole`，
+    如果在私人消息中使用了 :exc:`.NoPrivateMessage`。
+    两者都继承自 :exc:`.CheckFailure`。
+
     Parameters
     -----------
     item: Union[:class:`int`, :class:`str`]
-        The name or ID of the role to check.
+        要检查的用户组的名称或 ID。
     """
 
     def predicate(ctx: Context) -> bool:
@@ -1618,27 +1723,29 @@ def has_role(item: Union[int, str]) -> Callable[[T], T]:
 
 
 def has_any_role(*items: Union[int, str]) -> Callable[[T], T]:
-    r"""A :func:`.check` that is added that checks if the member invoking the
-    command has **any** of the roles specified. This means that if they have
-    one out of the three roles specified, then this check will return `True`.
-    Similar to :func:`.has_role`\, the names or IDs passed in must be exact.
-    This check raises one of two special exceptions, :exc:`.MissingAnyRole` if the user
-    is missing all roles, or :exc:`.NoPrivateMessage` if it is used in a private message.
-    Both inherit from :exc:`.CheckFailure`.
-    .. versionchanged:: 1.1
-        Raise :exc:`.MissingAnyRole` or :exc:`.NoPrivateMessage`
-        instead of generic :exc:`.CheckFailure`
+    r"""A :func:`.check` 添加的内容是检查调用命令的成员是否具有指定的 **任何一个** 用户组。
+    这意味着如果他们有指定了三个用户组中的一个，那么此检查将返回 `True`。
+
+    与 :func:`.has_role`\ 类似，传入的名称或ID 必须准确无误。
+
+    此检查会引发两个特殊异常之一，如果用户缺少所有用户组，则为 :exc:`.MissingRole`，
+    如果在私人消息中使用了 :exc:`.NoPrivateMessage`。
+    两者都继承自 :exc:`.CheckFailure`。
+
     Parameters
     -----------
     items: List[Union[:class:`str`, :class:`int`]]
-        An argument list of names or IDs to check that the member has roles wise.
+        名称或 ID 的参数列表，用于检查成员是否具有用户组。
+
     Example
     --------
+
     .. code-block:: python3
+
         @bot.command()
-        @commands.has_any_role('Library Devs', 'Moderators', 492212595072434186)
+        @commands.has_any_role('库开发人员', '管理员', 114514)
         async def cool(ctx):
-            await ctx.send('You are cool indeed')
+            await ctx.send('你确实很酷')
     """
 
     def predicate(ctx):
@@ -1656,14 +1763,11 @@ def has_any_role(*items: Union[int, str]) -> Callable[[T], T]:
 
 
 def bot_has_role(item: int) -> Callable[[T], T]:
-    """Similar to :func:`.has_role` except checks if the bot itself has the
-    role.
-    This check raises one of two special exceptions, :exc:`.BotMissingRole` if the bot
-    is missing the role, or :exc:`.NoPrivateMessage` if it is used in a private message.
-    Both inherit from :exc:`.CheckFailure`.
-    .. versionchanged:: 1.1
-        Raise :exc:`.BotMissingRole` or :exc:`.NoPrivateMessage`
-        instead of generic :exc:`.CheckFailure`
+    """类似于 :func:`.has_role`，但是是检查机器人本身是否具有用户组。
+
+    此检查会引发两个特殊异常之一，如果机器人缺少用户组，则为 :exc:`.MissingRole`，
+    如果在私人消息中使用了 :exc:`.NoPrivateMessage`。
+    两者都继承自 :exc:`.CheckFailure`。
     """
 
     def predicate(ctx):
@@ -1683,14 +1787,11 @@ def bot_has_role(item: int) -> Callable[[T], T]:
 
 
 def bot_has_any_role(*items: int) -> Callable[[T], T]:
-    """Similar to :func:`.has_any_role` except checks if the bot itself has
-    any of the roles listed.
-    This check raises one of two special exceptions, :exc:`.BotMissingAnyRole` if the bot
-    is missing all roles, or :exc:`.NoPrivateMessage` if it is used in a private message.
-    Both inherit from :exc:`.CheckFailure`.
-    .. versionchanged:: 1.1
-        Raise :exc:`.BotMissingAnyRole` or :exc:`.NoPrivateMessage`
-        instead of generic checkfailure
+    """类似于 :func:`.has_any_role`，但是是检查机器人本身是否具有任何一个用户组。
+
+    此检查会引发两个特殊异常之一，如果机器人缺少所有用户组，则为 :exc:`.MissingRole`，
+    如果在私人消息中使用了 :exc:`.NoPrivateMessage`。
+    两者都继承自 :exc:`.CheckFailure`。
     """
 
     def predicate(ctx):
@@ -1708,12 +1809,10 @@ def bot_has_any_role(*items: int) -> Callable[[T], T]:
 
 
 def dm_only() -> Callable[[T], T]:
-    """A :func:`.check` that indicates this command must only be used in a
-    DM context. Only private messages are allowed when
-    using the command.
-    This check raises a special exception, :exc:`.PrivateMessageOnly`
-    that is inherited from :exc:`.CheckFailure`.
-    .. versionadded:: 1.1
+    """一个 :func:`.check`
+    表示这个命令只能在 DM 上下文中使用。 使用该命令时只允许私信。
+
+    这个检查引发一个特殊的异常， :exc:`.PrivateMessageOnly`，它继承自 :exc:`.CheckFailure`。
     """
 
     def predicate(ctx: Context) -> bool:
@@ -1725,11 +1824,9 @@ def dm_only() -> Callable[[T], T]:
 
 
 def guild_only() -> Callable[[T], T]:
-    """A :func:`.check` that indicates this command must only be used in a
-    guild context only. Basically, no private messages are allowed when
-    using the command.
-    This check raises a special exception, :exc:`.NoPrivateMessage`
-    that is inherited from :exc:`.CheckFailure`.
+    """一个 :func:`.check` 表示这个命令只能在频道上下文中使用。 基本上，使用该命令时不允许私人消息。
+
+    这个检查引发一个特殊的异常，:exc:`.NoPrivateMessage`，它是从 :exc:`.CheckFailure` 继承而来的。
     """
 
     def predicate(ctx: Context) -> bool:
@@ -1741,16 +1838,16 @@ def guild_only() -> Callable[[T], T]:
 
 
 def is_owner() -> Callable[[T], T]:
-    """A :func:`.check` that checks if the person invoking this command is the
-    owner of the bot.
-    This is powered by :meth:`.Bot.is_owner`.
-    This check raises a special exception, :exc:`.NotOwner` that is derived
-    from :exc:`.CheckFailure`.
+    """一个 :func:`.check` 检查调用此命令的人是否是机器人的所有者。
+
+    这是由 :meth:`.Bot.is_owner` 提供支持的。
+
+    这个检查引发了一个特殊的异常， :exc:`.NotOwner`，它派生自 :exc:`.CheckFailure`。
     """
 
     async def predicate(ctx: Context) -> bool:
         if not await ctx.bot.is_owner(ctx.author):
-            raise NotOwner('You do not own this bot.')
+            raise NotOwner('您不拥有此机器人。')
         return True
 
     return check(predicate)
@@ -1758,15 +1855,19 @@ def is_owner() -> Callable[[T], T]:
 
 def cooldown(rate: int, per: float, type: Union[BucketType, Callable[[Message], Any]] = BucketType.default) -> Callable[
     [T], T]:
-    """A decorator that adds a cooldown to a :class:`.Command`
+    """为 :class:`.Command` 添加冷却时间的装饰器
+
     A cooldown allows a command to only be used a specific amount
     of times in a specific time frame. These cooldowns can be based
     either on a per-guild, per-channel, per-user, per-role or global basis.
     Denoted by the third argument of ``type`` which must be of enum
     type :class:`.BucketType`.
+
     If a cooldown is triggered, then :exc:`.CommandOnCooldown` is triggered in
     :func:`.on_command_error` and the local error handler.
+
     A command can only have a single cooldown.
+
     Parameters
     ------------
     rate: :class:`int`
@@ -1775,6 +1876,7 @@ def cooldown(rate: int, per: float, type: Union[BucketType, Callable[[Message], 
         The amount of seconds to wait for a cooldown when it's been triggered.
     type: Union[:class:`.BucketType`, Callable[[:class:`.Message`], Any]]
         The type of cooldown to have. If callable, should return a key for the mapping.
+
         .. versionchanged:: 1.7
             Callables are now supported for custom bucket types.
     """
@@ -1791,6 +1893,34 @@ def cooldown(rate: int, per: float, type: Union[BucketType, Callable[[Message], 
 
 def dynamic_cooldown(cooldown: Union[BucketType, Callable[[Message], Any]], type: BucketType = BucketType.default) -> \
         Callable[[T], T]:
+    """A decorator that adds a dynamic cooldown to a :class:`.Command`
+
+    This differs from :func:`.cooldown` in that it takes a function that
+    accepts a single parameter of type :class:`.qq.Message` and must
+    return a :class:`.Cooldown` or ``None``. If ``None`` is returned then
+    that cooldown is effectively bypassed.
+
+    A cooldown allows a command to only be used a specific amount
+    of times in a specific time frame. These cooldowns can be based
+    either on a per-guild, per-channel, per-user, per-role or global basis.
+    Denoted by the third argument of ``type`` which must be of enum
+    type :class:`.BucketType`.
+
+    If a cooldown is triggered, then :exc:`.CommandOnCooldown` is triggered in
+    :func:`.on_command_error` and the local error handler.
+
+    A command can only have a single cooldown.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ------------
+    cooldown: Callable[[:class:`.qq.Message`], Optional[:class:`.Cooldown`]]
+        A function that takes a message and returns a cooldown that will
+        apply to this invocation or ``None`` if the cooldown should be bypassed.
+    type: :class:`.BucketType`
+        The type of cooldown to have.
+    """
     if not callable(cooldown):
         raise TypeError("A callable must be provided")
 
@@ -1805,6 +1935,29 @@ def dynamic_cooldown(cooldown: Union[BucketType, Callable[[Message], Any]], type
 
 
 def max_concurrency(number: int, per: BucketType = BucketType.default, *, wait: bool = False) -> Callable[[T], T]:
+    """A decorator that adds a maximum concurrency to a :class:`.Command` or its subclasses.
+
+    This enables you to only allow a certain number of command invocations at the same time,
+    for example if a command takes too long or if only one user can use it at a time. This
+    differs from a cooldown in that there is no set waiting period or token bucket -- only
+    a set number of people can run the command.
+
+    .. versionadded:: 1.3
+
+    Parameters
+    -------------
+    number: :class:`int`
+        The maximum number of invocations of this command that can be running at the same time.
+    per: :class:`.BucketType`
+        The bucket that this concurrency is based on, e.g. ``BucketType.guild`` would allow
+        it to be used up to ``number`` times per guild.
+    wait: :class:`bool`
+        Whether the command should wait for the queue to be over. If this is set to ``False``
+        then instead of waiting until the command can run again, the command raises
+        :exc:`.MaxConcurrencyReached` to its error handler. If this is set to ``True``
+        then the command waits until it can be executed.
+    """
+
     def decorator(func: Union[Command, CoroFunc]) -> Union[Command, CoroFunc]:
         value = MaxConcurrency(number, per=per, wait=wait)
         if isinstance(func, Command):
@@ -1817,6 +1970,44 @@ def max_concurrency(number: int, per: BucketType = BucketType.default, *, wait: 
 
 
 def before_invoke(coro) -> Callable[[T], T]:
+    """A decorator that registers a coroutine as a pre-invoke hook.
+
+    This allows you to refer to one before invoke hook for several commands that
+    do not have to be within the same cog.
+
+    .. versionadded:: 1.4
+
+    Example
+    ---------
+
+    .. code-block:: python3
+
+        async def record_usage(ctx):
+            print(ctx.author, 'used', ctx.command, 'at', ctx.message.created_at)
+
+        @bot.command()
+        @commands.before_invoke(record_usage)
+        async def who(ctx): # Output: <User> used who at <Time>
+            await ctx.send('i am a bot')
+
+        class What(commands.Cog):
+
+            @commands.before_invoke(record_usage)
+            @commands.command()
+            async def when(self, ctx): # Output: <User> used when at <Time>
+                await ctx.send(f'and i have existed since {ctx.bot.user.created_at}')
+
+            @commands.command()
+            async def where(self, ctx): # Output: <Nothing>
+                await ctx.send('on qq')
+
+            @commands.command()
+            async def why(self, ctx): # Output: <Nothing>
+                await ctx.send('because someone made me')
+
+        bot.add_cog(What())
+    """
+
     def decorator(func: Union[Command, CoroFunc]) -> Union[Command, CoroFunc]:
         if isinstance(func, Command):
             func.before_invoke(coro)
@@ -1828,6 +2019,14 @@ def before_invoke(coro) -> Callable[[T], T]:
 
 
 def after_invoke(coro) -> Callable[[T], T]:
+    """A decorator that registers a coroutine as a post-invoke hook.
+
+    This allows you to refer to one after invoke hook for several commands that
+    do not have to be within the same cog.
+
+    .. versionadded:: 1.4
+    """
+
     def decorator(func: Union[Command, CoroFunc]) -> Union[Command, CoroFunc]:
         if isinstance(func, Command):
             func.after_invoke(coro)
