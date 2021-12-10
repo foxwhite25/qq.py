@@ -209,7 +209,7 @@ class HTTPClient:
         # Necessary to get aiohttp to stop complaining about session creation
         self.__session = aiohttp.ClientSession(connector=self.connector, ws_response_class=QQClientWebSocketResponse)
         old_token = self.token
-        self.token = 'Bot ' + token
+        self.token = token
 
         try:
             data = await self.request(Route('GET', '/users/@me'))
