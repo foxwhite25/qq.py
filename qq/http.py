@@ -255,6 +255,10 @@ class HTTPClient:
             headers['Authorization'] = 'Bot ' + self.token
         rsp = requests.get(f'https://api.sgroup.qq.com/guilds/{guild_id}/channels', headers=headers)
         rsp2 = requests.get(f'https://api.sgroup.qq.com/guilds/{guild_id}/roles', headers=headers)
+        _log.debug('GET %s 与 %s 已返回 %s', f'https://api.sgroup.qq.com/guilds/{guild_id}/channels', rsp.json(),
+                   rsp.status_code)
+        _log.debug('GET %s 与 %s 已返回 %s', f'https://api.sgroup.qq.com/guilds/{guild_id}/roles', rsp2.json(),
+                   rsp2.status_code)
         return rsp.json(), rsp2.json()['roles']
 
     def get_guild(self, guild_id: int) -> Response[guild.Guild]:

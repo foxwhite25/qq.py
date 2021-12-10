@@ -1014,20 +1014,12 @@ CONVERTER_MAPPING: Dict[Type[Any], Any] = {
     qq.Message: MessageConverter,
     qq.PartialMessage: PartialMessageConverter,
     qq.TextChannel: TextChannelConverter,
-    qq.Invite: InviteConverter,
     qq.Guild: GuildConverter,
     qq.Role: RoleConverter,
-    qq.Game: GameConverter,
     qq.Colour: ColourConverter,
     qq.VoiceChannel: VoiceChannelConverter,
-    qq.StageChannel: StageChannelConverter,
-    qq.Emoji: EmojiConverter,
-    qq.PartialEmoji: PartialEmojiConverter,
     qq.CategoryChannel: CategoryChannelConverter,
-    qq.StoreChannel: StoreChannelConverter,
-    qq.Thread: ThreadConverter,
     qq.abc.GuildChannel: GuildChannelConverter,
-    qq.GuildSticker: GuildStickerConverter,
 }
 
 

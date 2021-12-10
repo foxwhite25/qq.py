@@ -8,15 +8,16 @@ import logging
 import signal
 import sys
 import traceback
-from typing import Optional, Any, Dict, Callable, List, Tuple, Coroutine, TypeVar
+from typing import Optional, Any, Dict, Callable, List, Tuple, Coroutine, TypeVar, Generator, Union
 
 import aiohttp
 
+from .member import Member
 from .backoff import ExponentialBackoff
 from .error import HTTPException, GatewayNotFound, ConnectionClosed
 from .state import ConnectionState
 from .gateway import QQWebSocket, ReconnectWebSocket
-from .guild import Guild
+from .guild import Guild, GuildChannel
 from .http import HTTPClient
 from .iterators import GuildIterator
 from .user import ClientUser, User
@@ -398,7 +399,7 @@ class Client:
                 # I am unsure why this gets raised here but suppress it anyway
                 return None
 
-    async def start(self, reconnect: bool = True) -> None:
+    async def start(self, token: str, reconnect: bool = True) -> None:
         """|coro|
         :meth:`login` + :meth:`connect` 的协程。
 
@@ -407,7 +408,7 @@ class Client:
         TypeError
             收到意外的关键字参数。
         """
-        await self.login(self.token)
+        await self.login(token)
         await self.connect(reconnect=reconnect)
 
     def clear(self) -> None:
@@ -510,6 +511,140 @@ class Client:
 
         await self.http.close()
         self._ready.clear()
+
+    def get_channel(self, id: int, /) -> Optional[Union[GuildChannel]]:
+        """返回具有给定 ID 的子频道。
+        Parameters
+        -----------
+        id: :class:`int`
+            要搜索的 ID。
+        Returns
+        --------
+        Optional[Union[:class:`.abc.GuildChannel`, :class:`.Thread`, :class:`.abc.PrivateChannel`]]
+            返回的子频道或 ``None``（如果未找到）。
+        """
+        return self._connection.get_channel(id)
+
+    def get_all_channels(self) -> Generator[GuildChannel, None, None]:
+        """一个生成器，它检索客户端可以“访问”的每个 :class:`.abc.GuildChannel`。
+
+        这相当于： ::
+
+            for guild in client.guilds:
+                for channel in guild.channels:
+                    yield channel
+
+        Yields
+        ------
+        :class:`.abc.GuildChannel`
+            客户端可以“访问”的子频道。
+        """
+
+        for guild in self.guilds:
+            yield from guild.channels
+
+    def get_all_members(self) -> Generator[Member, None, None]:
+        """返回一个生成器，其中包含客户端可以看到的每个 :class:`.Member`。
+
+        这相当于： ::
+
+            for guild in client.guilds:
+                for member in guild.members:
+                    yield member
+
+        Yields
+        ------
+        :class:`.Member`
+            客户端可以看到的成员。
+        """
+        for guild in self.guilds:
+            yield from guild.members
+
+    async def wait_until_ready(self) -> None:
+        """|coro|
+        等到客户端的内部缓存准备就绪。
+        """
+        await self._ready.wait()
+
+    def wait_for(
+            self,
+            event: str,
+            *,
+            check: Optional[Callable[..., bool]] = None,
+            timeout: Optional[float] = None,
+    ) -> Any:
+        """|coro|
+        等待调度 WebSocket 事件。 这可用于等待用户回复消息，或对消息做出反应，或以独立的方式编辑消息。
+        ``timeout`` 参数传递给 :func:`asyncio.wait_for`。
+        默认情况下，它不会超时。 请注意，这确实会在超时的情况下为您传播 :exc:`asyncio.TimeoutError` 并且提供它是为了便于使用。
+        如果事件返回多个参数，则返回包含这些参数的 :class:`tuple` 。 请查看 :ref:`文档 <qq-api-events>` 以获取事件列表及其参数。
+        该函数返回 **第一个符合要求的事件** 。
+
+        Examples
+        ---------
+        等待用户回复： ::
+
+            @client.event
+            async def on_message(message):
+                if message.content.startswith('$greet'):
+                    channel = message.channel
+                    await channel.send('Say hello!')
+                    def check(m):
+                        return m.content == 'hello' and m.channel == channel
+                    msg = await client.wait_for('message', check=check)
+                    await channel.send(f'Hello {msg.author}!')
+
+        等待消息作者的 reaction ： ::
+            @client.event
+            async def on_message(message):
+                if message.content.startswith('$thumb'):
+                    channel = message.channel
+                    def check(reaction, user):
+                        return user == message.author
+                    try:
+                        reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
+                    except asyncio.TimeoutError:
+                        await channel.send('Got it')
+                    else:
+                        await channel.send('Time out')
+
+        Parameters
+        ------------
+        event: :class:`str`
+            事件名称，类似于 :ref:`事件指南 <qq-api-events>`，但没有 ``on_`` 前缀，用于等待。
+        check: Optional[Callable[..., :class:`bool`]]
+            检查等待什么的谓词。 参数必须满足正在等待的事件的参数。
+        timeout: Optional[:class:`float`]
+            在超时和引发 :exc:`asyncio.TimeoutError` 之前等待的秒数。
+
+        Raises
+        -------
+        asyncio.TimeoutError
+            如果提供超时并且已达到。
+
+        Returns
+        --------
+        Any
+            不返回任何参数、单个参数或多个参数的元组，
+            这些参数反映在 :ref:`事件指南 <qq-api-events>` 中传递的参数。
+        """
+
+        future = self.loop.create_future()
+        if check is None:
+            def _check(*args):
+                return True
+
+            check = _check
+
+        ev = event.lower()
+        try:
+            listeners = self._listeners[ev]
+        except KeyError:
+            listeners = []
+            self._listeners[ev] = listeners
+
+        listeners.append((future, check))
+        return asyncio.wait_for(future, timeout)
 
     def event(self, coro: Coro) -> Coro:
         """注册要监听的事件的装饰器。

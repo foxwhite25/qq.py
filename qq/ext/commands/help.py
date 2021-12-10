@@ -45,25 +45,24 @@ __all__ = (
 
 
 class Paginator:
-    """A class that aids in paginating code blocks for qq messages.
+    """一个有助于为 qq 消息分页代码块的类。
 
     .. container:: operations
 
         .. describe:: len(x)
 
-            Returns the total number of characters in the paginator.
+            返回分页器中的字符总数。
 
     Attributes
     -----------
     prefix: :class:`str`
-        The prefix inserted to every page. e.g. three backticks.
+        插入到每个页面的前缀。 例如 三个反引号。
     suffix: :class:`str`
-        The suffix appended at the end of every page. e.g. three backticks.
+        后缀附加在每一页的末尾。 例如 三个反引号。
     max_size: :class:`int`
-        The maximum amount of codepoints allowed in a page.
+        页面中允许的最大代码点数。
     linesep: :class:`str`
-        The character string inserted between lines. e.g. a newline character.
-            .. versionadded:: 1.7
+        行间插入的字符串。 例如 换行符。
     """
 
     def __init__(self, prefix='```', suffix='```', max_size=2000, linesep='\n'):
@@ -74,7 +73,7 @@ class Paginator:
         self.clear()
 
     def clear(self):
-        """Clears the paginator to have no pages."""
+        """清除分页器以使其没有页面。"""
         if self.prefix is not None:
             self._current_page = [self.prefix]
             self._count = len(self.prefix) + self._linesep_len  # prefix + newline
@@ -96,26 +95,25 @@ class Paginator:
         return len(self.linesep)
 
     def add_line(self, line='', *, empty=False):
-        """Adds a line to the current page.
+        """向当前页面添加一行。
 
-        If the line exceeds the :attr:`max_size` then an exception
-        is raised.
+        如果该行超过 :attr:`max_size`，则会引发异常。
 
         Parameters
         -----------
         line: :class:`str`
-            The line to add.
+            要添加的行。
         empty: :class:`bool`
-            Indicates if another empty line should be added.
+            指示是否应添加另一个空行。
 
         Raises
         ------
         RuntimeError
-            The line was too big for the current :attr:`max_size`.
+            该行对于当前的 :attr:`max_size` 来说太大了。
         """
         max_page_size = self.max_size - self._prefix_len - self._suffix_len - 2 * self._linesep_len
         if len(line) > max_page_size:
-            raise RuntimeError(f'Line exceeds maximum page size {max_page_size}')
+            raise RuntimeError(f'行超过最大页面大小 {max_page_size}')
 
         if self._count + len(line) + self._linesep_len > self.max_size - self._suffix_len:
             self.close_page()
@@ -128,7 +126,7 @@ class Paginator:
             self._count += self._linesep_len
 
     def close_page(self):
-        """Prematurely terminate a page."""
+        """提前终止页面。"""
         if self.suffix is not None:
             self._current_page.append(self.suffix)
         self._pages.append(self.linesep.join(self._current_page))
@@ -146,14 +144,15 @@ class Paginator:
 
     @property
     def pages(self):
-        """List[:class:`str`]: Returns the rendered list of pages."""
+        """List[:class:`str`]: 返回呈现的页面列表。"""
         # we have more than just the prefix in our current page
         if len(self._current_page) > (0 if self.prefix is None else 1):
             self.close_page()
         return self._pages
 
     def __repr__(self):
-        fmt = '<Paginator prefix: {0.prefix!r} suffix: {0.suffix!r} linesep: {0.linesep!r} max_size: {0.max_size} count: {0._count}>'
+        fmt = '<Paginator prefix: {0.prefix!r} suffix: {0.suffix!r} linesep: {0.linesep!r} max_size: {0.max_size} ' \
+              'count: {0._count}> '
         return fmt.format(self)
 
 
@@ -201,7 +200,7 @@ class _HelpCommandImpl(Command):
         try:
             del result[next(iter(result))]
         except StopIteration:
-            raise ValueError('Missing context parameter') from None
+            raise ValueError('缺少 context 参数') from None
         else:
             return result
 
@@ -239,37 +238,30 @@ class _HelpCommandImpl(Command):
 
 
 class HelpCommand:
-    r"""The base implementation for help command formatting.
+    r"""帮助命令格式的基本实现。
 
     .. note::
 
-        Internally instances of this class are deep copied every time
-        the command itself is invoked to prevent a race condition
-        mentioned in :issue:`2123`.
+        每次调用命令本身时，都会在内部深度复制此类的实例，
 
-        This means that relying on the state of this class to be
-        the same between command invocations would not work as expected.
+        这意味着在命令调用之间依赖于此类的状态相同将不会按预期工作。
 
     Attributes
     ------------
     context: Optional[:class:`Context`]
-        The context that invoked this help formatter. This is generally set after
-        the help command assigned, :func:`command_callback`\, has been called.
+        调用此帮助格式化程序的上下文。 这通常在分配的帮助命令 :func:`command_callback`\ 被调用后设置。
     show_hidden: :class:`bool`
-        Specifies if hidden commands should be shown in the output.
-        Defaults to ``False``.
+        指定是否应在输出中显示隐藏命令。
+        默认为 ``False`` 。
     verify_checks: Optional[:class:`bool`]
-        Specifies if commands should have their :attr:`.Command.checks` called
-        and verified. If ``True``, always calls :attr:`.Command.checks`.
-        If ``None``, only calls :attr:`.Command.checks` in a guild setting.
-        If ``False``, never calls :attr:`.Command.checks`. Defaults to ``True``.
+        指定命令是否应该调用和验证它们的 :attr:`.Command.checks`。 如果 ``True``，则总是调用 :attr:`.Command.checks`。
+        如果 ``None`` ，则仅在公会设置中调用 :attr:`.Command.checks`。 如果 ``False``，则从不调用 :attr:`.Command.checks`。
+        默认为 ``True`` 。
 
-        .. versionchanged:: 1.7
     command_attrs: :class:`dict`
-        A dictionary of options to pass in for the construction of the help command.
-        This allows you to change the command behaviour without actually changing
-        the implementation of the command. The attributes will be the same as the
-        ones passed in the :class:`.Command` constructor.
+        用于构建帮助命令的选项字典。
+        这允许您在不实际更改命令的实现的情况下更改命令行为。
+        这些属性将与传入 :class:`.Command` 构造函数的属性相同。
     """
 
     MENTION_TRANSFORMS = {
