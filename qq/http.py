@@ -259,7 +259,10 @@ class HTTPClient:
                    rsp.status_code)
         _log.debug('GET %s 与 %s 已返回 %s', f'https://api.sgroup.qq.com/guilds/{guild_id}/roles', rsp2.json(),
                    rsp2.status_code)
-        return rsp.json(), rsp2.json()['roles'] if 'roles' in rsp2.json() else []
+        try:
+            return rsp.json(), rsp2.json()['roles']
+        except KeyError:
+            return rsp.json(), []
 
     def get_guild(self, guild_id: int) -> Response[guild.Guild]:
         return self.request(Route('GET', '/guilds/{guild_id}', guild_id=guild_id))
