@@ -45,8 +45,8 @@ class MyClient(Client):
 
 
 if __name__ == '__main__':
-    client = MyClient(app_id='', token='')
-    client.run()
+    client = MyClient()
+    client.run(token=f'app_id.token')
 ```
 当完成初始化输出当前机器人用户对象，收到带有 ``ping`` 的信息事件时发送 ``pong``
 
