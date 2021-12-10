@@ -75,13 +75,11 @@ __all__ = (
 
 
 class CommandError(QQException):
-    r"""The base exception type for all command related errors.
+    r"""所有命令相关错误的基本异常类型。
 
-    This inherits from :exc:`qq.qqException`.
+    这继承自 :exc:`qq.QQException`。
 
-    This exception and exceptions inherited from it are handled
-    in a special way as they are caught and passed into a special event
-    from :class:`.Bot`\, :func:`.on_command_error`.
+    这个异常和从它继承的异常以一种特殊的方式被处理，因为它们被捕获并从 :class:`.Bot`\, :func:`.on_command_error` 传递到一个特殊的事件中。
     """
 
     def __init__(self, message: Optional[str] = None, *args: Any) -> None:

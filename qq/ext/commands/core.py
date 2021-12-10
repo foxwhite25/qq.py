@@ -225,7 +225,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         （例如 ``?foo a b c`` 当只需要 ``a`` 和 ``b`` 时）。
         否则 :func:`.on_command_error` 和本地错误处理程序使用 :exc:`.TooManyArguments` 调用。 默认为 ``True`` 。
     cooldown_after_parsing: :class:`bool`
-        如果为“True”\，则在参数解析后完成冷却处理，这会调用转换器。 如果 ``False`` 则首先完成冷却处理，然后再调用转换器。 默认为 ``False``  。
+        如果为 ``True``\，则在参数解析后完成冷却处理，这会调用转换器。 如果 ``False`` 则首先完成冷却处理，然后再调用转换器。 默认为 ``False``  。
     extras: :class:`dict`
         用户的字典提供了附加到命令的附加内容。
         
@@ -408,7 +408,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
         .. note::
 
-            这绕过了所有机制——包括检查、转换器、调用钩子、冷却等。您必须小心地将正确的参数和类型传递给这个函数。
+            这绕过了所有机制——包括检查、转换器、调用钩子、冷却等。你必须小心地将正确的参数和类型传递给这个函数。
         """
         if self.cog is not None:
             return await self.callback(self.cog, context, *args, **kwargs)  # type: ignore
@@ -584,7 +584,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
     def full_parent_name(self) -> str:
         """:class:`str`: 检索完全限定的父命令名称。
 
-        这是执行它所需的基本命令名称。 例如，在“?one two three”中，父名称将是“one two”。
+        这是执行它所需的基本命令名称。 例如，在 ``?one two three``  中，父名称将是 ``one two``  。
         """
         entries = []
         command = self
@@ -1454,14 +1454,14 @@ def command(
     默认情况下，``help`` 属性是从函数的文档字符串中自动接收的，并使用``inspect.cleandoc`` 进行清理。
     如果 docstring 是 ``bytes``，则使用 utf-8 编码将其解码为 :class:`str`。
 
-    所有使用 :func:`.check` 添加的检查都被添加到函数中。 无法通过此装饰器提供您自己的检查。
+    所有使用 :func:`.check` 添加的检查都被添加到函数中。 无法通过此装饰器提供你自己的检查。
 
     Parameters
     -----------
     name: :class:`str`
         用于创建命令的名称。 默认情况下，这使用未更改的函数名称。
     cls
-        要构造的类。 默认情况下，这是 :class:`.Command` 。 您通常不会更改此设置。
+        要构造的类。 默认情况下，这是 :class:`.Command` 。 你通常不会更改此设置。
     attrs
         传递到由 ``cls`` 表示的类的构造中的关键字参数。
 
@@ -1565,7 +1565,7 @@ def check(predicate: Check) -> Callable[[T], T]:
     Examples
     ---------
 
-    创建一个基本检查以查看命令调用者是否是您。
+    创建一个基本检查以查看命令调用者是否是你。
 
     .. code-block:: python3
 
@@ -1654,7 +1654,7 @@ def check_any(*checks: Check) -> Callable[[T], T]:
         @bot.command()
         @commands.check_any(commands.is_owner(), is_guild_owner())
         async def only_for_owners(ctx):
-            await ctx.send('先生您好！')
+            await ctx.send('先生你好！')
     """
 
     unwrapped = []
@@ -1842,7 +1842,7 @@ def is_owner() -> Callable[[T], T]:
 
     async def predicate(ctx: Context) -> bool:
         if not await ctx.bot.is_owner(ctx.author):
-            raise NotOwner('您不拥有此机器人。')
+            raise NotOwner('你不拥有此机器人。')
         return True
 
     return check(predicate)
@@ -1852,28 +1852,22 @@ def cooldown(rate: int, per: float, type: Union[BucketType, Callable[[Message], 
     [T], T]:
     """为 :class:`.Command` 添加冷却时间的装饰器
 
-    A cooldown allows a command to only be used a specific amount
-    of times in a specific time frame. These cooldowns can be based
-    either on a per-guild, per-channel, per-user, per-role or global basis.
-    Denoted by the third argument of ``type`` which must be of enum
-    type :class:`.BucketType`.
+    冷却时间允许命令在特定时间范围内仅使用特定次数。
+    这些冷却时间可以基于每个公会、每个频道、每个用户、
+    每个用户组或全局基础。由第三个参数 ``type`` 表示，它必须是枚举类型 :class:`.BucketType`。
 
-    If a cooldown is triggered, then :exc:`.CommandOnCooldown` is triggered in
-    :func:`.on_command_error` and the local error handler.
+    如果冷却被触发，则 :exc:`.CommandOnCooldown` 在 :func:`.on_command_error` 和本地错误处理程序中被触发。
 
-    A command can only have a single cooldown.
+    一个命令只能有一个冷却时间。
 
     Parameters
     ------------
     rate: :class:`int`
-        The number of times a command can be used before triggering a cooldown.
+        命令在触发冷却之前可以使用的次数。
     per: :class:`float`
-        The amount of seconds to wait for a cooldown when it's been triggered.
+        触发时等待冷却的秒数。
     type: Union[:class:`.BucketType`, Callable[[:class:`.Message`], Any]]
-        The type of cooldown to have. If callable, should return a key for the mapping.
-
-        .. versionchanged:: 1.7
-            Callables are now supported for custom bucket types.
+        冷却时间的类型。如果可调用，则应返回映射的键。
     """
 
     def decorator(func: Union[Command, CoroFunc]) -> Union[Command, CoroFunc]:
@@ -1888,36 +1882,29 @@ def cooldown(rate: int, per: float, type: Union[BucketType, Callable[[Message], 
 
 def dynamic_cooldown(cooldown: Union[BucketType, Callable[[Message], Any]], type: BucketType = BucketType.default) -> \
         Callable[[T], T]:
-    """A decorator that adds a dynamic cooldown to a :class:`.Command`
+    """为 :class:`.Command` 添加动态冷却时间的装饰器
 
-    This differs from :func:`.cooldown` in that it takes a function that
-    accepts a single parameter of type :class:`.qq.Message` and must
-    return a :class:`.Cooldown` or ``None``. If ``None`` is returned then
-    that cooldown is effectively bypassed.
+    这与 :func:`.cooldown` 的不同之处在于
+    它接受一个 :class:`.qq.Message` 类型的单个参数并且必须返回一个 :class:`.Cooldown`
+    或 ``None`` 的函数。如果返回 ``None`` ，则该冷却时间被有效绕过。
 
-    A cooldown allows a command to only be used a specific amount
-    of times in a specific time frame. These cooldowns can be based
-    either on a per-guild, per-channel, per-user, per-role or global basis.
-    Denoted by the third argument of ``type`` which must be of enum
-    type :class:`.BucketType`.
+    冷却时间允许命令在特定时间范围内仅使用特定次数。
+    这些冷却时间可以基于每个公会、每个频道、每个用户、每个角色或全局基础。
+    由 ``type`` 的第三个参数表示，它必须是枚举类型 :class:`.BucketType` 。
 
-    If a cooldown is triggered, then :exc:`.CommandOnCooldown` is triggered in
-    :func:`.on_command_error` and the local error handler.
+    如果冷却被触发，则 :exc:`.CommandOnCooldown` 在 :func:`.on_command_error` 和本地错误处理程序中被触发。
 
-    A command can only have a single cooldown.
-
-    .. versionadded:: 2.0
+    一个命令只能有一个冷却时间。
 
     Parameters
     ------------
     cooldown: Callable[[:class:`.qq.Message`], Optional[:class:`.Cooldown`]]
-        A function that takes a message and returns a cooldown that will
-        apply to this invocation or ``None`` if the cooldown should be bypassed.
+        一个接收消息并返回冷却时间的函数，该冷却时间将应用于此调用，如果应该绕过冷却时间，则返回 ``None`` 。
     type: :class:`.BucketType`
-        The type of cooldown to have.
+        冷却时间的类型。
     """
     if not callable(cooldown):
-        raise TypeError("A callable must be provided")
+        raise TypeError("必须提供可调用")
 
     def decorator(func: Union[Command, CoroFunc]) -> Union[Command, CoroFunc]:
         if isinstance(func, Command):
@@ -1930,27 +1917,21 @@ def dynamic_cooldown(cooldown: Union[BucketType, Callable[[Message], Any]], type
 
 
 def max_concurrency(number: int, per: BucketType = BucketType.default, *, wait: bool = False) -> Callable[[T], T]:
-    """A decorator that adds a maximum concurrency to a :class:`.Command` or its subclasses.
+    """为 :class:`.Command` 或其子类添加最大并发的装饰器。
 
-    This enables you to only allow a certain number of command invocations at the same time,
-    for example if a command takes too long or if only one user can use it at a time. This
-    differs from a cooldown in that there is no set waiting period or token bucket -- only
-    a set number of people can run the command.
-
-    .. versionadded:: 1.3
+    这使你可以同时只允许一定数量的命令调用，例如，如果命令耗时过长或一次只有一个用户可以使用它。
+    这与冷却时间不同，因为没有设定的等待期或令牌桶——只有设定数量的人可以运行命令。
 
     Parameters
     -------------
     number: :class:`int`
-        The maximum number of invocations of this command that can be running at the same time.
+        可以同时运行的此命令的最大调用次数。
     per: :class:`.BucketType`
-        The bucket that this concurrency is based on, e.g. ``BucketType.guild`` would allow
-        it to be used up to ``number`` times per guild.
+        此并发所基于的存储桶，例如``BucketType.guild`` 将允许每个公会最多使用 ``number`` 次。
     wait: :class:`bool`
-        Whether the command should wait for the queue to be over. If this is set to ``False``
-        then instead of waiting until the command can run again, the command raises
-        :exc:`.MaxConcurrencyReached` to its error handler. If this is set to ``True``
-        then the command waits until it can be executed.
+        命令是否应该等待队列结束。
+        如果这被设置为 ``False`` 则不是等到命令可以再次运行，该命令会引发 :exc:`.MaxConcurrencyReached` 到其错误处理程序。
+        如果这被设置为 ``True`` 则命令会等待直到它可以被执行。
     """
 
     def decorator(func: Union[Command, CoroFunc]) -> Union[Command, CoroFunc]:
@@ -1965,12 +1946,9 @@ def max_concurrency(number: int, per: BucketType = BucketType.default, *, wait: 
 
 
 def before_invoke(coro) -> Callable[[T], T]:
-    """A decorator that registers a coroutine as a pre-invoke hook.
+    """将协程注册为调用前钩的装饰器。
 
-    This allows you to refer to one before invoke hook for several commands that
-    do not have to be within the same cog.
-
-    .. versionadded:: 1.4
+    这允许你在调用钩子之前引用一个不必在同一个齿轮中的几个命令。
 
     Example
     ---------
@@ -1978,27 +1956,22 @@ def before_invoke(coro) -> Callable[[T], T]:
     .. code-block:: python3
 
         async def record_usage(ctx):
-            print(ctx.author, 'used', ctx.command, 'at', ctx.message.created_at)
+            print(ctx.author, 'used', ctx.command)
 
         @bot.command()
         @commands.before_invoke(record_usage)
-        async def who(ctx): # Output: <User> used who at <Time>
-            await ctx.send('i am a bot')
+        async def who(ctx):
+            await ctx.send('我是机器人')
 
         class What(commands.Cog):
 
-            @commands.before_invoke(record_usage)
-            @commands.command()
-            async def when(self, ctx): # Output: <User> used when at <Time>
-                await ctx.send(f'and i have existed since {ctx.bot.user.created_at}')
-
             @commands.command()
             async def where(self, ctx): # Output: <Nothing>
-                await ctx.send('on qq')
+                await ctx.send('在QQ上')
 
             @commands.command()
             async def why(self, ctx): # Output: <Nothing>
-                await ctx.send('because someone made me')
+                await ctx.send('因为有人做了我出来')
 
         bot.add_cog(What())
     """
@@ -2014,12 +1987,9 @@ def before_invoke(coro) -> Callable[[T], T]:
 
 
 def after_invoke(coro) -> Callable[[T], T]:
-    """A decorator that registers a coroutine as a post-invoke hook.
+    """将协程注册为调用后钩的装饰器。
 
-    This allows you to refer to one after invoke hook for several commands that
-    do not have to be within the same cog.
-
-    .. versionadded:: 1.4
+    这允许你在调用钩子后引用多个命令，这些命令不必位于同一个 cog 中。
     """
 
     def decorator(func: Union[Command, CoroFunc]) -> Union[Command, CoroFunc]:

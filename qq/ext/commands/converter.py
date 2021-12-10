@@ -40,6 +40,9 @@ __all__ = (
     'ColorConverter',
     'VoiceChannelConverter',
     'CategoryChannelConverter',
+    'ThreadChannelConverter',
+    'LiveChannelConverter',
+    'AppChannelConverter',
     'IDConverter',
     'GuildChannelConverter',
     'clean_content',
@@ -65,38 +68,33 @@ CT = TypeVar('CT', bound=qq.abc.GuildChannel)
 
 @runtime_checkable
 class Converter(Protocol[T_co]):
-    """The base class of custom converters that require the :class:`.Context`
-    to be passed to be useful.
+    """需要传递 :class:`.Context` 的自定义转换器的基类才有用。
 
-    This allows you to implement converters that function similar to the
-    special cased ``qq`` classes.
+    这允许您实现功能类似于特殊情况的 ``qq`` 类的转换器。
 
-    Classes that derive from this should override the :meth:`~.Converter.convert`
-    method to do its conversion logic. This method must be a :ref:`coroutine <coroutine>`.
+    派生自此的类应覆盖 :meth:`~.Converter.convert` 方法以执行其转换逻辑。这个方法必须是一个 :ref:`协程 <coroutine>`。
     """
 
     async def convert(self, ctx: Context, argument: str) -> T_co:
         """|coro|
 
-        The method to override to do conversion logic.
+        要覆盖以执行转换逻辑的方法。
 
-        If an error is found while converting, it is recommended to
-        raise a :exc:`.CommandError` derived exception as it will
-        properly propagate to the error handlers.
+        如果在转换时发现错误，建议引发 :exc:`.CommandError` 派生异常，因为它会正确传播到错误处理程序。
 
         Parameters
         -----------
         ctx: :class:`.Context`
-            The invocation context that the argument is being used in.
+            正在使用参数的调用 context 。
         argument: :class:`str`
-            The argument that is being converted.
+            正在转换的参数。
 
         Raises
         -------
         :exc:`.CommandError`
-            A generic exception occurred when converting the argument.
+            转换参数时发生一般异常。
         :exc:`.BadArgument`
-            The converter failed to convert the argument.
+            转换器无法转换参数。
         """
         raise NotImplementedError('Derived classes need to implement this.')
 
@@ -111,16 +109,14 @@ class IDConverter(Converter[T_co]):
 
 
 class ObjectConverter(IDConverter[qq.Object]):
-    """Converts to a :class:`~qq.Object`.
+    """转换为 :class:`~qq.Object`。
 
-    The argument must follow the valid ID or mention formats (e.g. `<@80088516616269824>`).
+    参数必须遵循有效的 ID 或提及格式（例如`<@80088516616269824>`）。
 
-    .. versionadded:: 2.0
+    查找策略如下（按顺序）：
 
-    The lookup strategy is as follows (in order):
-
-    1. Lookup by ID.
-    2. Lookup by member, role, or channel mention.
+    1. 通过ID查找。
+    2. 按成员、身份组或频道提及查找。
     """
 
     async def convert(self, ctx: Context, argument: str) -> qq.Object:
@@ -135,25 +131,17 @@ class ObjectConverter(IDConverter[qq.Object]):
 
 
 class MemberConverter(IDConverter[qq.Member]):
-    """Converts to a :class:`~qq.Member`.
+    """转换为 :class:`~qq.Member`。
 
-    All lookups are via the local guild. If in a DM context, then the lookup
-    is done by the global cache.
+    所有查找都是通过本地频道进行的。如果在 DM  context 中，则查找由全局缓存完成。
 
-    The lookup strategy is as follows (in order):
+    查找策略如下（按顺序）：
 
-    1. Lookup by ID.
-    2. Lookup by mention.
-    3. Lookup by name#discrim
-    4. Lookup by name
-    5. Lookup by nickname
+    1. 通过 ID 查找。
+    2. 按提及查找。
+    4. 按名称查找。
+    5. 按昵称查找。
 
-    .. versionchanged:: 1.5
-         Raise :exc:`.MemberNotFound` instead of generic :exc:`.BadArgument`
-
-    .. versionchanged:: 1.5.1
-        This converter now lazily fetches members from the gateway and HTTP APIs,
-        optionally caching the result if :attr:`.MemberCacheFlags.joined` is enabled.
     """
 
     async def query_member_named(self, guild, argument):
@@ -169,23 +157,14 @@ class MemberConverter(IDConverter[qq.Member]):
     async def query_member_by_id(self, bot, guild, user_id):
         ws = bot._get_websocket(shard_id=guild.shard_id)
         cache = guild._state.member_cache_flags.joined
-        if ws.is_ratelimited():
-            # If we're being rate limited on the WS, then fall back to using the HTTP API
-            # So we don't have to wait ~60 seconds for the query to finish
-            try:
-                member = await guild.fetch_member(user_id)
-            except qq.HTTPException:
-                return None
-
-            if cache:
-                guild._add_member(member)
-            return member
-
-        # If we're not being rate limited then we can use the websocket to actually query
-        members = await guild.query_members(limit=1, user_ids=[user_id], cache=cache)
-        if not members:
+        try:
+            member = await guild.fetch_member(user_id)
+        except qq.HTTPException:
             return None
-        return members[0]
+
+        if cache:
+            guild._add_member(member)
+        return member
 
     async def convert(self, ctx: Context, argument: str) -> qq.Member:
         bot = ctx.bot
@@ -222,23 +201,15 @@ class MemberConverter(IDConverter[qq.Member]):
 
 
 class UserConverter(IDConverter[qq.User]):
-    """Converts to a :class:`~qq.User`.
+    """转换为 :class:`~qq.User`。
 
-    All lookups are via the global user cache.
+    所有查找都是通过全局用户缓存进行的。
 
-    The lookup strategy is as follows (in order):
+    查找策略如下（按顺序）：
 
-    1. Lookup by ID.
-    2. Lookup by mention.
-    3. Lookup by name#discrim
-    4. Lookup by name
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.UserNotFound` instead of generic :exc:`.BadArgument`
-
-    .. versionchanged:: 1.6
-        This converter now lazily fetches users from the HTTP APIs if an ID is passed
-        and it's not available in cache.
+    1. 通过 ID 查找。
+    2. 通过提及查找。
+    3. 按名称查找。
     """
 
     async def convert(self, ctx: Context, argument: str) -> qq.User:
@@ -283,15 +254,12 @@ class UserConverter(IDConverter[qq.User]):
 
 
 class PartialMessageConverter(Converter[qq.PartialMessage]):
-    """Converts to a :class:`qq.PartialMessage`.
+    """转换为 :class:`qq.PartialMessage`。
 
-    .. versionadded:: 1.7
+    创建策略如下（按顺序）：
 
-    The creation strategy is as follows (in order):
-
-    1. By "{channel ID}-{message ID}" (retrieved by shift-clicking on "Copy ID")
-    2. By message ID (The message is assumed to be in the context channel.)
-    3. By message URL
+    1. 通过  ``{channel ID}-{message ID}``
+    2. 通过消息 ID
     """
 
     @staticmethod
@@ -306,7 +274,7 @@ class PartialMessageConverter(Converter[qq.PartialMessage]):
         if not match:
             raise MessageNotFound(argument)
         data = match.groupdict()
-        channel_id = qq.utils._get_as_snowflake(data, 'channel_id')
+        channel_id = int(data.get('channel_id'))
         message_id = int(data['message_id'])
         guild_id = data.get('guild_id')
         if guild_id is None:
@@ -337,18 +305,12 @@ class PartialMessageConverter(Converter[qq.PartialMessage]):
 
 
 class MessageConverter(IDConverter[qq.Message]):
-    """Converts to a :class:`qq.Message`.
+    """转换为 :class:`qq.Message`。
 
-    .. versionadded:: 1.1
+    查找策略如下（按顺序）：
 
-    The lookup strategy is as follows (in order):
-
-    1. Lookup by "{channel ID}-{message ID}" (retrieved by shift-clicking on "Copy ID")
-    2. Lookup by message ID (the message **must** be in the context channel)
-    3. Lookup by message URL
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.ChannelNotFound`, :exc:`.MessageNotFound` or :exc:`.ChannelNotReadable` instead of generic :exc:`.BadArgument`
+    1. 按 ``{channel ID}-{message ID}`` 查找
+    2. 按消息 ID 查找
     """
 
     async def convert(self, ctx: Context, argument: str) -> qq.Message:
@@ -368,18 +330,15 @@ class MessageConverter(IDConverter[qq.Message]):
 
 
 class GuildChannelConverter(IDConverter[qq.abc.GuildChannel]):
-    """Converts to a :class:`~qq.abc.GuildChannel`.
+    """转换为 :class:`~qq.abc.GuildChannel`。
 
-    All lookups are via the local guild. If in a DM context, then the lookup
-    is done by the global cache.
+    所有查找都是通过本地频道进行的。如果在 DM  context 中，则查找由全局缓存完成。
 
-    The lookup strategy is as follows (in order):
+    查找策略如下（按顺序）：
 
-    1. Lookup by ID.
-    2. Lookup by mention.
-    3. Lookup by name.
-
-    .. versionadded:: 2.0
+    1. 通过 ID 查找。
+    2. 通过提及查找。
+    3. 按名称查找。
     """
 
     async def convert(self, ctx: Context, argument: str) -> qq.abc.GuildChannel:
@@ -416,20 +375,17 @@ class GuildChannelConverter(IDConverter[qq.abc.GuildChannel]):
 
         return result
 
+
 class TextChannelConverter(IDConverter[qq.TextChannel]):
-    """Converts to a :class:`~qq.TextChannel`.
+    """转换为 :class:`~qq.TextChannel`。
 
-    All lookups are via the local guild. If in a DM context, then the lookup
-    is done by the global cache.
+    所有查找都是通过本地频道进行的。如果在 DM  context 中，则查找由全局缓存完成。
 
-    The lookup strategy is as follows (in order):
+    查找策略如下（按顺序）：
 
-    1. Lookup by ID.
-    2. Lookup by mention.
-    3. Lookup by name
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.ChannelNotFound` instead of generic :exc:`.BadArgument`
+    1. 通过 ID 查找。
+    2. 通过提及查找。
+    3. 按名称查找
     """
 
     async def convert(self, ctx: Context, argument: str) -> qq.TextChannel:
@@ -437,19 +393,15 @@ class TextChannelConverter(IDConverter[qq.TextChannel]):
 
 
 class VoiceChannelConverter(IDConverter[qq.VoiceChannel]):
-    """Converts to a :class:`~qq.VoiceChannel`.
+    """转换为 :class:`~qq.VoiceChannel`。
 
-    All lookups are via the local guild. If in a DM context, then the lookup
-    is done by the global cache.
+    所有查找都是通过本地频道进行的。如果在 DM  context 中，则查找由全局缓存完成。
 
-    The lookup strategy is as follows (in order):
+    查找策略如下（按顺序）：
 
-    1. Lookup by ID.
-    2. Lookup by mention.
-    3. Lookup by name
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.ChannelNotFound` instead of generic :exc:`.BadArgument`
+    1. 通过 ID 查找。
+    2. 通过提及查找。
+    3. 按名称查找
     """
 
     async def convert(self, ctx: Context, argument: str) -> qq.VoiceChannel:
@@ -457,49 +409,83 @@ class VoiceChannelConverter(IDConverter[qq.VoiceChannel]):
 
 
 class CategoryChannelConverter(IDConverter[qq.CategoryChannel]):
-    """Converts to a :class:`~qq.CategoryChannel`.
+    """转换为 :class:`~qq.CategoryChannel`。
 
-    All lookups are via the local guild. If in a DM context, then the lookup
-    is done by the global cache.
+    所有查找都是通过本地频道进行的。如果在 DM  context 中，则查找由全局缓存完成。
 
-    The lookup strategy is as follows (in order):
+    查找策略如下（按顺序）：
 
-    1. Lookup by ID.
-    2. Lookup by mention.
-    3. Lookup by name
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.ChannelNotFound` instead of generic :exc:`.BadArgument`
+    1. 通过 ID 查找。
+    2. 通过提及查找。
+    3. 按名称查找
     """
 
     async def convert(self, ctx: Context, argument: str) -> qq.CategoryChannel:
         return GuildChannelConverter._resolve_channel(ctx, argument, 'categories', qq.CategoryChannel)
 
 
+class AppChannelConverter(IDConverter[qq.AppChannel]):
+    """转换为 :class:`~qq.AppChannel`。
+
+    所有查找都是通过本地频道进行的。如果在 DM  context 中，则查找由全局缓存完成。
+
+    查找策略如下（按顺序）：
+
+    1. 通过 ID 查找。
+    2. 通过提及查找。
+    3. 按名称查找
+    """
+
+    async def convert(self, ctx: Context, argument: str) -> qq.CategoryChannel:
+        return GuildChannelConverter._resolve_channel(ctx, argument, 'app_channels', qq.CategoryChannel)
+
+
+class LiveChannelConverter(IDConverter[qq.LiveChannel]):
+    """转换为 :class:`~qq.LiveChannel`。
+
+    所有查找都是通过本地频道进行的。如果在 DM  context 中，则查找由全局缓存完成。
+
+    查找策略如下（按顺序）：
+
+    1. 通过 ID 查找。
+    2. 通过提及查找。
+    3. 按名称查找
+    """
+
+    async def convert(self, ctx: Context, argument: str) -> qq.CategoryChannel:
+        return GuildChannelConverter._resolve_channel(ctx, argument, 'live_channels', qq.CategoryChannel)
+
+
+class ThreadChannelConverter(IDConverter[qq.ThreadChannel]):
+    """转换为 :class:`~qq.ThreadChannel`。
+
+    所有查找都是通过本地频道进行的。如果在 DM  context 中，则查找由全局缓存完成。
+
+    查找策略如下（按顺序）：
+
+    1. 通过 ID 查找。
+    2. 通过提及查找。
+    3. 按名称查找
+    """
+
+    async def convert(self, ctx: Context, argument: str) -> qq.CategoryChannel:
+        return GuildChannelConverter._resolve_channel(ctx, argument, 'thread_channels', qq.CategoryChannel)
+
+
 class ColourConverter(Converter[qq.Colour]):
-    """Converts to a :class:`~qq.Colour`.
+    """转换为 :class:`~qq.Colour`。
 
-    .. versionchanged:: 1.5
-        Add an alias named ColorConverter
-
-    The following formats are accepted:
+    接受以下格式：
 
     - ``0x<hex>``
     - ``#<hex>``
     - ``0x#<hex>``
     - ``rgb(<number>, <number>, <number>)``
-    - Any of the ``classmethod`` in :class:`~qq.Colour`
+    - :class:`~qq.Colour` 中的任何 ``classmethod``
 
-        - The ``_`` in the name can be optionally replaced with spaces.
+        - 名称中的``_`` 可以选择替换为空格。
 
-    Like CSS, ``<number>`` can be either 0-255 or 0-100% and ``<hex>`` can be
-    either a 6 digit hex number or a 3 digit hex shortcut (e.g. #fff).
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.BadColourArgument` instead of generic :exc:`.BadArgument`
-
-    .. versionchanged:: 1.7
-        Added support for ``rgb`` function and 3-digit hex shortcuts
+    像 CSS 一样，``<number>`` 可以是 0-255 或 0-100%，而 ``<hex>`` 可以是 6 位十六进制数字或 3 位十六进制快捷方式（例如 fff）。
     """
 
     RGB_REGEX = re.compile(r'rgb\s*\((?P<r>[0-9]{1,3}%?)\s*,\s*(?P<g>[0-9]{1,3}%?)\s*,\s*(?P<b>[0-9]{1,3}%?)\s*\)')
@@ -563,19 +549,15 @@ ColorConverter = ColourConverter
 
 
 class RoleConverter(IDConverter[qq.Role]):
-    """Converts to a :class:`~qq.Role`.
+    """转换为 :class:`~qq.Role`。
 
-    All lookups are via the local guild. If in a DM context, the converter raises
-    :exc:`.NoPrivateMessage` exception.
+    所有查找都是通过本地频道进行的。如果在 DM  context 中，转换器会引发 :exc:`.NoPrivateMessage` 异常。
 
-    The lookup strategy is as follows (in order):
+    查找策略如下（按顺序）：
 
-    1. Lookup by ID.
-    2. Lookup by mention.
-    3. Lookup by name
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.RoleNotFound` instead of generic :exc:`.BadArgument`
+    1. 通过 ID 查找。
+    2. 通过提及查找。
+    3. 按名称查找
     """
 
     async def convert(self, ctx: Context, argument: str) -> qq.Role:
@@ -595,14 +577,12 @@ class RoleConverter(IDConverter[qq.Role]):
 
 
 class GuildConverter(IDConverter[qq.Guild]):
-    """Converts to a :class:`~qq.Guild`.
+    """转换为 :class:`~qq.Guild`。
 
-    The lookup strategy is as follows (in order):
+    查找策略如下（按顺序）：
 
-    1. Lookup by ID.
-    2. Lookup by name. (There is no disambiguation for Guilds with multiple matching names).
-
-    .. versionadded:: 1.7
+    1. 通过 ID 查找.
+    2. 按名称查找。 （对于具有多个匹配名称的频道，没有消歧义）。
     """
 
     async def convert(self, ctx: Context, argument: str) -> qq.Guild:
@@ -622,21 +602,20 @@ class GuildConverter(IDConverter[qq.Guild]):
 
 
 class clean_content(Converter[str]):
-    """Converts the argument to mention scrubbed version of
-    said content.
+    """将参数转换为提及所述内容的清理版本。
 
-    This behaves similarly to :attr:`~qq.Message.clean_content`.
+    这与 :attr:`~qq.Message.clean_content` 的行为类似。
 
     Attributes
     ------------
     fix_channel_mentions: :class:`bool`
-        Whether to clean channel mentions.
+        是否清理频道提及。
     use_nicknames: :class:`bool`
-        Whether to use nicknames when transforming mentions.
+        转换提及时是否使用昵称。
     escape_markdown: :class:`bool`
-        Whether to also escape special markdown characters.
+        是否也转义特殊的 Markdown 字符。
     remove_markdown: :class:`bool`
-        Whether to also remove special markdown characters. This option is not supported with ``escape_markdown``
+        是否也删除特殊的 Markdown 字符。 ``escape_markdown`` 不支持此选项
 
         .. versionadded:: 1.7
     """
@@ -661,26 +640,26 @@ class clean_content(Converter[str]):
 
             def resolve_member(id: int) -> str:
                 m = _utils_get(msg.mentions, id=id) or ctx.guild.get_member(id)
-                return f'@{m.display_name if self.use_nicknames else m.name}' if m else '@deleted-user'
+                return f'@{m.display_name if self.use_nicknames else m.name}' if m else '@已删除用户'
 
             def resolve_role(id: int) -> str:
                 r = _utils_get(msg.role_mentions, id=id) or ctx.guild.get_role(id)
-                return f'@{r.name}' if r else '@deleted-role'
+                return f'@{r.name}' if r else '@已删除身份组'
 
         else:
 
             def resolve_member(id: int) -> str:
                 m = _utils_get(msg.mentions, id=id) or ctx.bot.get_user(id)
-                return f'@{m.name}' if m else '@deleted-user'
+                return f'@{m.name}' if m else '@已删除用户'
 
             def resolve_role(id: int) -> str:
-                return '@deleted-role'
+                return '@已删除身份组'
 
         if self.fix_channel_mentions and ctx.guild:
 
             def resolve_channel(id: int) -> str:
                 c = ctx.guild.get_channel(id)
-                return f'#{c.name}' if c else '#deleted-channel'
+                return f'#{c.name}' if c else '#已删除频道'
 
         else:
 
@@ -711,14 +690,12 @@ class clean_content(Converter[str]):
 
 
 class Greedy(List[T]):
-    r"""A special converter that greedily consumes arguments until it can't.
-    As a consequence of this behaviour, most input errors are silently discarded,
-    since it is used as an indicator of when to stop parsing.
+    r"""一个特殊的转换器，贪婪地消耗参数，直到它不能。
+    由于这种行为，大多数输入错误都被悄悄丢弃，因为它被用作何时停止解析的指示器。
 
-    When a parser error is met the greedy converter stops converting, undoes the
-    internal string parsing routine, and continues parsing regularly.
+    当遇到解析器错误时，贪婪转换器停止转换，撤消内部字符串解析例程，并继续定期解析。
 
-    For example, in the following code:
+    例如，在以下代码中：
 
     .. code-block:: python3
 
@@ -726,10 +703,9 @@ class Greedy(List[T]):
         async def test(ctx, numbers: Greedy[int], reason: str):
             await ctx.send("numbers: {}, reason: {}".format(numbers, reason))
 
-    An invocation of ``[p]test 1 2 3 4 5 6 hello`` would pass ``numbers`` with
-    ``[1, 2, 3, 4, 5, 6]`` and ``reason`` with ``hello``\.
+    调用 ``[p]test 1 2 3 4 5 6 hello`` 会传递 ``numbers`` 为 ``[1, 2, 3, 4, 5, 6]`` 和 ``reason`` 为 ``hello``\.
 
-    For more information, check :ref:`ext_commands_special_converters`.
+    有关更多信息，请查看 :ref:`ext_commands_special_converters`。
     """
 
     __slots__ = ('converter',)
@@ -745,20 +721,20 @@ class Greedy(List[T]):
         if not isinstance(params, tuple):
             params = (params,)
         if len(params) != 1:
-            raise TypeError('Greedy[...] only takes a single argument')
+            raise TypeError('Greedy[...] 只接受一个参数')
         converter = params[0]
 
         origin = getattr(converter, '__origin__', None)
         args = getattr(converter, '__args__', ())
 
         if not (callable(converter) or isinstance(converter, Converter) or origin is not None):
-            raise TypeError('Greedy[...] expects a type or a Converter instance.')
+            raise TypeError('Greedy[...] 需要一个类型或一个 Converter 实例。')
 
         if converter in (str, type(None)) or origin is Greedy:
-            raise TypeError(f'Greedy[{converter.__name__}] is invalid.')
+            raise TypeError(f'Greedy[{converter.__name__}] 无效。')
 
         if origin is Union and type(None) in args:
-            raise TypeError(f'Greedy[{converter!r}] is invalid.')
+            raise TypeError(f'Greedy[{converter!r}] 无效。')
 
         return cls(converter=converter)
 
@@ -841,38 +817,36 @@ async def _actual_conversion(ctx: Context, converter, argument: str, param: insp
         except AttributeError:
             name = converter.__class__.__name__
 
-        raise BadArgument(f'Converting to "{name}" failed for parameter "{param.name}".') from exc
+        raise BadArgument(f'参数“{param.name}”转换为“{name}”失败。') from exc
 
 
 async def run_converters(ctx: Context, converter, argument: str, param: inspect.Parameter):
     """|coro|
 
-    Runs converters for a given converter, argument, and parameter.
+    为给定的转换器、参数和参数运行转换器。
 
-    This function does the same work that the library does under the hood.
-
-    .. versionadded:: 2.0
+    此函数执行的工作与库在后台执行的工作相同。
 
     Parameters
     ------------
     ctx: :class:`Context`
-        The invocation context to run the converters under.
+        在其下运行转换器的调用 context 。
     converter: Any
-        The converter to run, this corresponds to the annotation in the function.
+        要运行的转换器，这对应于函数中的注释。
     argument: :class:`str`
-        The argument to convert to.
+        要转换为的参数。
     param: :class:`inspect.Parameter`
-        The parameter being converted. This is mainly for error reporting.
+        被转换的参数。这主要用于错误报告。
 
     Raises
     -------
     CommandError
-        The converter failed to convert.
+        转换器无法转换。
 
     Returns
     --------
     Any
-        The resulting conversion.
+        由此产生的转换。
     """
     origin = getattr(converter, '__origin__', None)
 
