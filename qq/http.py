@@ -10,7 +10,7 @@ from urllib.parse import quote as _uriquote
 import aiohttp
 import requests
 
-from . import __version__, utils, role
+from . import __version__, utils
 from .error import HTTPException, Forbidden, NotFound, QQServerError, LoginFailure, GatewayNotFound
 from .gateway import QQClientWebSocketResponse
 from .types.message import Message
@@ -209,7 +209,7 @@ class HTTPClient:
         # Necessary to get aiohttp to stop complaining about session creation
         self.__session = aiohttp.ClientSession(connector=self.connector, ws_response_class=QQClientWebSocketResponse)
         old_token = self.token
-        self.token = token
+        self.token = 'Bot ' + token
 
         try:
             data = await self.request(Route('GET', '/users/@me'))

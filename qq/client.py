@@ -3,24 +3,27 @@ from __future__ import annotations
 __all__ = ('Client',)
 
 import asyncio
-import datetime
 import logging
 import signal
 import sys
 import traceback
-from typing import Optional, Any, Dict, Callable, List, Tuple, Coroutine, TypeVar, Generator, Union
+from typing import Optional, Any, Dict, Callable, List, Tuple, Coroutine, TypeVar, Generator, Union, TYPE_CHECKING
 
 import aiohttp
 
-from .member import Member
 from .backoff import ExponentialBackoff
 from .error import HTTPException, GatewayNotFound, ConnectionClosed
 from .state import ConnectionState
 from .gateway import QQWebSocket, ReconnectWebSocket
-from .guild import Guild, GuildChannel
+from .guild import Guild
 from .http import HTTPClient
 from .iterators import GuildIterator
 from .user import ClientUser, User
+
+if TYPE_CHECKING:
+    from .abc import GuildChannel
+    from .member import Member
+
 
 URL = r'https://api.sgroup.qq.com'
 _log = logging.getLogger(__name__)
@@ -83,8 +86,6 @@ class Client:
         从 0 开始并且小于 :attr:`.shard_count` 的整数。
     shard_count: Optional[:class:`int`]
         分片总数。
-    app_id: :class:`int`
-        客户端的 App ID。
     intents: :class:`Intents`
         您要为会话启用的意图。 这是一种禁用和启用某些网关事件触发和发送的方法。
          如果未给出，则默认为默认的 Intents 类。
@@ -111,7 +112,7 @@ class Client:
         self.ws: QQWebSocket = None  # type: ignore
         self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop() if loop is None else loop
         self._listeners: Dict[str, List[Tuple[asyncio.Future, Callable[..., bool]]]] = {}
-        self.token = f"{options.pop('app_id', None)}.{options.pop('token', None)}"
+        self.token = ""
         self.shard_id: Optional[int] = options.get('shard_id')
         self.shard_count: Optional[int] = options.get('shard_count')
         self._enable_debug_events: bool = options.pop('enable_debug_events', False)
@@ -241,7 +242,7 @@ class Client:
             发生未知的 HTTP 相关错误，通常是当它不是 200 或已知的错误。
         """
         _log.info('使用静态令牌登录')
-
+        self.token = token
         data = await self.http.static_login(token.strip())
         self._connection.user = ClientUser(state=self._connection, data=data)
 
