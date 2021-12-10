@@ -46,9 +46,29 @@ class MyClient(Client):
 
 if __name__ == '__main__':
     client = MyClient()
-    client.run(token=f'app_id.token')
+    client.run(token='app_id.token')
 ```
-当完成初始化输出当前机器人用户对象，收到带有 ``ping`` 的信息事件时发送 ``pong``
+
+### Bot 示例
+````python
+import qq
+from qq.ext import commands
+
+bot = commands.Bot(command_prefix='>', owner_id='你的用户ID') # owner_id 是 int 类型
+
+@bot.event
+async def on_ready():
+    print(f'以 {bot.user} 身份登录（ID：{bot.user.id}）')
+    print('------')
+
+@bot.command()
+async def ping(ctx):
+    await ctx.send('pong')
+
+bot.run('app_id.token')
+````
+
+你可以在 example 目录中找到更多示例。
 
 ## 链接
 * [文档](https://qqpy.readthedocs.io/zh_CN/latest/?badge=latest)

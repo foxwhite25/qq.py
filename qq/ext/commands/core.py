@@ -51,14 +51,12 @@ __all__ = (
     'command',
     'group',
     'has_role',
-    'has_permissions',
     'has_any_role',
     'check',
     'check_any',
     'before_invoke',
     'after_invoke',
     'bot_has_role',
-    'bot_has_permissions',
     'bot_has_any_role',
     'cooldown',
     'dynamic_cooldown',
@@ -66,9 +64,6 @@ __all__ = (
     'dm_only',
     'guild_only',
     'is_owner',
-    'is_nsfw',
-    'has_guild_permissions',
-    'bot_has_guild_permissions'
 )
 
 MISSING: Any = qq.utils.MISSING

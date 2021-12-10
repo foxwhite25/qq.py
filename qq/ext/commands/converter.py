@@ -34,22 +34,14 @@ __all__ = (
     'MessageConverter',
     'PartialMessageConverter',
     'TextChannelConverter',
-    'InviteConverter',
     'GuildConverter',
     'RoleConverter',
-    'GameConverter',
     'ColourConverter',
     'ColorConverter',
     'VoiceChannelConverter',
-    'StageChannelConverter',
-    'EmojiConverter',
-    'PartialEmojiConverter',
     'CategoryChannelConverter',
     'IDConverter',
-    'StoreChannelConverter',
-    'ThreadConverter',
     'GuildChannelConverter',
-    'GuildStickerConverter',
     'clean_content',
     'Greedy',
     'run_converters',
@@ -69,7 +61,6 @@ _utils_get = qq.utils.get
 T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)
 CT = TypeVar('CT', bound=qq.abc.GuildChannel)
-TT = TypeVar('TT', bound=qq.Thread)
 
 
 @runtime_checkable
@@ -425,30 +416,6 @@ class GuildChannelConverter(IDConverter[qq.abc.GuildChannel]):
 
         return result
 
-    @staticmethod
-    def _resolve_thread(ctx: Context, argument: str, attribute: str, type: Type[TT]) -> TT:
-        bot = ctx.bot
-
-        match = IDConverter._get_id_match(argument) or re.match(r'<#([0-9]{15,20})>$', argument)
-        result = None
-        guild = ctx.guild
-
-        if match is None:
-            # not a mention
-            if guild:
-                iterable: Iterable[TT] = getattr(guild, attribute)
-                result: Optional[TT] = qq.utils.get(iterable, name=argument)
-        else:
-            thread_id = int(match.group(1))
-            if guild:
-                result = guild.get_thread(thread_id)
-
-        if not result or not isinstance(result, type):
-            raise ThreadNotFound(argument)
-
-        return result
-
-
 class TextChannelConverter(IDConverter[qq.TextChannel]):
     """Converts to a :class:`~qq.TextChannel`.
 
@@ -489,25 +456,6 @@ class VoiceChannelConverter(IDConverter[qq.VoiceChannel]):
         return GuildChannelConverter._resolve_channel(ctx, argument, 'voice_channels', qq.VoiceChannel)
 
 
-class StageChannelConverter(IDConverter[qq.StageChannel]):
-    """Converts to a :class:`~qq.StageChannel`.
-
-    .. versionadded:: 1.7
-
-    All lookups are via the local guild. If in a DM context, then the lookup
-    is done by the global cache.
-
-    The lookup strategy is as follows (in order):
-
-    1. Lookup by ID.
-    2. Lookup by mention.
-    3. Lookup by name
-    """
-
-    async def convert(self, ctx: Context, argument: str) -> qq.StageChannel:
-        return GuildChannelConverter._resolve_channel(ctx, argument, 'stage_channels', qq.StageChannel)
-
-
 class CategoryChannelConverter(IDConverter[qq.CategoryChannel]):
     """Converts to a :class:`~qq.CategoryChannel`.
 
@@ -526,43 +474,6 @@ class CategoryChannelConverter(IDConverter[qq.CategoryChannel]):
 
     async def convert(self, ctx: Context, argument: str) -> qq.CategoryChannel:
         return GuildChannelConverter._resolve_channel(ctx, argument, 'categories', qq.CategoryChannel)
-
-
-class StoreChannelConverter(IDConverter[qq.StoreChannel]):
-    """Converts to a :class:`~qq.StoreChannel`.
-
-    All lookups are via the local guild. If in a DM context, then the lookup
-    is done by the global cache.
-
-    The lookup strategy is as follows (in order):
-
-    1. Lookup by ID.
-    2. Lookup by mention.
-    3. Lookup by name.
-
-    .. versionadded:: 1.7
-    """
-
-    async def convert(self, ctx: Context, argument: str) -> qq.StoreChannel:
-        return GuildChannelConverter._resolve_channel(ctx, argument, 'channels', qq.StoreChannel)
-
-
-class ThreadConverter(IDConverter[qq.Thread]):
-    """Coverts to a :class:`~qq.Thread`.
-
-    All lookups are via the local guild.
-
-    The lookup strategy is as follows (in order):
-
-    1. Lookup by ID.
-    2. Lookup by mention.
-    3. Lookup by name.
-
-    .. versionadded: 2.0
-    """
-
-    async def convert(self, ctx: Context, argument: str) -> qq.Thread:
-        return GuildChannelConverter._resolve_thread(ctx, argument, 'threads', qq.Thread)
 
 
 class ColourConverter(Converter[qq.Colour]):
@@ -683,30 +594,6 @@ class RoleConverter(IDConverter[qq.Role]):
         return result
 
 
-class GameConverter(Converter[qq.Game]):
-    """Converts to :class:`~qq.Game`."""
-
-    async def convert(self, ctx: Context, argument: str) -> qq.Game:
-        return qq.Game(name=argument)
-
-
-class InviteConverter(Converter[qq.Invite]):
-    """Converts to a :class:`~qq.Invite`.
-
-    This is done via an HTTP request using :meth:`.Bot.fetch_invite`.
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.BadInviteArgument` instead of generic :exc:`.BadArgument`
-    """
-
-    async def convert(self, ctx: Context, argument: str) -> qq.Invite:
-        try:
-            invite = await ctx.bot.fetch_invite(argument)
-            return invite
-        except Exception as exc:
-            raise BadInviteArgument(argument) from exc
-
-
 class GuildConverter(IDConverter[qq.Guild]):
     """Converts to a :class:`~qq.Guild`.
 
@@ -731,110 +618,6 @@ class GuildConverter(IDConverter[qq.Guild]):
 
             if result is None:
                 raise GuildNotFound(argument)
-        return result
-
-
-class EmojiConverter(IDConverter[qq.Emoji]):
-    """Converts to a :class:`~qq.Emoji`.
-
-    All lookups are done for the local guild first, if available. If that lookup
-    fails, then it checks the client's global cache.
-
-    The lookup strategy is as follows (in order):
-
-    1. Lookup by ID.
-    2. Lookup by extracting ID from the emoji.
-    3. Lookup by name
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.EmojiNotFound` instead of generic :exc:`.BadArgument`
-    """
-
-    async def convert(self, ctx: Context, argument: str) -> qq.Emoji:
-        match = self._get_id_match(argument) or re.match(r'<a?:[a-zA-Z0-9\_]{1,32}:([0-9]{15,20})>$', argument)
-        result = None
-        bot = ctx.bot
-        guild = ctx.guild
-
-        if match is None:
-            # Try to get the emoji by name. Try local guild first.
-            if guild:
-                result = qq.utils.get(guild.emojis, name=argument)
-
-            if result is None:
-                result = qq.utils.get(bot.emojis, name=argument)
-        else:
-            emoji_id = int(match.group(1))
-
-            # Try to look up emoji by id.
-            result = bot.get_emoji(emoji_id)
-
-        if result is None:
-            raise EmojiNotFound(argument)
-
-        return result
-
-
-class PartialEmojiConverter(Converter[qq.PartialEmoji]):
-    """Converts to a :class:`~qq.PartialEmoji`.
-
-    This is done by extracting the animated flag, name and ID from the emoji.
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.PartialEmojiConversionFailure` instead of generic :exc:`.BadArgument`
-    """
-
-    async def convert(self, ctx: Context, argument: str) -> qq.PartialEmoji:
-        match = re.match(r'<(a?):([a-zA-Z0-9\_]{1,32}):([0-9]{15,20})>$', argument)
-
-        if match:
-            emoji_animated = bool(match.group(1))
-            emoji_name = match.group(2)
-            emoji_id = int(match.group(3))
-
-            return qq.PartialEmoji.with_state(
-                ctx.bot._connection, animated=emoji_animated, name=emoji_name, id=emoji_id
-            )
-
-        raise PartialEmojiConversionFailure(argument)
-
-
-class GuildStickerConverter(IDConverter[qq.GuildSticker]):
-    """Converts to a :class:`~qq.GuildSticker`.
-
-    All lookups are done for the local guild first, if available. If that lookup
-    fails, then it checks the client's global cache.
-
-    The lookup strategy is as follows (in order):
-
-    1. Lookup by ID.
-    3. Lookup by name
-
-    .. versionadded:: 2.0
-    """
-
-    async def convert(self, ctx: Context, argument: str) -> qq.GuildSticker:
-        match = self._get_id_match(argument)
-        result = None
-        bot = ctx.bot
-        guild = ctx.guild
-
-        if match is None:
-            # Try to get the sticker by name. Try local guild first.
-            if guild:
-                result = qq.utils.get(guild.stickers, name=argument)
-
-            if result is None:
-                result = qq.utils.get(bot.stickers, name=argument)
-        else:
-            sticker_id = int(match.group(1))
-
-            # Try to look up sticker by id.
-            result = bot.get_sticker(sticker_id)
-
-        if result is None:
-            raise GuildStickerNotFound(argument)
-
         return result
 
 
