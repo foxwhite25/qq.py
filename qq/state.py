@@ -17,10 +17,10 @@ from .object import Object
 from .user import User, ClientUser
 from .guild import Guild
 from .message import Message
+from .member import Member
 
 if TYPE_CHECKING:
     from .abc import GuildChannel
-    from .member import Member
     from .http import HTTPClient
     from .client import Client
     from .gateway import QQWebSocket
