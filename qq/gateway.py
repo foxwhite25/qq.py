@@ -30,12 +30,12 @@ class QQClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
 
 
 class WebSocketClosure(Exception):
-    """An exception to make up for the fact that aiohttp doesn't signal closure."""
+    """一个来对付 aiohttp 不发出关闭信号的错误。"""
     pass
 
 
 class ReconnectWebSocket(Exception):
-    """Signals to safely reconnect the websocket."""
+    """安全地重新连接 websocket 的信号。"""
 
     def __init__(self, shard_id, *, resume=True):
         self.shard_id = shard_id

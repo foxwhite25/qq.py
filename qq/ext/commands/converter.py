@@ -96,7 +96,7 @@ class Converter(Protocol[T_co]):
         :exc:`.BadArgument`
             转换器无法转换参数。
         """
-        raise NotImplementedError('Derived classes need to implement this.')
+        raise NotImplementedError('派生类需要实现它。')
 
 
 _ID_REGEX = re.compile(r'([0-9]{15,20})$')
@@ -741,9 +741,9 @@ class Greedy(List[T]):
 
 def _convert_to_bool(argument: str) -> bool:
     lowered = argument.lower()
-    if lowered in ('yes', 'y', 'true', 't', '1', 'enable', 'on'):
+    if lowered in ('yes', 'y', 'true', 't', '1', 'enable', 'on', '开', '打开', '启用', '是', '真'):
         return True
-    elif lowered in ('no', 'n', 'false', 'f', '0', 'disable', 'off'):
+    elif lowered in ('no', 'n', 'false', 'f', '0', 'disable', 'off', '关', '关闭', '禁用', '否', '假'):
         return False
     else:
         raise BadBoolArgument(lowered)

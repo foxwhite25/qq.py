@@ -16,7 +16,7 @@ extras_require = {
 
 setup(
     name='qq.py',
-    version='0.2.3',
+    version='1.0.0',
     description='QQ 频道 API 的 Python Wrapper',
     py_modules=["qq"],
     packages=['qq', "qq.types"],
@@ -27,7 +27,7 @@ setup(
     extras_require=extras_require,
     python_requires='>=3.8.0',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
         'Intended Audience :: Developers',
         'Natural Language :: English',

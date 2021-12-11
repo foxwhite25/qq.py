@@ -41,10 +41,10 @@ class Messageable:
 
     以下实现了这个 ABC：
 
-    - :class:`~discord.TextChannel`
-    - :class:`~discord.User`
-    - :class:`~discord.Member`
-    - :class:`~discord.ext.commands.Context`
+    - :class:`~qq.TextChannel`
+    - :class:`~qq.User`
+    - :class:`~qq.Member`
+    - :class:`~qq.ext.commands.Context`
 
     """
 
@@ -85,7 +85,7 @@ class Messageable:
         image: :class:`str`
             要发送的图片链接
         reference: Union[:class:`~qq.Message`, :class:`~qq.MessageReference`, :class:`~qq.PartialMessage`]
-            对您正在回复的 :class:`~qq.Message` 的引用，可以使用 :meth:`~qq.Message.to_reference` 创建或直接作为 :class:`~discord.Message` 传递。
+            对您正在回复的 :class:`~qq.Message` 的引用，可以使用 :meth:`~qq.Message.to_reference` 创建或直接作为 :class:`~qq.Message` 传递。
         mention_author: Optional[:class:`Member`]
             如果设置了，将会在消息前面提及该用户。
 
@@ -97,8 +97,8 @@ class Messageable:
         ~qq.Forbidden
             您没有发送消息的适当权限。
         ~qq.InvalidArgument
-            ``reference`` 不是 :class:`~discord.Message` 、
-            :class:`~discord.MessageReference` 或 :class:`~discord.PartialMessage` 。
+            ``reference`` 不是 :class:`~qq.Message` 、
+            :class:`~qq.MessageReference` 或 :class:`~qq.PartialMessage` 。
 
         Returns
         ---------
@@ -150,7 +150,7 @@ class Messageable:
 
         Returns
         --------
-        :class:`~discord.Message`
+        :class:`~qq.Message`
             消息要求。
         """
         id = id
@@ -167,12 +167,12 @@ class GuildChannel:
 
     以下实现了这个 ABC：
 
-    - :class:`~discord.TextChannel`
-    - :class:`~discord.VoiceChannel`
-    - :class:`~discord.CategoryChannel`
-    - :class:`~discord.ThreadChannel`
-    - :class:`~discord.LiveChannel`
-    - :class:`~discord.AppChannel`
+    - :class:`~qq.TextChannel`
+    - :class:`~qq.VoiceChannel`
+    - :class:`~qq.CategoryChannel`
+    - :class:`~qq.ThreadChannel`
+    - :class:`~qq.LiveChannel`
+    - :class:`~qq.AppChannel`
 
     Attributes
     -----------
@@ -279,7 +279,7 @@ class GuildChannel:
 
     @property
     def category(self) -> Optional[CategoryChannel]:
-        """Optional[:class:`~discord.CategoryChannel`]: 此频道所属的类别。如果没有类别，则为 ``None``。
+        """Optional[:class:`~qq.CategoryChannel`]: 此频道所属的类别。如果没有类别，则为 ``None``。
         """
         return self.guild.get_channel(self.category_id)  # type: ignore
 

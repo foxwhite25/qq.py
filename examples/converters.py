@@ -82,7 +82,7 @@ async def ignore(ctx: commands.Context, target: typing.Union[qq.Member, qq.TextC
     # The `commands` framework attempts a conversion of each type in this Union *in order*.
     # So, it will attempt to convert whatever is passed to `target` to a `qq.Member` instance.
     # If that fails, it will attempt to convert it to a `qq.TextChannel` instance.
-    # See: https://qqpy.readthedocs.io/en/latest/ext/commands/commands.html#typing-union
+    # See: https://qqpy.readthedocs.io/zh_CN/latest/ext/commands/commands.html#typing-union
     # NOTE: If a Union typehint converter fails it will raise `commands.BadUnionArgument`
     # instead of `commands.BadArgument`.
 
@@ -98,7 +98,7 @@ async def ignore(ctx: commands.Context, target: typing.Union[qq.Member, qq.TextC
 async def multiply(ctx: commands.Context, number: int, maybe: bool):
     # We want an `int` and a `bool` parameter here.
     # `bool` is a slightly special case, as shown here:
-    # See: https://qqpy.readthedocs.io/en/latest/ext/commands/commands.html#bool
+    # See: https://qqpy.readthedocs.io/zh_CN/latest/ext/commands/commands.html#bool
 
     if maybe is True:
         return await ctx.send(number * 2)
