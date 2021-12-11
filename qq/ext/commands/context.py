@@ -47,7 +47,7 @@ class Context(qq.abc.Messageable, Generic[BotT]):
     该类包含大量元数据，可帮助您更多地了解调用的实际情况。
     这个类不是手动创建的，而是作为第一个参数传递给命令的。
 
-    这个类实现了:class:`~qq.abc.Messageable` ABC。
+    这个类实现了 :class:`~qq.abc.Messageable` ABC。
 
     Attributes
     -----------

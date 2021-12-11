@@ -406,7 +406,7 @@ class FlagConverter(metaclass=FlagsMeta):
     """允许用户友好标志语法的转换器。
 
     这些标志是使用 :pep:`526` 类型注释定义的，类似于 Python 模块:mod:`dataclasses`。
-    有关此转换器如何工作的更多信息，请查看相应的:ref:`文档 <ext_commands_flag_converter>`。
+    有关此转换器如何工作的更多信息，请查看相应的 :ref:`文档 <ext_commands_flag_converter>` 。
 
     .. container:: operations
 

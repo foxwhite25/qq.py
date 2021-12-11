@@ -57,8 +57,8 @@
   :maxdepth: 1
 
   api
-  qq.ext.commands API Reference <ext/commands/api.rst>
-  qq.ext.tasks API Reference <ext/tasks/index.rst>
+  qq.ext.commands API 参考 <ext/commands/api.rst>
+  qq.ext.tasks API 参考 <ext/tasks/index.rst>
 
 Meta
 ------
