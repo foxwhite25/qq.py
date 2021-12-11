@@ -1,6 +1,5 @@
 :orphan:
 
-.. versionadded:: 0.1.0
 .. _logging_setup:
 
 设置日志
