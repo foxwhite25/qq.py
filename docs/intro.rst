@@ -22,11 +22,11 @@ qq.py 适用于 Python 3.8 或更高版本。不提供对早期 Python 版本的
 
 你可以直接从 PyPI 获取库: ::
 
-    python3 -m pip install -U discord.py
+    python3 -m pip install -U qq.py
 
 如果你使用的是 Windows，则应使用以下内容代替: ::
 
-    py -3 -m pip install -U discord.py
+    py -3 -m pip install -U qq.py
 
 虚拟环境
 ~~~~~~~~~~~~~~~~~~~~~
@@ -68,7 +68,7 @@ qq.py 适用于 Python 3.8 或更高版本。不提供对早期 Python 版本的
 基本概念
 ---------------
 
-qq.py 围绕着 :ref:`事件 <discord-api-events>` 运作。
+qq.py 围绕着 :ref:`事件 <qq-api-events>` 运作。
 事件是你收听然后响应的内容。例如，当一条消息发生时，你将收到一个可以响应的事件。
 
 展示事件如何工作的一个快速示例：

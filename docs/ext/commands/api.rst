@@ -275,22 +275,10 @@ HelpCommand
 .. autofunction:: qq.ext.commands.has_role(item)
     :decorator:
 
-.. autofunction:: qq.ext.commands.has_permissions(**perms)
-    :decorator:
-
-.. autofunction:: qq.ext.commands.has_guild_permissions(**perms)
-    :decorator:
-
 .. autofunction:: qq.ext.commands.has_any_role(*items)
     :decorator:
 
 .. autofunction:: qq.ext.commands.bot_has_role(item)
-    :decorator:
-
-.. autofunction:: qq.ext.commands.bot_has_permissions(**perms)
-    :decorator:
-
-.. autofunction:: qq.ext.commands.bot_has_guild_permissions(**perms)
     :decorator:
 
 .. autofunction:: qq.ext.commands.bot_has_any_role(*items)
@@ -381,13 +369,16 @@ Context
 .. autoclass:: qq.ext.commands.VoiceChannelConverter
     :members:
 
-.. autoclass:: qq.ext.commands.StoreChannelConverter
-    :members:
-
-.. autoclass:: qq.ext.commands.StageChannelConverter
-    :members:
-
 .. autoclass:: qq.ext.commands.CategoryChannelConverter
+    :members:
+
+.. autoclass:: qq.ext.commands.ThreadChannelConverter
+    :members:
+
+.. autoclass:: qq.ext.commands.LiveChannelConverter
+    :members:
+
+.. autoclass:: qq.ext.commands.AppChannelConverter
     :members:
 
 .. autoclass:: qq.ext.commands.InviteConverter
@@ -399,19 +390,7 @@ Context
 .. autoclass:: qq.ext.commands.RoleConverter
     :members:
 
-.. autoclass:: qq.ext.commands.GameConverter
-    :members:
-
 .. autoclass:: qq.ext.commands.ColourConverter
-    :members:
-
-.. autoclass:: qq.ext.commands.EmojiConverter
-    :members:
-
-.. autoclass:: qq.ext.commands.PartialEmojiConverter
-    :members:
-
-.. autoclass:: qq.ext.commands.ThreadConverter
     :members:
 
 .. autoclass:: qq.ext.commands.GuildStickerConverter
