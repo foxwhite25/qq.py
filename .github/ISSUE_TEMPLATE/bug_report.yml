@@ -11,12 +11,14 @@ body:
 
         请注意，此表格仅适用于错误！
   - type: input
+    id: intro
     attributes:
       label: 概要
       description: 错误报告的简单摘要
     validations:
       required: true
   - type: textarea
+    id: reproduce
     attributes:
       label: 复现步骤
       description: |
@@ -24,12 +26,14 @@ body:
     validations:
       required: true
   - type: textarea
+    id: code
     attributes:
       label: 最少的可复现代码
       description: |
         展示错误的一小段代码。
       render: python
   - type: textarea
+    id: expected_result
     attributes:
       label: 预期结果
       description: |
@@ -37,6 +41,7 @@ body:
     validations:
       required: true
   - type: textarea
+    id: actual_result
     attributes:
       label: 实际结果
       description: |
@@ -44,6 +49,7 @@ body:
     validations:
       required: true
   - type: input
+    id: intents
     attributes:
       label: Intents
       description: |
@@ -52,6 +58,7 @@ body:
     validations:
       required: true
   - type: textarea
+    id: system
     attributes:
       label: 系统信息
       description: |
@@ -59,8 +66,9 @@ body:
     validations:
       required: true
   - type: checkboxes
+    id: checklist
     attributes:
-      label: Checklist
+      label: 清单
       description: |
         让我们确保你在报告此问题时已正确完成搜索！
       options:
@@ -71,6 +79,7 @@ body:
         - label: 如果可见，我已从代码中删除了我的令牌。
           required: true
   - type: textarea
+    id: extra
     attributes:
       label: 其他资料
       description: 如果还有什么要说的，请在这里说。

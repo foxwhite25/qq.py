@@ -4,6 +4,7 @@ description: 为这个库推荐一个功能
 labels: [feature request]
 body:
   - type: input
+    id: intro
     attributes:
       label: 概要
       description: |
@@ -11,6 +12,7 @@ body:
     validations:
       required: true
   - type: dropdown
+    id: types
     attributes:
       multiple: false
       label: 什么是功能请求？
@@ -22,6 +24,7 @@ body:
     validations:
       required: true
   - type: textarea
+    id: problem
     attributes:
       label: 问题
       description: |
@@ -30,6 +33,7 @@ body:
     validations:
       required: true
   - type: textarea
+    id: solution
     attributes:
       label: 理想的解决方案
       description: |
@@ -38,6 +42,7 @@ body:
     validations:
       required: true
   - type: textarea
+    id: current
     attributes:
       label: 当前的解决方案
       description: |
@@ -45,6 +50,7 @@ body:
     validations:
       required: false
   - type: textarea
+    id: extra
     attributes:
       label: 其他资料
       description: 如果还有什么要说的，请在这里说。
