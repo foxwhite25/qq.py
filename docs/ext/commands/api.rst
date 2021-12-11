@@ -308,9 +308,6 @@ HelpCommand
 .. autofunction:: qq.ext.commands.is_owner(,)
     :decorator:
 
-.. autofunction:: qq.ext.commands.is_nsfw(,)
-    :decorator:
-
 .. _ext_commands_api_context:
 
 冷却
@@ -329,10 +326,7 @@ Context
 .. autoclass:: qq.ext.commands.Context
     :members:
     :inherited-members:
-    :exclude-members: history, typing
-
-    .. automethod:: qq.ext.commands.Context.history
-        :async-for:
+    :exclude-members: typing
 
     .. automethod:: qq.ext.commands.Context.typing
         :async-with:
