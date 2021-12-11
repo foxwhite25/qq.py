@@ -458,7 +458,7 @@ def loop(
     count: Optional[:class:`int`]
         要执行的循环次数，如果它应该是无限循环，则为“无”。
     reconnect: :class:`bool`
-        是否使用类似于 ``discord.Client.connect`` 中使用的指数退避算法处理错误并重新启动任务。
+        是否使用类似于 ``qq.Client.connect`` 中使用的指数退避算法处理错误并重新启动任务。
     loop: :class:`asyncio.AbstractEventLoop`
         用于注册任务的循环，如果没有给出，则默认为 :func:`asyncio.get_event_loop`。
 

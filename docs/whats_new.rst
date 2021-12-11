@@ -1,7 +1,7 @@
 .. currentmodule:: qq
 
-.. |commands| replace:: [:ref:`ext.commands <discord_ext_commands>`]
-.. |tasks| replace:: [:ref:`ext.tasks <discord_ext_tasks>`]
+.. |commands| replace:: [:ref:`ext.commands <qq_ext_commands>`]
+.. |tasks| replace:: [:ref:`ext.tasks <qq_ext_tasks>`]
 
 .. _whats_new:
 

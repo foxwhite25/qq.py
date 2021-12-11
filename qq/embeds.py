@@ -266,7 +266,7 @@ class Embed:
             self._colour = Colour(value=value)
         else:
             raise TypeError(
-                f'Expected discord.Colour, int, or Embed.Empty but received {value.__class__.__name__} instead.')
+                f'Expected qq.Colour, int, or Embed.Empty but received {value.__class__.__name__} instead.')
 
     color = colour
 

@@ -1,8 +1,8 @@
 # This example requires the 'members' privileged intents
 
-import discord
+import qq
 
-class MyClient(discord.Client):
+class MyClient(qq.Client):
     async def on_ready(self):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
         print('------')
@@ -14,7 +14,7 @@ class MyClient(discord.Client):
             await guild.system_channel.send(to_send)
 
 
-intents = discord.Intents.default()
+intents = qq.Intents.default()
 intents.members = True
 
 client = MyClient(intents=intents)

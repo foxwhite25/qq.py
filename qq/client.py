@@ -292,7 +292,7 @@ class Client:
 
         Returns
         --------
-        Optional[:class:`~discord.User`]
+        Optional[:class:`~qq.User`]
             如果未找到，则为 ``None`` 。
         """
         return self._connection.get_user(id)
@@ -484,7 +484,7 @@ class Client:
 
                 # We should only get this when an unhandled close code happens,
                 # such as a clean disconnect (1000) or a bad state (bad token, no sharding, etc)
-                # sometimes, discord sends us 1000 for unknown reasons, so we should reconnect
+                # sometimes, qq sends us 1000 for unknown reasons, so we should reconnect
                 # regardless and rely on is_closed instead
                 if isinstance(exc, ConnectionClosed):
                     if exc.code != 1000:
@@ -496,7 +496,7 @@ class Client:
                 await asyncio.sleep(retry)
                 # Always try to RESUME the connection
                 # If the connection is not RESUME-able then the gateway will invalidate the session.
-                # This is apparently what the official Discord client does.
+                # This is apparently what the official qq client does.
                 ws_params.update(sequence=self.ws.sequence, resume=True, session=self.ws.session_id)
 
     async def close(self) -> None:

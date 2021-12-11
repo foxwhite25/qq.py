@@ -20,7 +20,7 @@
     :caption: hello.py
     :emphasize-lines: 7,8
 
-    from discord.ext import commands
+    from qq.ext import commands
 
     @commands.command()
     async def hello(ctx):
@@ -39,7 +39,8 @@
 
 .. note::
 
-扩展路径似于导入机制。这意味着如果有一个文件夹，那么它必须是点限定的。例如，要在 ``plugins/hello.py`` 中加载扩展，然后我们使用字符串 ``plugins.hello``。
+扩展路径似于导入机制。这意味着如果有一个文件夹，那么它必须是点限定的。
+例如，要在 ``plugins/hello.py`` 中加载扩展，我们需要使用字符串 ``plugins.hello``。
 
 重装
 -----------

@@ -86,7 +86,7 @@ class MaybeUnlock:
 
 
 class HTTPClient:
-    """Represents an HTTP client sending HTTP requests to the Discord API."""
+    """Represents an HTTP client sending HTTP requests to the QQ API."""
 
     def __init__(
             self,

@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 
 class MessageReference:
-    """表示对 :class:`~discord.Message` 的引用。 这个类现在可以由用户构建。
+    """表示对 :class:`~qq.Message` 的引用。 这个类现在可以由用户构建。
 
     Attributes
     -----------
@@ -76,11 +76,11 @@ class MessageReference:
 
     @classmethod
     def from_message(cls: Type[MR], message: Message, *, fail_if_not_exists: bool = True) -> MR:
-        """从现有的 :class:`~discord.Message` 创建一个 :class:`MessageReference` 。
+        """从现有的 :class:`~qq.Message` 创建一个 :class:`MessageReference` 。
 
         Parameters
         ----------
-        message: :class:`~discord.Message`
+        message: :class:`~qq.Message`
             要转换为引用的消息。
         fail_if_not_exists: :class:`bool`
             回复引用的消息是否应该引发 :class:`HTTPException`
@@ -103,7 +103,7 @@ class MessageReference:
 
     @property
     def cached_message(self) -> Optional[Message]:
-        """Optional[:class:`~discord.Message`]: 缓存的消息（如果在内部消息缓存中找到）。"""
+        """Optional[:class:`~qq.Message`]: 缓存的消息（如果在内部消息缓存中找到）。"""
         return self._state and self._state._get_message(self.message_id)
 
     def __repr__(self) -> str:
@@ -596,7 +596,7 @@ class Message(Hashable):
 
         Returns
         ---------
-        :class:`~discord.MessageReference`
+        :class:`~qq.MessageReference`
             对此消息的引用。
         """
 
