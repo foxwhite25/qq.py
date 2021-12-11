@@ -16,9 +16,9 @@
 
 .. code-block:: python3
 
-    import discord
+    import qq
 
-    client = discord.Client()
+    client = qq.Client()
 
     @client.event
     async def on_ready():

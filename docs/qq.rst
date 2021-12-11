@@ -16,7 +16,7 @@
 3. 登陆后填写Bot信息
     填写之后就能获取到 ``Bot id`` 和 ``token``
 
-.. _discord_invite_bot:
+.. _qq_invite_bot:
 
 邀请你的机器人
 -------------------
