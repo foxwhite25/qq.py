@@ -94,7 +94,7 @@ class Loop(Generic[LF]):
         self._stop_next_iteration = False
 
         if self.count is not None and self.count <= 0:
-            raise ValueError('count must be greater than 0 or None.')
+            raise ValueError('计数必须大于 0 或无。')
 
         self.change_interval(seconds=seconds, minutes=minutes, hours=hours, time=time)
         self._last_iteration_failed = False
@@ -102,7 +102,7 @@ class Loop(Generic[LF]):
         self._next_iteration = None
 
         if not inspect.iscoroutinefunction(self.coro):
-            raise TypeError(f'Expected coroutine function, not {type(self.coro).__name__!r}.')
+            raise TypeError(f'预期协程函数，而不是 {type(self.coro).__name__!r}。')
 
     async def _call_loop_function(self, name: str, *args: Any, **kwargs: Any) -> None:
         coro = getattr(self, '_' + name)
@@ -234,7 +234,7 @@ class Loop(Generic[LF]):
 
     def start(self, *args: Any, **kwargs: Any) -> asyncio.Task[None]:
         if self._task is not MISSING and not self._task.done():
-            raise RuntimeError('Task is already launched and is not completed.')
+            raise RuntimeError('任务已启动且未完成。')
 
         if self._injected is not None:
             args = (self._injected, *args)
@@ -268,9 +268,9 @@ class Loop(Generic[LF]):
     def add_exception_type(self, *exceptions: Type[BaseException]) -> None:
         for exc in exceptions:
             if not inspect.isclass(exc):
-                raise TypeError(f'{exc!r} must be a class.')
+                raise TypeError(f'{exc!r} 必须是一个类。')
             if not issubclass(exc, BaseException):
-                raise TypeError(f'{exc!r} must inherit from BaseException.')
+                raise TypeError(f'{exc!r} 必须从 BaseException 继承。')
 
         self._valid_exception = (*self._valid_exception, *exceptions)
 
@@ -296,26 +296,26 @@ class Loop(Generic[LF]):
 
     async def _error(self, *args: Any) -> None:
         exception: Exception = args[-1]
-        print(f'Unhandled exception in internal background task {self.coro.__name__!r}.', file=sys.stderr)
+        print(f'内部后台任务 {self.coro.__name__!r} 中未处理的异常。', file=sys.stderr)
         traceback.print_exception(type(exception), exception, exception.__traceback__, file=sys.stderr)
 
     def before_loop(self, coro: FT) -> FT:
         if not inspect.iscoroutinefunction(coro):
-            raise TypeError(f'Expected coroutine function, received {coro.__class__.__name__!r}.')
+            raise TypeError(f'预期协程函数，收到 {coro.__class__.__name__!r}。')
 
         self._before_loop = coro
         return coro
 
     def after_loop(self, coro: FT) -> FT:
         if not inspect.iscoroutinefunction(coro):
-            raise TypeError(f'Expected coroutine function, received {coro.__class__.__name__!r}.')
+            raise TypeError(f'预期协程函数，收到 {coro.__class__.__name__!r}。')
 
         self._after_loop = coro
         return coro
 
     def error(self, coro: ET) -> ET:
         if not inspect.iscoroutinefunction(coro):
-            raise TypeError(f'Expected coroutine function, received {coro.__class__.__name__!r}.')
+            raise TypeError(f'预期协程函数，收到 {coro.__class__.__name__!r}。')
 
         self._error = coro  # type: ignore
         return coro
@@ -373,16 +373,16 @@ class Loop(Generic[LF]):
             return [inner]
         if not isinstance(time, Sequence):
             raise TypeError(
-                f'Expected datetime.time or a sequence of datetime.time for ``time``, received {type(time)!r} instead.'
+                f'预期 ``datetime.time`` 或 ``time`` 的一系列 ``datetime.time`` ，而是收到 {type(time)!r}。'
             )
         if not time:
-            raise ValueError('time parameter must not be an empty sequence.')
+            raise ValueError('时间参数不能是空序列。')
 
         ret: List[datetime.time] = []
         for index, t in enumerate(time):
             if not isinstance(t, dt):
                 raise TypeError(
-                    f'Expected a sequence of {dt!r} for ``time``, received {type(t).__name__!r} at index {index} instead.'
+                    f'预期 ``time`` 的 {dt!r} 序列，而是在索引 {index} 处收到 {type(t).__name__!r} 。'
                 )
             ret.append(t if t.tzinfo is not None else t.replace(tzinfo=utc))
 
@@ -403,7 +403,7 @@ class Loop(Generic[LF]):
             hours = hours or 0
             sleep = seconds + (minutes * 60.0) + (hours * 3600.0)
             if sleep < 0:
-                raise ValueError('Total number of seconds cannot be less than zero.')
+                raise ValueError('总秒数不能小于零。')
 
             self._sleep = sleep
             self._seconds = float(seconds)
@@ -412,7 +412,7 @@ class Loop(Generic[LF]):
             self._time: List[datetime.time] = MISSING
         else:
             if any((seconds, minutes, hours)):
-                raise TypeError('Cannot mix explicit time with relative time')
+                raise TypeError('不能将显式时间与相对时间混合')
             self._time = self._get_time_parameter(time)
             self._sleep = self._seconds = self._minutes = self._hours = MISSING
 
@@ -437,41 +437,37 @@ def loop(
     reconnect: bool = True,
     loop: asyncio.AbstractEventLoop = MISSING,
 ) -> Callable[[LF], Loop[LF]]:
-    """A decorator that schedules a task in the background for you with
-    optional reconnect logic. The decorator returns a :class:`Loop`.
+    """使用可选的重新连接逻辑在后台为您安排任务的装饰器。装饰器返回一个:class:`Loop`。
+
     Parameters
     ------------
     seconds: :class:`float`
-        The number of seconds between every iteration.
+        每次迭代之间的秒数。
     minutes: :class:`float`
-        The number of minutes between every iteration.
+        每次迭代之间的分钟数。
     hours: :class:`float`
-        The number of hours between every iteration.
+        每次迭代之间的小时数。
     time: Union[:class:`datetime.time`, Sequence[:class:`datetime.time`]]
-        The exact times to run this loop at. Either a non-empty list or a single
-        value of :class:`datetime.time` should be passed. Timezones are supported.
-        If no timezone is given for the times, it is assumed to represent UTC time.
-        This cannot be used in conjunction with the relative time parameters.
+        运行此循环的确切时间。应该传递一个非空列表或一个 :class:`datetime.time` 的值。支持时区。
+        如果没有给出时间的时区，则假定它代表 UTC 时间。这不能与相对时间参数结合使用。
+
         .. note::
-            Duplicate times will be ignored, and only run once.
-        .. versionadded:: 2.0
+
+            重复时间将被忽略，并且只运行一次。
+
     count: Optional[:class:`int`]
-        The number of loops to do, ``None`` if it should be an
-        infinite loop.
+        要执行的循环次数，如果它应该是无限循环，则为“无”。
     reconnect: :class:`bool`
-        Whether to handle errors and restart the task
-        using an exponential back-off algorithm similar to the
-        one used in :meth:`discord.Client.connect`.
+        是否使用类似于 ``discord.Client.connect`` 中使用的指数退避算法处理错误并重新启动任务。
     loop: :class:`asyncio.AbstractEventLoop`
-        The loop to use to register the task, if not given
-        defaults to :func:`asyncio.get_event_loop`.
+        用于注册任务的循环，如果没有给出，则默认为 :func:`asyncio.get_event_loop`。
+
     Raises
     --------
     ValueError
-        An invalid value was given.
+        给出了无效值。
     TypeError
-        The function was not a coroutine, an invalid value for the ``time`` parameter was passed,
-        or ``time`` parameter was passed in conjunction with relative time parameters.
+        该函数不是协程，传递的 ``time`` 参数的值无效，或者 ``time`` 参数与相对时间参数一起传递。
     """
 
     def decorator(func: LF) -> Loop[LF]:

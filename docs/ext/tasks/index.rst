@@ -16,7 +16,7 @@
 教程
 ---------
 
-一个简单的后台任务:class:`~qq.ext.commands.Cog`:
+一个简单的后台任务 :class:`~qq.ext.commands.Cog` :
 
 .. code-block:: python3
 

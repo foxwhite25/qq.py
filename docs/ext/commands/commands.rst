@@ -401,8 +401,6 @@ QQ转换器
 +--------------------------+-------------------------------------------------+
 | :class:`ThreadChannel`   | :class:`~ext.commands.ThreadChannelConverter`   |
 +--------------------------+-------------------------------------------------+
-| :class:`Invite`          | :class:`~ext.commands.InviteConverter`          |
-+--------------------------+-------------------------------------------------+
 | :class:`Guild`           | :class:`~ext.commands.GuildConverter`           |
 +--------------------------+-------------------------------------------------+
 | :class:`Role`            | :class:`~ext.commands.RoleConverter`            |
@@ -551,11 +549,11 @@ Greedy
 
 .. warning::
 
-    :class:`~ext.commands.Greedy` 和 :data:`typing.Optional`的使用功能强大且有用，
+    :class:`~ext.commands.Greedy` 和 :data:`typing.Optional` 的使用功能强大且有用，
     但要付出代价，它们会使你面临一些解析上的歧义，这可能会让某些人感到惊讶。
 
     例如，期望 :data:`typing.Optional` 的 :class:`qq.Member` 后跟 :class:`int` 的会捕获到本来期望传到 :class:`int` 的参数，
-    却因为 :class :`~ext.commands.MemberConverter` 支持使用 ID 而获取到了 :class:`qq.Member`。
+    却因为 :class:`~ext.commands.MemberConverter` 支持使用 ID 而获取到了 :class:`qq.Member`。
     你应该注意不要在代码中引入意外的解析歧义。一种技术是通过自定义转换器限制允许的预期语法或重新排序参数以最大程度地减少冲突。
 
     为了帮助解决一些解析歧义，:class:`str`、`None`、:data:`typing.Optional` 和 :class:`~ext.commands.Greedy`
