@@ -65,7 +65,7 @@ class Paginator:
         行间插入的字符串。 例如 换行符。
     """
 
-    def __init__(self, prefix='```', suffix='```', max_size=2000, linesep='\n'):
+    def __init__(self, prefix='', suffix='', max_size=2000, linesep='\n'):
         self.prefix = prefix
         self.suffix = suffix
         self.max_size = max_size
