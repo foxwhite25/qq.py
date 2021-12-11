@@ -326,10 +326,6 @@ Context
 .. autoclass:: qq.ext.commands.Context
     :members:
     :inherited-members:
-    :exclude-members: typing
-
-    .. automethod:: qq.ext.commands.Context.typing
-        :async-with:
 
 .. _ext_commands_api_converters:
 
