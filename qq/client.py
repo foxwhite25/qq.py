@@ -422,6 +422,7 @@ class Client:
         self.http.recreate()
 
     def is_closed(self) -> bool:
+        """:class:`bool`: 指示 websocket 连接是否关闭。"""
         return self._closed
 
     async def connect(self, *, reconnect: bool = True) -> None:
@@ -596,6 +597,7 @@ class Client:
                     await channel.send(f'Hello {msg.author}!')
 
         等待消息作者的 reaction ： ::
+
             @client.event
             async def on_message(message):
                 if message.content.startswith('$thumb'):

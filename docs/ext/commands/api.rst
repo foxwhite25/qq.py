@@ -234,32 +234,29 @@ HelpCommand
 .. class:: BucketType
     :module: qq.ext.commands
 
-    Specifies a type of bucket for, e.g. a cooldown.
+    指定桶的类型，例如 冷却。
 
     .. attribute:: default
 
-        The default bucket operates on a global basis.
+        默认存储桶在全局基础上运行。
     .. attribute:: user
 
-        The user bucket operates on a per-user basis.
+        用户存储桶基于每个用户运行。
     .. attribute:: guild
 
-        The guild bucket operates on a per-guild basis.
+        频道存储桶基于每个频道上运行。
     .. attribute:: channel
 
-        The channel bucket operates on a per-channel basis.
+        子频道桶基于每个子频道上运行。
     .. attribute:: member
 
-        The member bucket operates on a per-member basis.
+        成员存储桶基于每个成员运行。
     .. attribute:: category
 
-        The category bucket operates on a per-category basis.
+        类别存储桶基于每个类别运行。
     .. attribute:: role
 
-        The role bucket operates on a per-role basis.
-
-        .. versionadded:: 1.3
-
+        身份组存储桶基于每个身份组运行。
 
 .. _ext_commands_api_checks:
 

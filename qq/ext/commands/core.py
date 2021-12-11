@@ -915,12 +915,12 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         Parameters
         -----------
         coro: :ref:`coroutine <coroutine>`
-            The coroutine to register as the post-invoke hook.
+            要注册为调用后钩的协程。
 
         Raises
         -------
         TypeError
-            The coroutine passed is not actually a coroutine.
+            传递的协程实际上并不是协程。
         """
         if not asyncio.iscoroutinefunction(coro):
             raise TypeError('调用后钩必须是一个协程。')
@@ -1301,7 +1301,7 @@ class GroupMixin(Generic[CogT]):
 class Group(GroupMixin[CogT], Command[CogT, P, T]):
     """为作为子命令执行的命令实现分组协议的类。
 
-    这个类是:class:`.Command` 的子类，因此所有在:class:`.Command` 中有效的选项在这里也有效。
+    这个类是 :class:`.Command` 的子类，因此所有在 :class:`.Command` 中有效的选项在这里也有效。
 
     Attributes
     -----------

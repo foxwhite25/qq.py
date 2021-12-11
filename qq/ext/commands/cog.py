@@ -26,7 +26,7 @@ MISSING: Any = qq.utils.MISSING
 class CogMeta(type):
     """用于定义齿轮的元类。
 
-    请注意，您大概不应该直接使用它。
+    请注意，你大概不应该直接使用它。
     它纯粹是为了文档目的而公开的，同时使自定义元类与其他元类混合，例如 :class:`abc.ABCMeta` 元类。
 
     例如，要创建一个抽象的 cog mixin 类，将执行以下操作。
@@ -46,7 +46,7 @@ class CogMeta(type):
 
     .. note::
 
-        当传递下面记录的元类的属性时，请注意您必须将其作为仅关键字参数传递给类创建，如下例所示：
+        当传递下面记录的元类的属性时，请注意你必须将其作为仅关键字参数传递给类创建，如下例所示：
 
         .. code-block:: python3
 
@@ -64,7 +64,7 @@ class CogMeta(type):
     command_attrs: :class:`dict`
         应用于此齿轮中每个命令的属性列表。
         字典将被传递到 __init__ 处的 :class:`Command` 选项。
-        如果您在类中的命令属性内指定属性，它将覆盖此属性内指定的属性。 例如：
+        如果你在类中的命令属性内指定属性，它将覆盖此属性内指定的属性。 例如：
 
         .. code-block:: python3
 

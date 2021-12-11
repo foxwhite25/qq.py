@@ -344,7 +344,7 @@ class BotBase(GroupMixin):
 
         .. note::
 
-            类似于:meth:`~.Bot.before_invoke`\，除非检查和参数解析过程成功，否则不会调用它。
+            类似于 :meth:`~.Bot.before_invoke`\，除非检查和参数解析过程成功，否则不会调用它。
             但是，无论内部命令回调是否引发错误（即 :exc:`.CommandInvokeError`\），都会 **始终** 调用此钩子。
             这使其成为清理的理想选择。
 
@@ -964,7 +964,7 @@ class Bot(BotBase, qq.Client):
     help_command: Optional[:class:`.HelpCommand`]
         要使用的帮助命令实现。
         这可以在运行时动态设置。 删除帮助命令传递 ``None`` 。
-        有关实现帮助命令的更多信息，请参阅 ref:`ext_commands_help_command`。
+        有关实现帮助命令的更多信息，请参阅 :ref:`ext_commands_help_command`。
     owner_id: Optional[:class:`int`]
         拥有机器人的用户 ID。 必须设置 ``owner_id`` 或 ``owner_ids`` 其中一个
     owner_ids: Optional[Collection[:class:`int`]]
