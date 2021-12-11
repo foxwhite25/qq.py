@@ -1,11 +1,12 @@
 name: 功能要求
+title: "[功能要求]: "
 description: 为这个库推荐一个功能
 labels: [feature request]
 body:
   - type: input
     attributes:
       label: 概要
-      description: >
+      description: |
         你的功能请求的简短摘要。
     validations:
       required: true
@@ -23,7 +24,7 @@ body:
   - type: textarea
     attributes:
       label: 问题
-      description: >
+      description: |
         你的功能试图解决什么问题？
         实施此功能后，什么变得更容易或可能？
     validations:
@@ -31,7 +32,7 @@ body:
   - type: textarea
     attributes:
       label: 理想的解决方案
-      description: >
+      description: |
         你对问题的理想解决方案是什么？
         你希望此功能做什么？
     validations:
@@ -39,7 +40,7 @@ body:
   - type: textarea
     attributes:
       label: 当前的解决方案
-      description: >
+      description: |
         问题的当前解决方案是什么（如果有）？
     validations:
       required: false
