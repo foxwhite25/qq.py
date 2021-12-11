@@ -20,7 +20,7 @@
 例如，如果您想要一个没有Guild事件的机器人，那么我们可以执行以下操作：
 
 .. code-block:: python3
-   :emphasize-lines: 7,9,10
+   :emphasize-lines: 6,8,9
 
     import qq
     intents = qq.Intents.default()
@@ -37,7 +37,7 @@
 另一个示例显示一个仅处理 ``Message`` 和 ``Guild`` 信息的机器人：
 
 .. code-block:: python3
-   :emphasize-lines: 7,9,10
+   :emphasize-lines: 5,7,8
 
     import qq
     intents = qq.Intents(messages=True, guilds=True)
