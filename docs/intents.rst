@@ -1,7 +1,6 @@
 :orphan:
 
-.. currentmodule:: discord
-.. versionadded:: 1.5
+.. currentmodule:: qq
 .. _intents_primer:
 
 网关Intents入门

@@ -75,9 +75,9 @@ qq.py 围绕着 :ref:`事件 <discord-api-events>` 运作。
 
 .. code-block:: python3
 
-    import discord
+    import qq
 
-    class MyClient(discord.Client):
+    class MyClient(qq.Client):
         async def on_ready(self):
             print(f'Logged on as {self.user}!')
 
@@ -85,4 +85,4 @@ qq.py 围绕着 :ref:`事件 <discord-api-events>` 运作。
             print(f'Message from {messsage.author}: {message.content}')
 
     client = MyClient()
-    client.run('my token goes here')
+    client.run('你的token')

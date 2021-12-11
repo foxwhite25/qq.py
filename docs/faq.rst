@@ -1,6 +1,6 @@
 :orphan:
 
-.. currentmodule:: discord
+.. currentmodule:: qq
 .. _faq:
 
 经常问的问题

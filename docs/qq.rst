@@ -1,6 +1,6 @@
 :orphan:
 
-.. _discord-intro:
+.. _qq-intro:
 
 创建机器人账户
 ========================
