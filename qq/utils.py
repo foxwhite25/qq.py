@@ -4,6 +4,7 @@ import datetime
 import json
 import re
 import sys
+import unicodedata
 from bisect import bisect_left
 from operator import attrgetter
 from typing import Any, Callable, TypeVar, overload, Optional, Iterable, List, TYPE_CHECKING, Generic, Type, Dict, \
@@ -31,6 +32,19 @@ __all__ = (
     'as_chunks',
     'format_dt',
 )
+
+_IS_ASCII = re.compile(r'^[\x00-\x7f]+$')
+
+
+def _string_width(string: str, *, _IS_ASCII=_IS_ASCII) -> int:
+    """Returns string's width."""
+    match = _IS_ASCII.match(string)
+    if match:
+        return match.endpos
+
+    UNICODE_WIDE_CHAR_TYPE = 'WFA'
+    func = unicodedata.east_asian_width
+    return sum(2 if func(char) in UNICODE_WIDE_CHAR_TYPE else 1 for char in string)
 
 
 def utcnow() -> datetime.datetime:

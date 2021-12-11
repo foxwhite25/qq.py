@@ -36,15 +36,10 @@ __all__ = (
     'GuildNotFound',
     'UserNotFound',
     'ChannelNotFound',
-    'ThreadNotFound',
     'ChannelNotReadable',
     'BadColourArgument',
     'BadColorArgument',
     'RoleNotFound',
-    'BadInviteArgument',
-    'EmojiNotFound',
-    'GuildStickerNotFound',
-    'PartialEmojiConversionFailure',
     'BadBoolArgument',
     'MissingRole',
     'BotMissingRole',
@@ -92,17 +87,16 @@ class CommandError(QQException):
 
 
 class ConversionError(CommandError):
-    """Exception raised when a Converter class raises non-CommandError.
+    """当 Converter 类引发非 CommandError 时引发异常。
 
-    This inherits from :exc:`CommandError`.
+    这继承自 :exc:`CommandError` 。
 
     Attributes
     ----------
     converter: :class:`qq.ext.commands.Converter`
-        The converter that failed.
+        失败的转换器。
     original: :exc:`Exception`
-        The original exception that was raised. You can also get this via
-        the ``__cause__`` attribute.
+        引发的原始异常。 你也可以通过 ``__cause__`` 属性获取此信息。
     """
 
     def __init__(self, converter: Converter, original: Exception) -> None:
@@ -111,411 +105,290 @@ class ConversionError(CommandError):
 
 
 class UserInputError(CommandError):
-    """The base exception type for errors that involve errors
-    regarding user input.
+    """涉及用户输入错误的错误的基本异常类型。
 
-    This inherits from :exc:`CommandError`.
+    这继承自 :exc:`CommandError`。
     """
     pass
 
 
 class CommandNotFound(CommandError):
-    """Exception raised when a command is attempted to be invoked
-    but no command under that name is found.
+    """尝试调用命令但未找到该名称下的命令时引发异常。
 
-    This is not raised for invalid subcommands, rather just the
-    initial main command that is attempted to be invoked.
+    这不是针对无效子命令引发的，而只是尝试调用的初始主命令。
 
-    This inherits from :exc:`CommandError`.
+    这继承自 :exc:`CommandError` 。
     """
     pass
 
 
 class MissingRequiredArgument(UserInputError):
-    """Exception raised when parsing a command and a parameter
-    that is required is not encountered.
+    """解析命令时引发异常，并且未遇到所需的参数。
 
-    This inherits from :exc:`UserInputError`
+    这继承自 :exc:`UserInputError`
 
     Attributes
     -----------
     param: :class:`inspect.Parameter`
-        The argument that is missing.
+        缺少参数。
     """
 
     def __init__(self, param: Parameter) -> None:
         self.param: Parameter = param
-        super().__init__(f'{param.name} is a required argument that is missing.')
+        super().__init__(f'{param.name} 是缺少的必需参数。')
 
 
 class TooManyArguments(UserInputError):
-    """Exception raised when the command was passed too many arguments and its
-    :attr:`.Command.ignore_extra` attribute was not set to ``True``.
+    """当命令传递了太多参数并且其 :attr:`.Command.ignore_extra` 属性未设置为 ``True`` 时引发异常。
 
-    This inherits from :exc:`UserInputError`
+    这继承自 :exc:`UserInputError`
     """
     pass
 
 
 class BadArgument(UserInputError):
-    """Exception raised when a parsing or conversion failure is encountered
-    on an argument to pass into a command.
+    """在传递给命令的参数上遇到解析或转换失败时引发异常。
 
-    This inherits from :exc:`UserInputError`
+    这继承自 :exc:`UserInputError`
     """
     pass
 
 
 class CheckFailure(CommandError):
-    """Exception raised when the predicates in :attr:`.Command.checks` have failed.
+    """当 :attr:`.Command.checks` 中的谓词失败时引发异常。
 
-    This inherits from :exc:`CommandError`
+    这继承自 :exc:`CommandError`
     """
     pass
 
 
 class CheckAnyFailure(CheckFailure):
-    """Exception raised when all predicates in :func:`check_any` fail.
+    """当 :func:`check_any` 中的所有谓词都失败时引发异常。
 
-    This inherits from :exc:`CheckFailure`.
-
-    .. versionadded:: 1.3
+    这继承自 :exc:`CheckFailure`。
 
     Attributes
     ------------
     errors: List[:class:`CheckFailure`]
-        A list of errors that were caught during execution.
+        执行期间捕获的错误列表。
     checks: List[Callable[[:class:`Context`], :class:`bool`]]
-        A list of check predicates that failed.
+        失败的检查谓词列表。
     """
 
     def __init__(self, checks: List[CheckFailure], errors: List[Callable[[Context], bool]]) -> None:
         self.checks: List[CheckFailure] = checks
         self.errors: List[Callable[[Context], bool]] = errors
-        super().__init__('You do not have permission to run this command.')
+        super().__init__('你无权运行此命令。')
 
 
 class PrivateMessageOnly(CheckFailure):
-    """Exception raised when an operation does not work outside of private
-    message contexts.
+    """当操作在私人消息上下文之外不起作用时引发异常。
 
-    This inherits from :exc:`CheckFailure`
+    这继承自 :exc:`CheckFailure`
     """
 
     def __init__(self, message: Optional[str] = None) -> None:
-        super().__init__(message or 'This command can only be used in private messages.')
+        super().__init__(message or '该命令只能用于私信。')
 
 
 class NoPrivateMessage(CheckFailure):
-    """Exception raised when an operation does not work in private message
-    contexts.
+    """当操作在私人消息上下文中不起作用时引发异常。
 
-    This inherits from :exc:`CheckFailure`
+    这继承自 :exc:`CheckFailure`
     """
 
     def __init__(self, message: Optional[str] = None) -> None:
-        super().__init__(message or 'This command cannot be used in private messages.')
+        super().__init__(message or '该命令不能用于私信。')
 
 
 class NotOwner(CheckFailure):
-    """Exception raised when the message author is not the owner of the bot.
+    """当消息作者不是机器人的所有者时引发异常。
 
-    This inherits from :exc:`CheckFailure`
+    这继承自 :exc:`CheckFailure`
     """
     pass
 
 
 class ObjectNotFound(BadArgument):
-    """Exception raised when the argument provided did not match the format
-    of an ID or a mention.
+    """当提供的参数与 ID 或提及的格式不匹配时引发异常。
 
-    This inherits from :exc:`BadArgument`
-
-    .. versionadded:: 2.0
+    这继承自 :exc:`BadArgument`
 
     Attributes
     -----------
     argument: :class:`str`
-        The argument supplied by the caller that was not matched
+        调用者提供的不匹配的参数
     """
 
     def __init__(self, argument: str) -> None:
         self.argument: str = argument
-        super().__init__(f'{argument!r} does not follow a valid ID or mention format.')
+        super().__init__(f'{argument!r} 不遵循有效的 ID 或提及格式。')
 
 
 class MemberNotFound(BadArgument):
-    """Exception raised when the member provided was not found in the bot's
-    cache.
+    """在机器人的缓存中找不到提供的成员时引发异常。
 
-    This inherits from :exc:`BadArgument`
-
-    .. versionadded:: 1.5
+    这继承自 :exc:`BadArgument`
 
     Attributes
     -----------
     argument: :class:`str`
-        The member supplied by the caller that was not found
+        未找到调用者提供的成员
     """
 
     def __init__(self, argument: str) -> None:
         self.argument: str = argument
-        super().__init__(f'Member "{argument}" not found.')
+        super().__init__(f'未找到成员“{argument}”。')
 
 
 class GuildNotFound(BadArgument):
-    """Exception raised when the guild provided was not found in the bot's cache.
+    """在机器人的缓存中找不到提供的频道时引发异常。
 
-    This inherits from :exc:`BadArgument`
-
-    .. versionadded:: 1.7
+    这继承自 :exc:`BadArgument`
 
     Attributes
     -----------
     argument: :class:`str`
-        The guild supplied by the called that was not found
+        未找到的调用者提供的频道未
     """
 
     def __init__(self, argument: str) -> None:
         self.argument: str = argument
-        super().__init__(f'Guild "{argument}" not found.')
+        super().__init__(f'未找到频道“{argument}”。')
 
 
 class UserNotFound(BadArgument):
-    """Exception raised when the user provided was not found in the bot's
-    cache.
+    """当在机器人的缓存中找不到提供的用户时引发异常。
 
-    This inherits from :exc:`BadArgument`
-
-    .. versionadded:: 1.5
+    这继承自 :exc:`BadArgument`
 
     Attributes
     -----------
     argument: :class:`str`
-        The user supplied by the caller that was not found
+        未找到的调用者提供的用户
     """
 
     def __init__(self, argument: str) -> None:
         self.argument: str = argument
-        super().__init__(f'User "{argument}" not found.')
+        super().__init__(f'未找到用户“{argument}”。')
 
 
 class MessageNotFound(BadArgument):
-    """Exception raised when the message provided was not found in the channel.
+    """在频道中找不到提供的消息时引发异常。
 
-    This inherits from :exc:`BadArgument`
-
-    .. versionadded:: 1.5
+    这继承自 :exc:`BadArgument`
 
     Attributes
     -----------
     argument: :class:`str`
-        The message supplied by the caller that was not found
+        未找到的调用者提供的消息
     """
 
     def __init__(self, argument: str) -> None:
         self.argument: str = argument
-        super().__init__(f'Message "{argument}" not found.')
+        super().__init__(f'未找到消息“{argument}”。')
 
 
 class ChannelNotReadable(BadArgument):
-    """Exception raised when the bot does not have permission to read messages
-    in the channel.
+    """当机器人无权读取子频道中的消息时引发异常。
 
-    This inherits from :exc:`BadArgument`
-
-    .. versionadded:: 1.5
+    这继承自 :exc:`BadArgument`
 
     Attributes
     -----------
     argument: Union[:class:`.abc.GuildChannel`, :class:`.Thread`]
-        The channel supplied by the caller that was not readable
+        调用者提供的不可读的子频道
     """
 
     def __init__(self, argument: Union[GuildChannel]) -> None:
         self.argument: Union[GuildChannel] = argument
-        super().__init__(f"Can't read messages in {argument.mention}.")
+        super().__init__(f"无法阅读 {argument.mention} 中的消息。")
 
 
 class ChannelNotFound(BadArgument):
-    """Exception raised when the bot can not find the channel.
+    """当机器人找不到子频道时引发异常。
 
-    This inherits from :exc:`BadArgument`
-
-    .. versionadded:: 1.5
+    这继承自 :exc:`BadArgument`
 
     Attributes
     -----------
     argument: :class:`str`
-        The channel supplied by the caller that was not found
+        未找到的调用者提供的子频道
     """
 
     def __init__(self, argument: str) -> None:
         self.argument: str = argument
-        super().__init__(f'Channel "{argument}" not found.')
-
-
-class ThreadNotFound(BadArgument):
-    """Exception raised when the bot can not find the thread.
-
-    This inherits from :exc:`BadArgument`
-
-    .. versionadded:: 2.0
-
-    Attributes
-    -----------
-    argument: :class:`str`
-        The thread supplied by the caller that was not found
-    """
-
-    def __init__(self, argument: str) -> None:
-        self.argument: str = argument
-        super().__init__(f'Thread "{argument}" not found.')
+        super().__init__(f'未找到子频道“{argument}”。')
 
 
 class BadColourArgument(BadArgument):
-    """Exception raised when the colour is not valid.
+    """颜色无效时引发异常。
 
-    This inherits from :exc:`BadArgument`
-
-    .. versionadded:: 1.5
+    这继承自 :exc:`BadArgument`
 
     Attributes
     -----------
     argument: :class:`str`
-        The colour supplied by the caller that was not valid
+        调用者提供的颜色无效
     """
 
     def __init__(self, argument: str) -> None:
         self.argument: str = argument
-        super().__init__(f'Colour "{argument}" is invalid.')
+        super().__init__(f'颜色“{argument}”无效。')
 
 
 BadColorArgument = BadColourArgument
 
 
 class RoleNotFound(BadArgument):
-    """Exception raised when the bot can not find the role.
+    """当机器人找不到身份组时引发异常。
 
-    This inherits from :exc:`BadArgument`
-
-    .. versionadded:: 1.5
+    这继承自 :exc:`BadArgument`
 
     Attributes
     -----------
     argument: :class:`str`
-        The role supplied by the caller that was not found
+        未找到的调用者提供的身份组
     """
 
     def __init__(self, argument: str) -> None:
         self.argument: str = argument
-        super().__init__(f'Role "{argument}" not found.')
-
-
-class BadInviteArgument(BadArgument):
-    """Exception raised when the invite is invalid or expired.
-
-    This inherits from :exc:`BadArgument`
-
-    .. versionadded:: 1.5
-    """
-
-    def __init__(self, argument: str) -> None:
-        self.argument: str = argument
-        super().__init__(f'Invite "{argument}" is invalid or expired.')
-
-
-class EmojiNotFound(BadArgument):
-    """Exception raised when the bot can not find the emoji.
-
-    This inherits from :exc:`BadArgument`
-
-    .. versionadded:: 1.5
-
-    Attributes
-    -----------
-    argument: :class:`str`
-        The emoji supplied by the caller that was not found
-    """
-
-    def __init__(self, argument: str) -> None:
-        self.argument: str = argument
-        super().__init__(f'Emoji "{argument}" not found.')
-
-
-class PartialEmojiConversionFailure(BadArgument):
-    """Exception raised when the emoji provided does not match the correct
-    format.
-
-    This inherits from :exc:`BadArgument`
-
-    .. versionadded:: 1.5
-
-    Attributes
-    -----------
-    argument: :class:`str`
-        The emoji supplied by the caller that did not match the regex
-    """
-
-    def __init__(self, argument: str) -> None:
-        self.argument: str = argument
-        super().__init__(f'Couldn\'t convert "{argument}" to PartialEmoji.')
-
-
-class GuildStickerNotFound(BadArgument):
-    """Exception raised when the bot can not find the sticker.
-
-    This inherits from :exc:`BadArgument`
-
-    .. versionadded:: 2.0
-
-    Attributes
-    -----------
-    argument: :class:`str`
-        The sticker supplied by the caller that was not found
-    """
-
-    def __init__(self, argument: str) -> None:
-        self.argument: str = argument
-        super().__init__(f'Sticker "{argument}" not found.')
+        super().__init__(f'未找到身份组“{argument}”。')
 
 
 class BadBoolArgument(BadArgument):
-    """Exception raised when a boolean argument was not convertable.
+    """当布尔参数不可转换时引发异常。
 
-    This inherits from :exc:`BadArgument`
-
-    .. versionadded:: 1.5
+    这继承自 :exc:`BadArgument`
 
     Attributes
     -----------
     argument: :class:`str`
-        The boolean argument supplied by the caller that is not in the predefined list
+        调用者提供的不在预定义列表中的布尔参数
     """
 
     def __init__(self, argument: str) -> None:
         self.argument: str = argument
-        super().__init__(f'{argument} is not a recognised boolean option')
+        super().__init__(f'{argument} 不是认识的布尔选项')
 
 
 class DisabledCommand(CommandError):
-    """Exception raised when the command being invoked is disabled.
+    """调用正在禁用的命令时引发异常。
 
-    This inherits from :exc:`CommandError`
+    这继承自 :exc:`CommandError`
     """
     pass
 
 
 class CommandInvokeError(CommandError):
-    """Exception raised when the command being invoked raised an exception.
+    """当被调用的命令引发异常时的异常。
 
-    This inherits from :exc:`CommandError`
+    这继承自 :exc:`CommandError`
 
     Attributes
     -----------
     original: :exc:`Exception`
-        The original exception that was raised. You can also get this via
-        the ``__cause__`` attribute.
+        引发的原始异常。 你也可以通过 ``__cause__`` 属性获取此信息。
     """
 
     def __init__(self, e: Exception) -> None:
@@ -524,104 +397,96 @@ class CommandInvokeError(CommandError):
 
 
 class CommandOnCooldown(CommandError):
-    """Exception raised when the command being invoked is on cooldown.
+    """当被调用的命令处于冷却状态时引发异常。
 
-    This inherits from :exc:`CommandError`
+    这继承自 :exc:`CommandError`
 
     Attributes
     -----------
     cooldown: :class:`.Cooldown`
-        A class with attributes ``rate`` and ``per`` similar to the
-        :func:`.cooldown` decorator.
+        一个具有 ``rate`` 和 ``per`` 属性的类，类似于 :func:`.cooldown` 装饰器。
     type: :class:`BucketType`
-        The type associated with the cooldown.
+        与冷却时间关联的类型。
     retry_after: :class:`float`
-        The amount of seconds to wait before you can retry again.
+        在你可以重试之前等待的秒数。
     """
 
     def __init__(self, cooldown: Cooldown, retry_after: float, type: BucketType) -> None:
         self.cooldown: Cooldown = cooldown
         self.retry_after: float = retry_after
         self.type: BucketType = type
-        super().__init__(f'You are on cooldown. Try again in {retry_after:.2f}s')
+        super().__init__(f'你正在冷却中。 在 {retry_after:.2f}s 后重试')
 
 
 class MaxConcurrencyReached(CommandError):
-    """Exception raised when the command being invoked has reached its maximum concurrency.
-
-    This inherits from :exc:`CommandError`.
+    """当被调用的命令达到其最大并发时引发异常。
 
     Attributes
     ------------
     number: :class:`int`
-        The maximum number of concurrent invokers allowed.
+        允许的最大并发调用者数。
     per: :class:`.BucketType`
-        The bucket type passed to the :func:`.max_concurrency` decorator.
+        传递给 :func:`.max_concurrency` 装饰器的桶类型。
     """
 
     def __init__(self, number: int, per: BucketType) -> None:
         self.number: int = number
         self.per: BucketType = per
         name = per.name
-        suffix = 'per %s' % name if per.name != 'default' else 'globally'
-        plural = '%s times %s' if number > 1 else '%s time %s'
-        fmt = plural % (number, suffix)
-        super().__init__(f'Too many people are using this command. It can only be used {fmt} concurrently.')
+        suffix = '每 %s' % name if per.name != 'default' else 'globally'
+        plural = '%s %s 次'
+        fmt = plural % (suffix, number)
+        super().__init__(f'太多人在使用这个命令。 它只能在 {fmt} 同时使用。')
 
 
 class MissingRole(CheckFailure):
-    """Exception raised when the command invoker lacks a role to run a command.
+    """当命令调用者缺少运行命令的身份组时引发异常。
 
-    This inherits from :exc:`CheckFailure`
+    这继承自 :exc:`CheckFailure`
 
     .. versionadded:: 1.1
 
     Attributes
     -----------
     missing_role: Union[:class:`str`, :class:`int`]
-        The required role that is missing.
-        This is the parameter passed to :func:`~.commands.has_role`.
+        缺少的必需身份组。
+        这是传递给 :func:`~.commands.has_role` 的参数。
     """
 
     def __init__(self, missing_role: Role) -> None:
         self.missing_role: Role = missing_role
-        message = f'Role {missing_role!r} is required to run this command.'
+        message = f'运行此命令需要身份组 {missing_role!r}。'
         super().__init__(message)
 
 
 class BotMissingRole(CheckFailure):
-    """Exception raised when the bot's member lacks a role to run a command.
+    """当机器人的成员缺乏运行命令的身份组时引发异常。
 
-    This inherits from :exc:`CheckFailure`
-
-    .. versionadded:: 1.1
+    这继承自 :exc:`CheckFailure`
 
     Attributes
     -----------
     missing_role: Union[:class:`str`, :class:`int`]
-        The required role that is missing.
-        This is the parameter passed to :func:`~.commands.has_role`.
+        缺少的必需身份组。
+        这是传递给 :func:`~.commands.has_role` 的参数。
     """
 
     def __init__(self, missing_role: Role) -> None:
         self.missing_role: Role = missing_role
-        message = f'Bot requires the role {missing_role!r} to run this command'
+        message = f'Bot 需要身份组 {missing_role!r} 才能运行此命令'
         super().__init__(message)
 
 
 class MissingAnyRole(CheckFailure):
-    """Exception raised when the command invoker lacks any of
-    the roles specified to run a command.
+    """当命令调用者缺少指定用于运行命令的任何身份组时引发异常。
 
-    This inherits from :exc:`CheckFailure`
-
-    .. versionadded:: 1.1
+    这继承自 :exc:`CheckFailure`
 
     Attributes
     -----------
     missing_roles: List[Union[:class:`str`, :class:`int`]]
-        The roles that the invoker is missing.
-        These are the parameters passed to :func:`~.commands.has_any_role`.
+        调用者缺少的身份组。
+        这些是传递给 :func:`~.commands.has_any_role` 的参数。
     """
 
     def __init__(self, missing_roles: Role) -> None:
@@ -634,23 +499,20 @@ class MissingAnyRole(CheckFailure):
         else:
             fmt = ' or '.join(missing)
 
-        message = f"You are missing at least one of the required roles: {fmt}"
+        message = f"你至少缺少一个必需的身份组：{fmt}"
         super().__init__(message)
 
 
 class BotMissingAnyRole(CheckFailure):
-    """Exception raised when the bot's member lacks any of
-    the roles specified to run a command.
+    """当机器人的成员缺少指定运行命令的任何身份组时引发异常。
 
-    This inherits from :exc:`CheckFailure`
-
-    .. versionadded:: 1.1
+    这继承自 :exc:`CheckFailure`
 
     Attributes
     -----------
     missing_roles: List[Union[:class:`str`, :class:`int`]]
-        The roles that the bot's member is missing.
-        These are the parameters passed to :func:`~.commands.has_any_role`.
+        缺少机器人成员的身份组。
+        这些是传递给 :func:`~.commands.has_any_role` 的参数。
 
     """
 
@@ -664,20 +526,19 @@ class BotMissingAnyRole(CheckFailure):
         else:
             fmt = ' or '.join(missing)
 
-        message = f"Bot is missing at least one of the required roles: {fmt}"
+        message = f"Bot 缺少至少一个必需的身份组：{fmt}"
         super().__init__(message)
 
 
 class MissingPermissions(CheckFailure):
-    """Exception raised when the command invoker lacks permissions to run a
-    command.
+    """当命令调用者缺乏运行命令的权限时引发异常。
 
-    This inherits from :exc:`CheckFailure`
+    这继承自 :exc:`CheckFailure`
 
     Attributes
     -----------
     missing_permissions: List[:class:`str`]
-        The required permissions that are missing.
+        缺少所需的权限。
     """
 
     def __init__(self, missing_permissions: List[str], *args: Any) -> None:
@@ -689,20 +550,19 @@ class MissingPermissions(CheckFailure):
             fmt = '{}, and {}'.format(", ".join(missing[:-1]), missing[-1])
         else:
             fmt = ' and '.join(missing)
-        message = f'You are missing {fmt} permission(s) to run this command.'
+        message = f'你缺少运行此命令的 {fmt} 权限。'
         super().__init__(message, *args)
 
 
 class BotMissingPermissions(CheckFailure):
-    """Exception raised when the bot's member lacks permissions to run a
-    command.
+    """当机器人的成员缺乏运行命令的权限时引发异常。
 
-    This inherits from :exc:`CheckFailure`
+    这继承自 :exc:`CheckFailure`
 
     Attributes
     -----------
     missing_permissions: List[:class:`str`]
-        The required permissions that are missing.
+        缺少所需的权限。
     """
 
     def __init__(self, missing_permissions: List[str], *args: Any) -> None:
@@ -714,24 +574,23 @@ class BotMissingPermissions(CheckFailure):
             fmt = '{}, and {}'.format(", ".join(missing[:-1]), missing[-1])
         else:
             fmt = ' and '.join(missing)
-        message = f'Bot requires {fmt} permission(s) to run this command.'
+        message = f'Bot 需要 {fmt} 权限才能运行此命令。'
         super().__init__(message, *args)
 
 
 class BadUnionArgument(UserInputError):
-    """Exception raised when a :data:`typing.Union` converter fails for all
-    its associated types.
+    """当 :data:`typing.Union` 转换器对其所有关联类型失败时引发异常。
 
-    This inherits from :exc:`UserInputError`
+    这继承自 :exc:`UserInputError`
 
     Attributes
     -----------
     param: :class:`inspect.Parameter`
-        The parameter that failed being converted.
+        转换失败的参数。
     converters: Tuple[Type, ``...``]
-        A tuple of converters attempted in conversion, in order of failure.
+        按失败顺序尝试转换的转换器元组。
     errors: List[:class:`CommandError`]
-        A list of errors that were caught from failing the conversion.
+        由于转换失败而捕获的错误列表。
     """
 
     def __init__(self, param: Parameter, converters: Tuple[Type, ...], errors: List[CommandError]) -> None:
@@ -753,25 +612,22 @@ class BadUnionArgument(UserInputError):
         else:
             fmt = ' or '.join(to_string)
 
-        super().__init__(f'Could not convert "{param.name}" into {fmt}.')
+        super().__init__(f'无法将“{param.name}”转换为 {fmt}。')
 
 
 class BadLiteralArgument(UserInputError):
-    """Exception raised when a :data:`typing.Literal` converter fails for all
-    its associated values.
+    """当 :data:`typing.Literal` 转换器的所有关联值都失败时引发异常。
 
-    This inherits from :exc:`UserInputError`
-
-    .. versionadded:: 2.0
+    这继承自 :exc:`UserInputError`
 
     Attributes
     -----------
     param: :class:`inspect.Parameter`
-        The parameter that failed being converted.
+        转换失败的参数。
     literals: Tuple[Any, ``...``]
-        A tuple of values compared against in conversion, in order of failure.
+        按失败顺序在转换中比较的一组值。
     errors: List[:class:`CommandError`]
-        A list of errors that were caught from failing the conversion.
+        由于转换失败而捕获的错误列表。
     """
 
     def __init__(self, param: Parameter, literals: Tuple[Any, ...], errors: List[CommandError]) -> None:
@@ -785,222 +641,207 @@ class BadLiteralArgument(UserInputError):
         else:
             fmt = ' or '.join(to_string)
 
-        super().__init__(f'Could not convert "{param.name}" into the literal {fmt}.')
+        super().__init__(f'无法将“{param.name}”转换为文字 {fmt}。')
 
 
 class ArgumentParsingError(UserInputError):
-    """An exception raised when the parser fails to parse a user's input.
+    """当解析器无法解析用户的输入时引发异常。
 
-    This inherits from :exc:`UserInputError`.
+    这继承自 :exc:`UserInputError`。
 
-    There are child classes that implement more granular parsing errors for
-    i18n purposes.
+    有一些子类为 i18n 目的实现更细度的解析错误。
     """
     pass
 
 
 class UnexpectedQuoteError(ArgumentParsingError):
-    """An exception raised when the parser encounters a quote mark inside a non-quoted string.
+    """当解析器在非引用字符串中遇到引号时引发异常。
 
-    This inherits from :exc:`ArgumentParsingError`.
+    这继承自 :exc:`ArgumentParsingError`。
 
     Attributes
     ------------
     quote: :class:`str`
-        The quote mark that was found inside the non-quoted string.
+        在非引号字符串中找到的引号。
     """
 
     def __init__(self, quote: str) -> None:
         self.quote: str = quote
-        super().__init__(f'Unexpected quote mark, {quote!r}, in non-quoted string')
+        super().__init__(f'非引号字符串中的意外引号 {quote!r}')
 
 
 class InvalidEndOfQuotedStringError(ArgumentParsingError):
-    """An exception raised when a space is expected after the closing quote in a string
-    but a different character is found.
+    """当字符串中的结束引号后需要空格但发现不同的字符时引发异常。
 
-    This inherits from :exc:`ArgumentParsingError`.
+    这继承自 :exc:`ArgumentParsingError`。
 
     Attributes
     -----------
     char: :class:`str`
-        The character found instead of the expected string.
+        找到的字符而不是预期的字符串。
     """
 
     def __init__(self, char: str) -> None:
         self.char: str = char
-        super().__init__(f'Expected space after closing quotation but received {char!r}')
+        super().__init__(f'结束引号后的预期空格但收到 {char!r}')
 
 
 class ExpectedClosingQuoteError(ArgumentParsingError):
-    """An exception raised when a quote character is expected but not found.
+    """当需要引号字符但未找到时引发异常。
 
-    This inherits from :exc:`ArgumentParsingError`.
+    这继承自 :exc:`ArgumentParsingError`。
 
     Attributes
     -----------
     close_quote: :class:`str`
-        The quote character expected.
+        预期的引号字符。
     """
 
     def __init__(self, close_quote: str) -> None:
         self.close_quote: str = close_quote
-        super().__init__(f'Expected closing {close_quote}.')
+        super().__init__(f'预计关闭 {close_quote}。')
 
 
 class ExtensionError(QQException):
-    """Base exception for extension related errors.
+    """扩展相关错误的基本异常。
 
-    This inherits from :exc:`~qq.qqException`.
+    这继承自 :exc:`~qq.QQException`。
 
     Attributes
     ------------
     name: :class:`str`
-        The extension that had an error.
+        有错误的扩展。
     """
 
     def __init__(self, message: Optional[str] = None, *args: Any, name: str) -> None:
         self.name: str = name
-        message = message or f'Extension {name!r} had an error.'
+        message = message or f'扩展 {name!r} 有错误。'
         # clean-up @everyone and @here mentions
-        m = message.replace('@everyone', '@\u200beveryone').replace('@here', '@\u200bhere')
+        m = message.replace('@所有成员', '@\u200b所有成员')
         super().__init__(m, *args)
 
 
 class ExtensionAlreadyLoaded(ExtensionError):
-    """An exception raised when an extension has already been loaded.
+    """已加载扩展时引发的异常。
 
-    This inherits from :exc:`ExtensionError`
+    这继承自 :exc:`ExtensionError`
     """
 
     def __init__(self, name: str) -> None:
-        super().__init__(f'Extension {name!r} is already loaded.', name=name)
+        super().__init__(f'扩展 {name!r} 已加载。', name=name)
 
 
 class ExtensionNotLoaded(ExtensionError):
-    """An exception raised when an extension was not loaded.
+    """未加载扩展时引发的异常。
 
-    This inherits from :exc:`ExtensionError`
+    这继承自 :exc:`ExtensionError`
     """
 
     def __init__(self, name: str) -> None:
-        super().__init__(f'Extension {name!r} has not been loaded.', name=name)
+        super().__init__(f'扩展 {name!r} 尚未加载。', name=name)
 
 
 class NoEntryPointError(ExtensionError):
-    """An exception raised when an extension does not have a ``setup`` entry point function.
+    """当扩展没有 ``setup`` 入口点函数时引发异常。
 
-    This inherits from :exc:`ExtensionError`
+    这继承自 :exc:`ExtensionError`
     """
 
     def __init__(self, name: str) -> None:
-        super().__init__(f"Extension {name!r} has no 'setup' function.", name=name)
+        super().__init__(f"扩展 {name!r} 没有“setup” 函数。", name=name)
 
 
 class ExtensionFailed(ExtensionError):
-    """An exception raised when an extension failed to load during execution of the module or ``setup`` entry point.
+    """在执行模块或 ``setup`` 入口点期间无法加载扩展时引发的异常。
 
-    This inherits from :exc:`ExtensionError`
+    这继承自 :exc:`ExtensionError`
 
     Attributes
     -----------
     name: :class:`str`
-        The extension that had the error.
+        出现错误的扩展。
     original: :exc:`Exception`
-        The original exception that was raised. You can also get this via
-        the ``__cause__`` attribute.
+        引发的原始异常。 你也可以通过 ``__cause__`` 属性获取此信息。
     """
 
     def __init__(self, name: str, original: Exception) -> None:
         self.original: Exception = original
-        msg = f'Extension {name!r} raised an error: {original.__class__.__name__}: {original}'
+        msg = f'扩展 {name!r} 引发错误：{original.__class__.__name__}：{original}'
         super().__init__(msg, name=name)
 
 
 class ExtensionNotFound(ExtensionError):
-    """An exception raised when an extension is not found.
+    """找不到扩展时引发的异常。
 
-    This inherits from :exc:`ExtensionError`
-
-    .. versionchanged:: 1.3
-        Made the ``original`` attribute always None.
+    这继承自 :exc:`ExtensionError`
 
     Attributes
     -----------
     name: :class:`str`
-        The extension that had the error.
+        出现错误的扩展。
     """
 
     def __init__(self, name: str) -> None:
-        msg = f'Extension {name!r} could not be loaded.'
+        msg = f'无法加载扩展 {name!r}。'
         super().__init__(msg, name=name)
 
 
 class CommandRegistrationError(ClientException):
-    """An exception raised when the command can't be added
-    because the name is already taken by a different command.
+    """由于名称已被其他命令采用而无法添加命令时引发异常。
 
-    This inherits from :exc:`qq.ClientException`
-
-    .. versionadded:: 1.4
+    这继承自 :exc:`qq.ClientException`
 
     Attributes
     ----------
     name: :class:`str`
-        The command name that had the error.
+        出现错误的命令名称。
     alias_conflict: :class:`bool`
-        Whether the name that conflicts is an alias of the command we try to add.
+        冲突的名称是否是我们尝试添加的命令的别名。
     """
 
     def __init__(self, name: str, *, alias_conflict: bool = False) -> None:
         self.name: str = name
         self.alias_conflict: bool = alias_conflict
         type_ = 'alias' if alias_conflict else 'command'
-        super().__init__(f'The {type_} {name} is already an existing command or alias.')
+        super().__init__(f'{type_} {name} 已经是一个现有的命令或别名。')
 
 
 class FlagError(BadArgument):
-    """The base exception type for all flag parsing related errors.
+    """所有标志解析相关错误的基本异常类型。
 
-    This inherits from :exc:`BadArgument`.
-
-    .. versionadded:: 2.0
+    这继承自 :exc:`BadArgument`。
     """
     pass
 
 
 class TooManyFlags(FlagError):
-    """An exception raised when a flag has received too many values.
+    """当标志接收到太多值时引发异常。
 
-    This inherits from :exc:`FlagError`.
-
-    .. versionadded:: 2.0
+    这继承自 :exc:`FlagError`。
 
     Attributes
     ------------
     flag: :class:`~qq.ext.commands.Flag`
-        The flag that received too many values.
+        收到太多值的标志。
     values: List[:class:`str`]
-        The values that were passed.
+        传递的值。
     """
 
     def __init__(self, flag: Flag, values: List[str]) -> None:
         self.flag: Flag = flag
         self.values: List[str] = values
-        super().__init__(f'Too many flag values, expected {flag.max_args} but received {len(values)}.')
+        super().__init__(f'标志值太多，预期为 {flag.max_args}，但收到 {len(values)}。')
 
 
 class BadFlagArgument(FlagError):
-    """An exception raised when a flag failed to convert a value.
+    """当标志无法转换值时引发异常。
 
-    This inherits from :exc:`FlagError`
-
-    .. versionadded:: 2.0
+    这继承自 :exc:`FlagError`。
 
     Attributes
     -----------
     flag: :class:`~qq.ext.commands.Flag`
-        The flag that failed to convert.
+        转换失败的标志。
     """
 
     def __init__(self, flag: Flag) -> None:
@@ -1010,40 +851,36 @@ class BadFlagArgument(FlagError):
         except AttributeError:
             name = flag.annotation.__class__.__name__
 
-        super().__init__(f'Could not convert to {name!r} for flag {flag.name!r}')
+        super().__init__(f'无法为标志 {flag.name!r} 转换为 {name!r}')
 
 
 class MissingRequiredFlag(FlagError):
-    """An exception raised when a required flag was not given.
+    """未给出所需标志时引发异常。
 
-    This inherits from :exc:`FlagError`
-
-    .. versionadded:: 2.0
+    这继承自 :exc:`FlagError`
 
     Attributes
     -----------
     flag: :class:`~qq.ext.commands.Flag`
-        The required flag that was not found.
+        未找到所需的标志。
     """
 
     def __init__(self, flag: Flag) -> None:
         self.flag: Flag = flag
-        super().__init__(f'Flag {flag.name!r} is required and missing')
+        super().__init__(f'标记 {flag.name!r} 是必需的且缺失')
 
 
 class MissingFlagArgument(FlagError):
-    """An exception raised when a flag did not get a value.
+    """标志未获得值时引发的异常。
 
-    This inherits from :exc:`FlagError`
-
-    .. versionadded:: 2.0
+    这继承自 :exc:`FlagError`
 
     Attributes
     -----------
     flag: :class:`~qq.ext.commands.Flag`
-        The flag that did not get a value.
+        未获得值的标志。
     """
 
     def __init__(self, flag: Flag) -> None:
         self.flag: Flag = flag
-        super().__init__(f'Flag {flag.name!r} does not have an argument')
+        super().__init__(f'标志 {flag.name!r} 没有参数')

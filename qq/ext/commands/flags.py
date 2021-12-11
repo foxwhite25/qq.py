@@ -46,29 +46,26 @@ if TYPE_CHECKING:
 
 @dataclass
 class Flag:
-    """Represents a flag parameter for :class:`FlagConverter`.
+    """表示 FlagConverter 的标志参数。
 
-    The :func:`~qq.ext.commands.flag` function helps
-    create these flag objects, but it is not necessary to
-    do so. These cannot be constructed manually.
+    :func:`~qq.ext.commands.flag` 函数有助于创建这些标志对象，但没有必要这样做。这些不能手动构建。
 
     Attributes
     ------------
     name: :class:`str`
-        The name of the flag.
+        标志的名称。
     aliases: List[:class:`str`]
-        The aliases of the flag name.
+        标志名称的别名。
     attribute: :class:`str`
-        The attribute in the class that corresponds to this flag.
+        与此标志对应的类中的属性。
     default: Any
-        The default value of the flag, if available.
+        标志的默认值（如果可用）。
     annotation: Any
-        The underlying evaluated annotation of the flag.
+        标志的基础评估注释。
     max_args: :class:`int`
-        The maximum number of arguments the flag can accept.
-        A negative value indicates an unlimited amount of arguments.
+        标志可以接受的最大参数数。负值表示无限数量的参数。
     override: :class:`bool`
-        Whether multiple given values overrides the previous value.
+        多个给定值是否覆盖先前的值。
     """
 
     name: str = MISSING
@@ -82,9 +79,9 @@ class Flag:
 
     @property
     def required(self) -> bool:
-        """:class:`bool`: Whether the flag is required.
+        """:class:`bool`: 是否需要标志。
 
-        A required flag has no default value.
+        必需标志没有默认值。
         """
         return self.default is MISSING
 
@@ -97,41 +94,35 @@ def flag(
         max_args: int = MISSING,
         override: bool = MISSING,
 ) -> Any:
-    """Override default functionality and parameters of the underlying :class:`FlagConverter`
-    class attributes.
+    """覆盖底层 FlagConverter 类属性的默认功能和参数。
 
     Parameters
     ------------
     name: :class:`str`
-        The flag name. If not given, defaults to the attribute name.
+        标志名。如果未给出，则默认为属性名称。
     aliases: List[:class:`str`]
-        Aliases to the flag name. If not given no aliases are set.
+        标志名称的别名。如果没有给出，则不会设置别名。
     default: Any
-        The default parameter. This could be either a value or a callable that takes
-        :class:`Context` as its sole parameter. If not given then it defaults to
-        the default value given to the attribute.
+        默认参数。这可以是一个值，也可以是一个以 :class:`Context` 作为其唯一参数的可调用对象。如果未给出，则默认为赋予属性的默认值。
     max_args: :class:`int`
-        The maximum number of arguments the flag can accept.
-        A negative value indicates an unlimited amount of arguments.
-        The default value depends on the annotation given.
+        标志可以接受的最大参数数。负值表示无限数量的参数。默认值取决于给定的注释。
     override: :class:`bool`
-        Whether multiple given values overrides the previous value. The default
-        value depends on the annotation given.
+        多个给定值是否覆盖先前的值。默认值取决于给定的注释。
     """
     return Flag(name=name, aliases=aliases, default=default, max_args=max_args, override=override)
 
 
 def validate_flag_name(name: str, forbidden: Set[str]):
     if not name:
-        raise ValueError('flag names should not be empty')
+        raise ValueError('标志名称不应为空')
 
     for ch in name:
         if ch.isspace():
-            raise ValueError(f'flag name {name!r} cannot have spaces')
+            raise ValueError(f'标志名称 {name!r} 不能有空格')
         if ch == '\\':
-            raise ValueError(f'flag name {name!r} cannot have backslashes')
+            raise ValueError(f'标志名称 {name!r} 不能有反斜杠')
         if ch in forbidden:
-            raise ValueError(f'flag name {name!r} cannot have any of {forbidden!r} within them')
+            raise ValueError(f'标志名称 {name!r} 不能包含任何 {forbidden!r}')
 
 
 def get_flags(namespace: Dict[str, Any], globals: Dict[str, Any], locals: Dict[str, Any]) -> Dict[str, Flag]:
@@ -205,7 +196,7 @@ def get_flags(namespace: Dict[str, Any], globals: Dict[str, Any], locals: Dict[s
                 if flag.max_args is MISSING:
                     flag.max_args = 1
             else:
-                raise TypeError(f'Unsupported typing annotation {annotation!r} for {flag.name!r} flag')
+                raise TypeError(f'{flag.name!r} 标志不支持键入注释 {annotation!r}')
 
         if flag.override is MISSING:
             flag.override = False
@@ -213,7 +204,7 @@ def get_flags(namespace: Dict[str, Any], globals: Dict[str, Any], locals: Dict[s
         # Validate flag names are unique
         name = flag.name.casefold() if case_insensitive else flag.name
         if name in names:
-            raise TypeError(f'{flag.name!r} flag conflicts with previous flag or alias.')
+            raise TypeError(f'{flag.name!r} 标志与之前的标志或别名冲突。')
         else:
             names.add(name)
 
@@ -221,7 +212,7 @@ def get_flags(namespace: Dict[str, Any], globals: Dict[str, Any], locals: Dict[s
             # Validate alias is unique
             alias = alias.casefold() if case_insensitive else alias
             if alias in names:
-                raise TypeError(f'{flag.name!r} flag alias {alias!r} conflicts with previous flag or alias.')
+                raise TypeError(f'{flag.name!r} 标志别名 {alias!r} 与之前的标志或别名冲突。')
             else:
                 names.add(alias)
 
@@ -412,40 +403,31 @@ F = TypeVar('F', bound='FlagConverter')
 
 
 class FlagConverter(metaclass=FlagsMeta):
-    """A converter that allows for a user-friendly flag syntax.
+    """允许用户友好标志语法的转换器。
 
-    The flags are defined using :pep:`526` type annotations similar
-    to the :mod:`dataclasses` Python module. For more information on
-    how this converter works, check the appropriate
-    :ref:`documentation <ext_commands_flag_converter>`.
+    这些标志是使用 :pep:`526` 类型注释定义的，类似于 Python 模块:mod:`dataclasses`。
+    有关此转换器如何工作的更多信息，请查看相应的:ref:`文档 <ext_commands_flag_converter>`。
 
     .. container:: operations
 
         .. describe:: iter(x)
 
-            Returns an iterator of ``(flag_name, flag_value)`` pairs. This allows it
-            to be, for example, constructed as a dict or a list of pairs.
-            Note that aliases are not shown.
-
-    .. versionadded:: 2.0
+            返回 ``(flag_name, flag_value)`` 对的迭代器。
+            例如，这允许将其构造为字典或对列表。请注意，未显示别名。
 
     Parameters
     -----------
     case_insensitive: :class:`bool`
-        A class parameter to toggle case insensitivity of the flag parsing.
-        If ``True`` then flags are parsed in a case insensitive manner.
-        Defaults to ``False``.
+        用于切换标志解析不区分大小写的类参数。如果为 ``True`` ，则以不区分大小写的方式解析标志。默认为 ``False`` 。
     prefix: :class:`str`
-        The prefix that all flags must be prefixed with. By default
-        there is no prefix.
+        所有标志都必须带有前缀的前缀。默认情况下没有前缀。
     delimiter: :class:`str`
-        The delimiter that separates a flag's argument from the flag's name.
-        By default this is ``:``.
+        将标志的参数与标志的名称分开的分隔符。默认情况下，这是 ``:`` 。
     """
 
     @classmethod
     def get_flags(cls) -> Dict[str, Flag]:
-        """Dict[:class:`str`, :class:`Flag`]: A mapping of flag name to flag object this converter has."""
+        """Dict[:class:`str`, :class:`Flag`]: 标志名称到此转换器具有的标志对象的映射。"""
         return cls.__commands_flags__.copy()
 
     @classmethod
@@ -526,28 +508,28 @@ class FlagConverter(metaclass=FlagsMeta):
     async def convert(cls: Type[F], ctx: Context, argument: str) -> F:
         """|coro|
 
-        The method that actually converters an argument to the flag mapping.
+        实际将参数转换为标志映射的方法。
 
         Parameters
         ----------
         cls: Type[:class:`FlagConverter`]
-            The flag converter class.
+            标志转换器类。
         ctx: :class:`Context`
-            The invocation context.
+            调用 context 。
         argument: :class:`str`
-            The argument to convert from.
+            要转换的参数。
 
         Raises
         --------
         FlagError
-            A flag related parsing error.
+            与标志相关的解析错误。
         CommandError
-            A command related error.
+            命令相关的错误。
 
         Returns
         --------
         :class:`FlagConverter`
-            The flag converter instance with all flags parsed.
+            已解析所有标志的标志转换器实例。
         """
         arguments = cls.parse_flags(argument)
         flags = cls.__commands_flags__

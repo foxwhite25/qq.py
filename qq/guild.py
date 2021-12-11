@@ -149,10 +149,19 @@ class Guild(Hashable):
     def _sync(self) -> None:
         # I know it's jank to put a sync requests here,
         # but QQ just does not give all the info about guilds unless you requests it
-        channels, roles = self._state.http.sync_guild_channels_roles(self.id)
-        for r in roles:
-            role = Role(guild=self, data=r, state=self._state)
-            self._roles[role.id] = role
+        channels, roles, members = self._state.http.sync_guild_channels_roles(self.id)
+        if members:
+            for mdata in members:
+                member = Member(data=mdata, guild=self, state=self._state)
+                self._add_member(member)
+        else:
+            member = Member(data=self._state.http.sync_get_bot_member(self.id, self._state.user.id),
+                            guild=self, state=self._state)
+            self._add_member(member)
+        if 'roles' in roles:
+            for r in roles['roles']:
+                role = Role(guild=self, data=r, state=self._state)
+                self._roles[role.id] = role
         for c in channels:
             factory, ch_type = _guild_channel_factory(c['type'])
             if factory:

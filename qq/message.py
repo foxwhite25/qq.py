@@ -358,7 +358,8 @@ class Message(Hashable):
         'attachments',
         'guild',
         'reference',
-        'role_mentions'
+        'role_mentions',
+        'created_at'
     )
 
     if TYPE_CHECKING:
@@ -377,6 +378,7 @@ class Message(Hashable):
             data: MessagePayload,
     ):
         self._state: ConnectionState = state
+        self.created_at = datetime.datetime.now()
         self.id: str = data['id']
         self.attachments: Optional[List[Attachment]] = \
             [Attachment(data=a, state=self._state) for a in data['attachments']] \

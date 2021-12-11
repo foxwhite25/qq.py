@@ -22,26 +22,26 @@ __all__ = (
 )
 
 
-# help -> shows info of bot on top/bottom and lists subcommands
-# help command -> shows detailed info of command
-# help command <subcommand chain> -> same as above
+# help -> 在顶部显示机器人的信息并列出子命令
+# help 命令 -> 显示命令的详细信息
+# help 命令 <子命令链> -> 同上
 
-# <description>
+# <描述>
 
-# <command signature with aliases>
+# <带别名的命令签名>
 
-# <long doc>
+# <长文档>
 
-# Cog:
-#   <command> <shortdoc>
-#   <command> <shortdoc>
-# Other Cog:
-#   <command> <shortdoc>
-# No Category:
-#   <command> <shortdoc>
+# 齿轮:
+#   <命令> <简文档>
+#   <命令> <简文档>
+# 其他齿轮:
+#   <命令> <简文档>
+# 无类别:
+#   <命令> <简文档>
 
-# Type <prefix>help command for more info on a command.
-# You can also type <prefix>help category for more info on a category.
+# 键入 <前缀>help 命令以获取有关命令的更多信息。
+# 你还可以键入 <前缀>help 类别 以获取有关类别的更多信息。
 
 
 class Paginator:
@@ -249,7 +249,7 @@ class HelpCommand:
     Attributes
     ------------
     context: Optional[:class:`Context`]
-        调用此帮助格式化程序的上下文。 这通常在分配的帮助命令 :func:`command_callback`\ 被调用后设置。
+        调用此帮助格式化程序的 context 。 这通常在分配的帮助命令 :func:`command_callback`\ 被调用后设置。
     show_hidden: :class:`bool`
         指定是否应在输出中显示隐藏命令。
         默认为 ``False`` 。
@@ -260,13 +260,12 @@ class HelpCommand:
 
     command_attrs: :class:`dict`
         用于构建帮助命令的选项字典。
-        这允许您在不实际更改命令的实现的情况下更改命令行为。
+        这允许你在不实际更改命令的实现的情况下更改命令行为。
         这些属性将与传入 :class:`.Command` 构造函数的属性相同。
     """
 
     MENTION_TRANSFORMS = {
-        '@everyone': '@\u200beveryone',
-        '@here': '@\u200bhere',
+        '@所有成员': '@\u200b所有成员',
         r'<@!?[0-9]{17,22}>': '@deleted-user',
         r'<@&[0-9]{17,22}>': '@deleted-role',
     }
@@ -294,7 +293,7 @@ class HelpCommand:
         self.verify_checks = options.pop('verify_checks', True)
         self.command_attrs = attrs = options.pop('command_attrs', {})
         attrs.setdefault('name', 'help')
-        attrs.setdefault('help', 'Shows this message')
+        attrs.setdefault('help', '显示此消息')
         self.context: Context = qq.utils.MISSING
         self._command_impl = _HelpCommandImpl(self, **self.command_attrs)
 
@@ -313,38 +312,32 @@ class HelpCommand:
         self._command_impl._eject_cog()
 
     def add_check(self, func):
-        """
-        Adds a check to the help command.
-
-        .. versionadded:: 1.4
+        """向帮助命令添加检查。
 
         Parameters
         ----------
         func
-            The function that will be used as a check.
+            将用作检查的函数。
         """
 
         self._command_impl.add_check(func)
 
     def remove_check(self, func):
         """
-        Removes a check from the help command.
+        从帮助命令中删除检查。
 
-        This function is idempotent and will not raise an exception if
-        the function is not in the command's checks.
-
-        .. versionadded:: 1.4
+        此函数是幂等的，如果该函数不在命令的检查中，则不会引发异常。
 
         Parameters
         ----------
         func
-            The function to remove from the checks.
+            要从检查中删除的函数。
         """
 
         self._command_impl.remove_check(func)
 
     def get_bot_mapping(self):
-        """Retrieves the bot mapping passed to :meth:`send_bot_help`."""
+        """检索传递给 :meth:`send_bot_help` 的机器人映射。"""
         bot = self.context.bot
         mapping = {cog: cog.get_commands() for cog in bot.cogs.values()}
         mapping[None] = [c for c in bot.commands if c.cog is None]
@@ -352,18 +345,15 @@ class HelpCommand:
 
     @property
     def invoked_with(self):
-        """Similar to :attr:`Context.invoked_with` except properly handles
-        the case where :meth:`Context.send_help` is used.
+        """与 :attr:`Context.invoked_with` 类似，但是正确处理使用 :meth:`Context.send_help` 的情况。
 
-        If the help command was used regularly then this returns
-        the :attr:`Context.invoked_with` attribute. Otherwise, if
-        it the help command was called using :meth:`Context.send_help`
-        then it returns the internal command name of the help command.
+        如果经常使用帮助命令，则返回 :attr:`Context.invoked_with` 属性。
+        否则，如果使用 :meth:`Context.send_help` 调用了帮助命令，则它返回帮助命令的内部命令名称。
 
         Returns
         ---------
         :class:`str`
-            The command name that triggered this invocation.
+            触发此调用的命令名称。
         """
         command_name = self._command_impl.name
         ctx = self.context
@@ -372,17 +362,17 @@ class HelpCommand:
         return ctx.invoked_with
 
     def get_command_signature(self, command):
-        """Retrieves the signature portion of the help page.
+        """检索帮助页面的签名部分。
 
         Parameters
         ------------
         command: :class:`Command`
-            The command to get the signature of.
+            获取签名的命令。
 
         Returns
         --------
         :class:`str`
-            The signature for the command.
+            命令的签名。
         """
 
         parent = command.parent
@@ -407,14 +397,14 @@ class HelpCommand:
         return f'{self.context.clean_prefix}{alias} {command.signature}'
 
     def remove_mentions(self, string):
-        """Removes mentions from the string to prevent abuse.
+        """从字符串中删除提及以防止滥用。
 
-        This includes ``@everyone``, ``@here``, member mentions and role mentions.
+        这包括 “@所有人”、成员提及和身份组提及。
 
         Returns
         -------
         :class:`str`
-            The string with mentions removed.
+            删除了提及的字符串。
         """
 
         def replace(obj, *, transforms=self.MENTION_TRANSFORMS):
@@ -424,18 +414,16 @@ class HelpCommand:
 
     @property
     def cog(self):
-        """A property for retrieving or setting the cog for the help command.
+        """用于检索或设置帮助命令的齿轮的属性。
 
-        When a cog is set for the help command, it is as-if the help command
-        belongs to that cog. All cog special methods will apply to the help
-        command and it will be automatically unset on unload.
+        当为 help 命令设置一个齿轮时，就好像 help 命令属于该齿轮。所有齿轮特殊方法都将应用于 help 命令，并且会在卸载时自动取消设置。
 
-        To unbind the cog from the help command, you can set it to ``None``.
+        要从帮助命令中取消绑定齿轮，你可以将其设置为 ``None``。
 
         Returns
         --------
         Optional[:class:`Cog`]
-            The cog that is currently set for the help command.
+            当前为 help 命令设置的齿轮。
         """
         return self._command_impl.cog
 
@@ -451,77 +439,71 @@ class HelpCommand:
     def command_not_found(self, string):
         """|maybecoro|
 
-        A method called when a command is not found in the help command.
-        This is useful to override for i18n.
+        在帮助命令中找不到命令时调用的方法。这对于 i18n 很有用。
 
-        Defaults to ``No command called {0} found.``
+        默认为 ``未找到名为 {0} 的命令。``
 
         Parameters
         ------------
         string: :class:`str`
-            The string that contains the invalid command. Note that this has
-            had mentions removed to prevent abuse.
+            包含无效命令的字符串。请注意，这已被删除以防止滥用。
 
         Returns
         ---------
         :class:`str`
-            The string to use when a command has not been found.
+            未找到命令时使用的字符串。
         """
-        return f'No command called "{string}" found.'
+        return f'未找到名为“{string}”的命令。'
 
     def subcommand_not_found(self, command, string):
         """|maybecoro|
 
-        A method called when a command did not have a subcommand requested in the help command.
-        This is useful to override for i18n.
+        当命令没有在帮助命令中请求的子命令时调用的方法。这对于 i18n 很有用。
 
         Defaults to either:
 
-        - ``'Command "{command.qualified_name}" has no subcommands.'``
-            - If there is no subcommand in the ``command`` parameter.
-        - ``'Command "{command.qualified_name}" has no subcommand named {string}'``
-            - If the ``command`` parameter has subcommands but not one named ``string``.
+        - ``'命令“{command.qualified_name}”没有子命令。'``
+            - 如果 ``command`` 参数中没有子命令。
+        - ``'命令“{command.qualified_name}”没有名为 {string} 的子命令'``
+            - 如果 ``command`` 参数有子命令，但没有名为 ``string`` 的子命令。
 
         Parameters
         ------------
         command: :class:`Command`
-            The command that did not have the subcommand requested.
+            没有请求子命令的命令。
         string: :class:`str`
-            The string that contains the invalid subcommand. Note that this has
-            had mentions removed to prevent abuse.
+            包含无效子命令的字符串。请注意，这已被删除以防止滥用。
 
         Returns
         ---------
         :class:`str`
-            The string to use when the command did not have the subcommand requested.
+            当命令没有请求子命令时使用的字符串。
         """
         if isinstance(command, Group) and len(command.all_commands) > 0:
-            return f'Command "{command.qualified_name}" has no subcommand named {string}'
-        return f'Command "{command.qualified_name}" has no subcommands.'
+            return f'命令“{command.qualified_name}”没有名为 {string} 的子命令'
+        return f'命令“{command.qualified_name}”没有子命令。'
 
     async def filter_commands(self, commands, *, sort=False, key=None):
         """|coro|
 
-        Returns a filtered list of commands and optionally sorts them.
+        返回过滤后的命令列表并可选择对它们进行排序。
 
-        This takes into account the :attr:`verify_checks` and :attr:`show_hidden`
-        attributes.
+        这考虑了 :attr:`verify_checks` 和 :attr:`show_hidden` 属性。
 
         Parameters
         ------------
         commands: Iterable[:class:`Command`]
-            An iterable of commands that are getting filtered.
+            被过滤的命令的迭代。
         sort: :class:`bool`
-            Whether to sort the result.
+            是否对结果进行排序。
         key: Optional[Callable[:class:`Command`, Any]]
-            An optional key function to pass to :func:`py:sorted` that
-            takes a :class:`Command` as its sole parameter. If ``sort`` is
-            passed as ``True`` then this will default as the command name.
+            传递给 :func:`py:sorted` 的可选键函数，它以 :class:`Command` 作为其唯一参数。
+            如果 ``sort`` 作为 ``True`` 传递，那么这将默认为命令名称。
 
         Returns
         ---------
         List[:class:`Command`]
-            A list of commands that passed the filter.
+            通过过滤器的命令列表。
         """
 
         if sort and key is None:
@@ -556,56 +538,53 @@ class HelpCommand:
         return ret
 
     def get_max_size(self, commands):
-        """Returns the largest name length of the specified command list.
+        """返回指定命令列表的最大名称长度。
 
         Parameters
         ------------
         commands: Sequence[:class:`Command`]
-            A sequence of commands to check for the largest size.
+            检查最大尺寸的一系列命令。
 
         Returns
         --------
         :class:`int`
-            The maximum width of the commands.
+            命令的最大宽度。
         """
 
         as_lengths = (qq.utils._string_width(c.name) for c in commands)
         return max(as_lengths, default=0)
 
     def get_destination(self):
-        """Returns the :class:`~qq.abc.Messageable` where the help command will be output.
+        """返回 :class:`~qq.abc.Messageable` 将在其中输出帮助命令。
 
-        You can override this method to customise the behaviour.
+        你可以覆盖此方法以自定义行为。
 
-        By default this returns the context's channel.
+        默认情况下，这将返回 context 的子频道。
 
         Returns
         -------
         :class:`.abc.Messageable`
-            The destination where the help command will be output.
+            将输出帮助命令的目的地。
         """
         return self.context.channel
 
     async def send_error_message(self, error):
         """|coro|
 
-        Handles the implementation when an error happens in the help command.
-        For example, the result of :meth:`command_not_found` will be passed here.
+        在帮助命令中发生错误时处理实现。例如 :meth:`command_not_found` 的结果会被传递到这里。
 
-        You can override this method to customise the behaviour.
+        你可以覆盖此方法以自定义行为。
 
-        By default, this sends the error message to the destination
-        specified by :meth:`get_destination`.
+        默认情况下，这会将错误消息发送到 :meth:`get_destination` 指定的目的地。
 
         .. note::
 
-            You can access the invocation context with :attr:`HelpCommand.context`.
+            你可以使用 :attr:`HelpCommand.context` 访问调用 context 。
 
         Parameters
         ------------
         error: :class:`str`
-            The error message to display to the user. Note that this has
-            had mentions removed to prevent abuse.
+            要向用户显示的错误消息。请注意，这已被删除以防止滥用。
         """
         destination = self.get_destination()
         await destination.send(error)
@@ -614,129 +593,112 @@ class HelpCommand:
     async def on_help_command_error(self, ctx, error):
         """|coro|
 
-        The help command's error handler, as specified by :ref:`ext_commands_error_handler`.
+        帮助命令的错误处理程序，由 :ref:`ext_commands_error_handler` 指定。
 
-        Useful to override if you need some specific behaviour when the error handler
-        is called.
+        如果在调用错误处理程序时需要某些特定行为，则可用于覆盖。
 
-        By default this method does nothing and just propagates to the default
-        error handlers.
+        默认情况下，此方法不执行任何操作，只会传播到默认错误处理程序。
 
         Parameters
         ------------
         ctx: :class:`Context`
-            The invocation context.
+            调用 context 。
         error: :class:`CommandError`
-            The error that was raised.
+            引发的错误。
         """
         pass
 
     async def send_bot_help(self, mapping):
         """|coro|
 
-        Handles the implementation of the bot command page in the help command.
-        This function is called when the help command is called with no arguments.
+        处理帮助命令中 bot 命令页面的实现。当不带参数调用帮助命令时调用此函数。
 
-        It should be noted that this method does not return anything -- rather the
-        actual message sending should be done inside this method. Well behaved subclasses
-        should use :meth:`get_destination` to know where to send, as this is a customisation
-        point for other users.
+        应该注意的是，这个方法不返回任何东西——而是应该在这个方法内部完成实际的消息发送。
+        行为良好的子类应该使用 :meth:`get_destination` 来知道发送到哪里，因为这是其他用户的自定义点。
 
-        You can override this method to customise the behaviour.
+        你可以覆盖此方法以自定义行为。
 
         .. note::
 
-            You can access the invocation context with :attr:`HelpCommand.context`.
+            你可以使用 :attr:`HelpCommand.context` 访问调用 context 。
 
-            Also, the commands in the mapping are not filtered. To do the filtering
-            you will have to call :meth:`filter_commands` yourself.
+            此外，映射中的命令不会被过滤。要进行过滤，你必须自己调用 :meth:`filter_commands`。
 
         Parameters
         ------------
         mapping: Mapping[Optional[:class:`Cog`], List[:class:`Command`]]
-            A mapping of cogs to commands that have been requested by the user for help.
-            The key of the mapping is the :class:`~.commands.Cog` that the command belongs to, or
-            ``None`` if there isn't one, and the value is a list of commands that belongs to that cog.
+            齿轮到用户请求帮助的命令的映射。映射的键是命令所属的 :class:`~.commands.Cog`，
+            如果没有，则为 ``None`` ，值是属于该齿轮的命令列表.
         """
         return None
 
     async def send_cog_help(self, cog):
         """|coro|
 
-        Handles the implementation of the cog page in the help command.
-        This function is called when the help command is called with a cog as the argument.
+        处理帮助命令中齿轮页面的实现。当使用齿轮作为参数调用 ``help`` 命令时，将调用此函数。
 
-        It should be noted that this method does not return anything -- rather the
-        actual message sending should be done inside this method. Well behaved subclasses
-        should use :meth:`get_destination` to know where to send, as this is a customisation
-        point for other users.
+        应该注意的是，这个方法不返回任何东西——而是应该在这个方法内部完成实际的消息发送。
+        行为良好的子类应该使用 :meth:`get_destination` 来知道发送到哪里，因为这是其他用户的自定义点。
 
-        You can override this method to customise the behaviour.
+        你可以覆盖此方法以自定义行为。
 
         .. note::
 
-            You can access the invocation context with :attr:`HelpCommand.context`.
+            你可以使用 :attr:`HelpCommand.context` 访问调用 context 。
 
-            To get the commands that belong to this cog see :meth:`Cog.get_commands`.
-            The commands returned not filtered. To do the filtering you will have to call
-            :meth:`filter_commands` yourself.
+            要获取属于该齿轮的命令，请参见  :meth:`Cog.get_commands` 。
+            返回的命令未过滤。要进行过滤，你必须自己调用 :meth:`filter_commands`。
 
         Parameters
         -----------
         cog: :class:`Cog`
-            The cog that was requested for help.
+            被请求帮助的齿轮。
         """
         return None
 
     async def send_group_help(self, group):
         """|coro|
 
-        Handles the implementation of the group page in the help command.
-        This function is called when the help command is called with a group as the argument.
+        处理帮助命令中组页面的实现。
+        当使用组作为参数调用帮助命令时，将调用此函数。
 
-        It should be noted that this method does not return anything -- rather the
-        actual message sending should be done inside this method. Well behaved subclasses
-        should use :meth:`get_destination` to know where to send, as this is a customisation
-        point for other users.
+        应该注意的是，这个方法不返回任何东西——而是应该在这个方法内部完成实际的消息发送。
+        行为良好的子类应该使用 :meth:`get_destination` 来知道发送到哪里，因为这是其他用户的自定义点。
 
-        You can override this method to customise the behaviour.
+        你可以覆盖此方法以自定义行为。
 
         .. note::
 
-            You can access the invocation context with :attr:`HelpCommand.context`.
+            你可以使用 :attr:`HelpCommand.context` 访问调用 context 。
 
-            To get the commands that belong to this group without aliases see
-            :attr:`Group.commands`. The commands returned not filtered. To do the
-            filtering you will have to call :meth:`filter_commands` yourself.
+            要获取不带别名的属于该组的命令，请参阅 :attr:`Group.commands`。
+            返回的命令未过滤。要进行过滤，你必须自己调用 :meth:`filter_commands`。
 
         Parameters
         -----------
         group: :class:`Group`
-            The group that was requested for help.
+            被请求帮助的组。
         """
         return None
 
     async def send_command_help(self, command):
         """|coro|
 
-        Handles the implementation of the single command page in the help command.
+        处理帮助命令中单个命令页面的实现。
 
-        It should be noted that this method does not return anything -- rather the
-        actual message sending should be done inside this method. Well behaved subclasses
-        should use :meth:`get_destination` to know where to send, as this is a customisation
-        point for other users.
+        应该注意的是，这个方法不返回任何东西——而是应该在这个方法内部完成实际的消息发送。
+        行为良好的子类应该使用 :meth:`get_destination` 来知道发送到哪里，因为这是其他用户的自定义点。
 
-        You can override this method to customise the behaviour.
+        你可以覆盖此方法以自定义行为。
 
         .. note::
 
-            You can access the invocation context with :attr:`HelpCommand.context`.
+            你可以使用 :attr:`HelpCommand.context` 访问调用 context 。
 
-        .. admonition:: Showing Help
+        .. admonition:: 显示帮助
             :class: helpful
 
-            There are certain attributes and methods that are helpful for a help command
-            to show such as the following:
+            某些属性和方法有助于帮助命令显示，例如：
 
             - :attr:`Command.help`
             - :attr:`Command.brief`
@@ -744,47 +706,42 @@ class HelpCommand:
             - :attr:`Command.description`
             - :meth:`get_command_signature`
 
-            There are more than just these attributes but feel free to play around with
-            these to help you get started to get the output that you want.
+            不是只有是这些属性，但你可以从随意使用这些属性开始来帮助你开始获得所需的输出。
 
         Parameters
         -----------
         command: :class:`Command`
-            The command that was requested for help.
+            请求帮助的命令。
         """
         return None
 
     async def prepare_help_command(self, ctx, command=None):
         """|coro|
 
-        A low level method that can be used to prepare the help command
-        before it does anything. For example, if you need to prepare
-        some state in your subclass before the command does its processing
-        then this would be the place to do it.
+        一种低级方法，可用于在执行任何操作之前准备帮助命令。
+        例如，如果你需要在命令进行处理之前在子类中准备一些状态，那么这将是执行此操作的地方。
 
-        The default implementation does nothing.
+        默认实现什么都不做。
 
         .. note::
 
-            This is called *inside* the help command callback body. So all
-            the usual rules that happen inside apply here as well.
+            这在帮助命令回调主体 **内** 调用。因此，内部发生的所有常见规则也适用于此。
 
         Parameters
         -----------
         ctx: :class:`Context`
-            The invocation context.
+            调用 context 。
         command: Optional[:class:`str`]
-            The argument passed to the help command.
+            传递给 help 命令的参数。
         """
         pass
 
     async def command_callback(self, ctx, *, command=None):
         """|coro|
 
-        The actual implementation of the help command.
+        help 命令的实际执行。
 
-        It is not recommended to override this method and instead change
-        the behaviour through the methods that actually get dispatched.
+        不建议覆盖此方法，而是通过实际调度的方法更改行为。
 
         - :meth:`send_bot_help`
         - :meth:`send_cog_help`
@@ -840,39 +797,34 @@ class HelpCommand:
 
 
 class DefaultHelpCommand(HelpCommand):
-    """The implementation of the default help command.
+    """默认帮助命令的执行。
 
-    This inherits from :class:`HelpCommand`.
+    这继承自:class:`HelpCommand`。
 
-    It extends it with the following attributes.
+    它使用以下属性对其进行了扩展。
 
     Attributes
     ------------
     width: :class:`int`
-        The maximum number of characters that fit in a line.
-        Defaults to 80.
+        适合一行的最大字符数。默认为 80。
     sort_commands: :class:`bool`
-        Whether to sort the commands in the output alphabetically. Defaults to ``True``.
+        是否按字母顺序对输出中的命令进行排序。默认为“真”。
     dm_help: Optional[:class:`bool`]
-        A tribool that indicates if the help command should DM the user instead of
-        sending it to the channel it received it from. If the boolean is set to
-        ``True``, then all help output is DM'd. If ``False``, none of the help
-        output is DM'd. If ``None``, then the bot will only DM when the help
-        message becomes too long (dictated by more than :attr:`dm_help_threshold` characters).
-        Defaults to ``False``.
+        一个三个选择参数，指示帮助命令是否应该私聊用户而不是将其发送到它接收它的频道。
+        如果布尔值设置为 ``True`` ，则所有帮助输出都是私聊的。
+        如果 ``False`` ，则没有任何帮助输出是私聊。
+        如果 ``None`` ，那么当帮助消息变得太长（由超过 :attr:`dm_help_threshold` 字符决定）时，机器人只会发送私聊。
+        默认为 ``False`` 。
     dm_help_threshold: Optional[:class:`int`]
-        The number of characters the paginator must accumulate before getting DM'd to the
-        user if :attr:`dm_help` is set to ``None``. Defaults to 1000.
+        如果 :attr:`dm_help` 设置为 ``None`` ，则分页器在将私聊发送给用户之前必须累积的字符数。默认为 ``1000`` 。
     indent: :class:`int`
-        How much to indent the commands from a heading. Defaults to ``2``.
+        从标题中缩进命令的程度。默认为 ``2`` 。
     commands_heading: :class:`str`
-        The command list's heading string used when the help command is invoked with a category name.
-        Useful for i18n. Defaults to ``"Commands:"``
+        当使用类别名称调用帮助命令时使用的命令列表的标题字符串。对 i18n 有用。默认为 ``"命令："``
     no_category: :class:`str`
-        The string used when there is a command which does not belong to any category(cog).
-        Useful for i18n. Defaults to ``"No Category"``
+        存在不属于任何类别（cog）的命令时使用的字符串。对 i18n 有用。默认为 ``"无类别" ``
     paginator: :class:`Paginator`
-        The paginator used to paginate the help command output.
+        用于对帮助命令输出进行分页的分页器。
     """
 
     def __init__(self, **options):
@@ -881,8 +833,8 @@ class DefaultHelpCommand(HelpCommand):
         self.sort_commands = options.pop('sort_commands', True)
         self.dm_help = options.pop('dm_help', False)
         self.dm_help_threshold = options.pop('dm_help_threshold', 1000)
-        self.commands_heading = options.pop('commands_heading', "Commands:")
-        self.no_category = options.pop('no_category', 'No Category')
+        self.commands_heading = options.pop('commands_heading', "命令：")
+        self.no_category = options.pop('no_category', '无类别')
         self.paginator = options.pop('paginator', None)
 
         if self.paginator is None:
@@ -891,40 +843,35 @@ class DefaultHelpCommand(HelpCommand):
         super().__init__(**options)
 
     def shorten_text(self, text):
-        """:class:`str`: Shortens text to fit into the :attr:`width`."""
+        """:class:`str`: 缩短文本以适应 :attr:`width`。"""
         if len(text) > self.width:
             return text[:self.width - 3].rstrip() + '...'
         return text
 
     def get_ending_note(self):
-        """:class:`str`: Returns help command's ending note. This is mainly useful to override for i18n purposes."""
+        """:class:`str`: 返回帮助命令的结束注释。这主要用于覆盖 i18n 目的。"""
         command_name = self.invoked_with
         return (
-            f"Type {self.context.clean_prefix}{command_name} command for more info on a command.\n"
-            f"You can also type {self.context.clean_prefix}{command_name} category for more info on a category."
+            f"输入 {self.context.clean_prefix}{command_name} 命令以获取有关命令的更多信息。\n"
+            f"你还可以输入 {self.context.clean_prefix}{command_name} 类别 以获取有关类别的更多信息。"
         )
 
     def add_indented_commands(self, commands, *, heading, max_size=None):
-        """Indents a list of commands after the specified heading.
+        """在指定标题后缩进命令列表。
 
-        The formatting is added to the :attr:`paginator`.
+        格式添加到 :attr:`paginator`。
 
-        The default implementation is the command name indented by
-        :attr:`indent` spaces, padded to ``max_size`` followed by
-        the command's :attr:`Command.short_doc` and then shortened
-        to fit into the :attr:`width`.
+        默认实现是命令名称由 :attr:`indent` 空格缩进，
+        填充到 ``max_size`` 后跟命令的 :attr:`Command.short_doc` 然后缩短以适应 :attr:`width`。
 
         Parameters
         -----------
         commands: Sequence[:class:`Command`]
-            A list of commands to indent for output.
+            用于缩进输出的命令列表。
         heading: :class:`str`
-            The heading to add to the output. This is only added
-            if the list of commands is greater than 0.
+            要添加到输出的标题。仅当命令列表大于 0 时才添加此项。
         max_size: Optional[:class:`int`]
-            The max size to use for the gap between indents.
-            If unspecified, calls :meth:`~HelpCommand.get_max_size` on the
-            commands parameter.
+            用于缩进间隙的最大尺寸。如果未指定，则在命令参数上调用 :meth:`~HelpCommand.get_max_size`。
         """
 
         if not commands:
@@ -941,18 +888,18 @@ class DefaultHelpCommand(HelpCommand):
             self.paginator.add_line(self.shorten_text(entry))
 
     async def send_pages(self):
-        """A helper utility to send the page output from :attr:`paginator` to the destination."""
+        """将页面输出从 :attr:`paginator` 发送到目的地的辅助实用程序。"""
         destination = self.get_destination()
         for page in self.paginator.pages:
             await destination.send(page)
 
     def add_command_formatting(self, command):
-        """A utility function to format the non-indented block of commands and groups.
+        """用于格式化命令和组的非缩进块的实用函数。
 
         Parameters
         ------------
         command: :class:`Command`
-            The command to format.
+            要格式化的命令。
         """
 
         if command.description:
@@ -1047,44 +994,39 @@ class DefaultHelpCommand(HelpCommand):
 
 
 class MinimalHelpCommand(HelpCommand):
-    """An implementation of a help command with minimal output.
+    """具有最少输出的帮助命令的实现。
 
-    This inherits from :class:`HelpCommand`.
+    这继承自 :class:`HelpCommand`。
 
     Attributes
     ------------
     sort_commands: :class:`bool`
-        Whether to sort the commands in the output alphabetically. Defaults to ``True``.
+        是否按字母顺序对输出中的命令进行排序。默认为 ``True`` 。
     commands_heading: :class:`str`
-        The command list's heading string used when the help command is invoked with a category name.
-        Useful for i18n. Defaults to ``"Commands"``
+        当使用类别名称调用帮助命令时使用的命令列表的标题字符串。对 i18n 有用。默认为 ``“命令”`` 。
     aliases_heading: :class:`str`
-        The alias list's heading string used to list the aliases of the command. Useful for i18n.
-        Defaults to ``"Aliases:"``.
+        别名列表的标题字符串用于列出命令的别名。对 i18n 有用。默认为``"别名："`` 。
     dm_help: Optional[:class:`bool`]
-        A tribool that indicates if the help command should DM the user instead of
-        sending it to the channel it received it from. If the boolean is set to
-        ``True``, then all help output is DM'd. If ``False``, none of the help
-        output is DM'd. If ``None``, then the bot will only DM when the help
-        message becomes too long (dictated by more than :attr:`dm_help_threshold` characters).
-        Defaults to ``False``.
+        一个三个选择参数，指示帮助命令是否应该私聊用户而不是将其发送到它接收它的频道。
+        如果布尔值设置为 ``True`` ，则所有帮助输出都是私聊的。
+        如果 ``False`` ，则没有任何帮助输出是私聊。
+        如果 ``None`` ，那么当帮助消息变得太长（由超过 :attr:`dm_help_threshold` 字符决定）时，机器人只会发送私聊。
+        默认为 ``False`` 。
     dm_help_threshold: Optional[:class:`int`]
-        The number of characters the paginator must accumulate before getting DM'd to the
-        user if :attr:`dm_help` is set to ``None``. Defaults to 1000.
+        如果 :attr:`dm_help` 设置为 ``None`` ，则分页器在将私聊发送给用户之前必须累积的字符数。默认为 ``1000`` 。
     no_category: :class:`str`
-        The string used when there is a command which does not belong to any category(cog).
-        Useful for i18n. Defaults to ``"No Category"``
+        存在不属于任何类别（cog）的命令时使用的字符串。对 i18n 有用。默认为 ``"无类别:" ``
     paginator: :class:`Paginator`
-        The paginator used to paginate the help command output.
+        用于对帮助命令输出进行分页的分页器。
     """
 
     def __init__(self, **options):
         self.sort_commands = options.pop('sort_commands', True)
-        self.commands_heading = options.pop('commands_heading', "Commands")
+        self.commands_heading = options.pop('commands_heading', "命令")
         self.dm_help = options.pop('dm_help', False)
         self.dm_help_threshold = options.pop('dm_help_threshold', 1000)
-        self.aliases_heading = options.pop('aliases_heading', "Aliases:")
-        self.no_category = options.pop('no_category', 'No Category')
+        self.aliases_heading = options.pop('aliases_heading', "别名：")
+        self.no_category = options.pop('no_category', '无类别')
         self.paginator = options.pop('paginator', None)
 
         if self.paginator is None:
@@ -1093,18 +1035,18 @@ class MinimalHelpCommand(HelpCommand):
         super().__init__(**options)
 
     async def send_pages(self):
-        """A helper utility to send the page output from :attr:`paginator` to the destination."""
+        """将页面输出从 :attr:`paginator` 发送到目的地的辅助实用程序。"""
         destination = self.get_destination()
         for page in self.paginator.pages:
             await destination.send(page)
 
     def get_opening_note(self):
-        """Returns help command's opening note. This is mainly useful to override for i18n purposes.
+        """返回帮助命令的开头注释。这主要用于覆盖 i18n 目的。
 
-        The default implementation returns ::
+        默认实现返回 ::
 
-            Use `{prefix}{command_name} [command]` for more info on a command.
-            You can also use `{prefix}{command_name} [category]` for more info on a category.
+            使用 `{prefix}{command_name} [命令]` 获取有关命令的更多信息。
+            你还可以使用 `{prefix}{command_name} [类别]` 获取有关类别的更多信息。
 
         Returns
         -------
@@ -1113,39 +1055,38 @@ class MinimalHelpCommand(HelpCommand):
         """
         command_name = self.invoked_with
         return (
-            f"Use `{self.context.clean_prefix}{command_name} [command]` for more info on a command.\n"
-            f"You can also use `{self.context.clean_prefix}{command_name} [category]` for more info on a category."
+            f"使用 `{self.context.clean_prefix}{command_name} [命令]` 获取有关命令的更多信息。\n"
+            f"你还可以使用 `{self.context.clean_prefix}{command_name} [类别]` 获取有关类别的更多信息。"
         )
 
     def get_command_signature(self, command):
         return f'{self.context.clean_prefix}{command.qualified_name} {command.signature}'
 
     def get_ending_note(self):
-        """Return the help command's ending note. This is mainly useful to override for i18n purposes.
+        """返回帮助命令的结束注释。这主要用于覆盖 i18n 目的。
 
-        The default implementation does nothing.
+        默认实现什么都不做。
 
         Returns
         -------
         :class:`str`
-            The help command ending note.
+            帮助命令结束注释。
         """
         return None
 
     def add_bot_commands_formatting(self, commands, heading):
-        """Adds the minified bot heading with commands to the output.
+        """将带有命令的缩小机器人标题添加到输出中。
 
-        The formatting should be added to the :attr:`paginator`.
+        格式应该添加到 :attr:`paginator`。
 
-        The default implementation is a bold underline heading followed
-        by commands separated by an EN SPACE (U+2002) in the next line.
+        默认实现是一个标题，下一行是由 EN SPACE (U+2002) 分隔的命令。
 
         Parameters
         -----------
         commands: Sequence[:class:`Command`]
-            A list of commands that belong to the heading.
+            属于标题的命令列表。
         heading: :class:`str`
-            The heading to add to the line.
+            要添加到行的标题。
         """
         if commands:
             # U+2002 Middle Dot
@@ -1154,45 +1095,43 @@ class MinimalHelpCommand(HelpCommand):
             self.paginator.add_line(joined)
 
     def add_subcommand_formatting(self, command):
-        """Adds formatting information on a subcommand.
+        """在子命令上添加格式信息。
 
-        The formatting should be added to the :attr:`paginator`.
+        格式应该添加到 :attr:`paginator`。
 
-        The default implementation is the prefix and the :attr:`Command.qualified_name`
-        optionally followed by an En dash and the command's :attr:`Command.short_doc`.
+        默认实现是前缀和:attr:`Command.qualified_name` 可选后跟一个短划线和命令的:attr:`Command.short_doc`。
 
         Parameters
         -----------
         command: :class:`Command`
-            The command to show information of.
+            显示信息的命令。
         """
         fmt = '{0}{1} \N{EN DASH} {2}' if command.short_doc else '{0}{1}'
         self.paginator.add_line(fmt.format(self.context.clean_prefix, command.qualified_name, command.short_doc))
 
     def add_aliases_formatting(self, aliases):
-        """Adds the formatting information on a command's aliases.
+        """添加有关命令别名的格式信息。
 
-        The formatting should be added to the :attr:`paginator`.
+        格式应该添加到 :attr:`paginator`。
 
-        The default implementation is the :attr:`aliases_heading` bolded
-        followed by a comma separated list of aliases.
+        默认实现是 :attr:`aliases_heading` 跟逗号分隔的别名列表。
 
-        This is not called if there are no aliases to format.
+        如果没有要格式化的别名，则不会调用此方法。
 
         Parameters
         -----------
         aliases: Sequence[:class:`str`]
-            A list of aliases to format.
+            要格式化的别名列表。
         """
         self.paginator.add_line(f'**{self.aliases_heading}** {", ".join(aliases)}', empty=True)
 
     def add_command_formatting(self, command):
-        """A utility function to format commands and groups.
+        """用于格式化命令和组的实用程序函数。
 
         Parameters
         ------------
         command: :class:`Command`
-            The command to format.
+            要格式化的命令。
         """
 
         if command.description:
