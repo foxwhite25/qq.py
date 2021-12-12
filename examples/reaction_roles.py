@@ -2,15 +2,16 @@
 
 import qq
 
+
 class MyClient(qq.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.role_message_id = 0 # ID of the message that can be reacted to to add/remove a role.
+        self.role_message_id = 0  # ID of the message that can be reacted to to add/remove a role.
         self.emoji_to_role = {
-            qq.PartialEmoji(name='🔴'): 0, # ID of the role associated with unicode emoji '🔴'.
-            qq.PartialEmoji(name='🟡'): 0, # ID of the role associated with unicode emoji '🟡'.
-            qq.PartialEmoji(name='green', id=0): 0, # ID of the role associated with a partial emoji's ID.
+            qq.PartialEmoji(name='🔴'): 0,  # ID of the role associated with unicode emoji '🔴'.
+            qq.PartialEmoji(name='🟡'): 0,  # ID of the role associated with unicode emoji '🟡'.
+            qq.PartialEmoji(name='green', id=0): 0,  # ID of the role associated with a partial emoji's ID.
         }
 
     async def on_raw_reaction_add(self, payload: qq.RawReactionActionEvent):
@@ -77,6 +78,7 @@ class MyClient(qq.Client):
         except qq.HTTPException:
             # If we want to do something in case of errors we'd do it here.
             pass
+
 
 intents = qq.Intents.default()
 intents.members = True

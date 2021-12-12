@@ -84,6 +84,26 @@ if TYPE_CHECKING:
         proxy_icon_url: MaybeEmpty[str]
 
 
+class Ark:
+    """代表一个 QQ Ark。
+
+    .. container:: operations
+
+        .. describe:: len(x)
+
+            返回嵌入的总大小。用于检查它是否在 6000 个字符限制内。
+
+        .. describe:: bool(b)
+
+            返回嵌入是否有任何数据集。
+
+    Attributes
+    -----------
+    template_id: :class:`str`
+        要使用的模版 ID。
+    """
+
+
 class Embed:
     """代表一个 QQ 嵌入。
 

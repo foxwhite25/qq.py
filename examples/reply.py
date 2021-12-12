@@ -1,5 +1,6 @@
 import qq
 
+
 class MyClient(qq.Client):
     async def on_ready(self):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
@@ -12,6 +13,7 @@ class MyClient(qq.Client):
 
         if message.content.startswith('!hello'):
             await message.reply('Hello!', mention_author=True)
+
 
 client = MyClient()
 client.run('token')

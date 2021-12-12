@@ -14,7 +14,7 @@ class MyContext(commands.Context):
         try:
             # this will react to the command author's message
             await self.message.add_reaction(emoji)
-        except discord.HTTPException:
+        except qq.HTTPException:
             # sometimes errors occur during this, for example
             # maybe you don't have permission to do that
             # we don't mind, so we can just ignore them
@@ -27,9 +27,10 @@ class MyBot(commands.Bot):
         # subclass to the super() method, which tells the bot to
         # use the new MyContext class
         return await super().get_context(message, cls=cls)
-        
+
 
 bot = MyBot(command_prefix='!')
+
 
 @bot.command()
 async def guess(ctx, number: int):
@@ -41,6 +42,7 @@ async def guess(ctx, number: int):
     # green check mark if the guess was correct,
     # or a red cross mark if it wasn't
     await ctx.tick(number == value)
+
 
 # IMPORTANT: You shouldn't hard code your token
 # these are very important, and leaking them can 

@@ -73,6 +73,7 @@ class Messageable:
             image=None,
             reference=None,
             mention_author=None,
+            ark = None,
     ):
         """|coro|
         使用给定的内容向目的地发送消息。
@@ -88,6 +89,7 @@ class Messageable:
             对您正在回复的 :class:`~qq.Message` 的引用，可以使用 :meth:`~qq.Message.to_reference` 创建或直接作为 :class:`~qq.Message` 传递。
         mention_author: Optional[:class:`Member`]
             如果设置了，将会在消息前面提及该用户。
+        ark: Optional[:class:'Ark']
 
 
         Raises

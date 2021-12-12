@@ -1,6 +1,7 @@
 import qq
 import asyncio
 
+
 class MyClient(qq.Client):
     async def on_ready(self):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
@@ -15,6 +16,7 @@ class MyClient(qq.Client):
     async def on_message_edit(self, before, after):
         msg = f'**{before.author}** edited their message:\n{before.content} -> {after.content}'
         await before.channel.send(msg)
+
 
 client = MyClient()
 client.run('token')

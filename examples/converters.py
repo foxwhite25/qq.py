@@ -34,24 +34,21 @@ async def userinfo_error(ctx: commands.Context, error: commands.CommandError):
 # 自定义转换器在这里
 class ChannelOrMemberConverter(commands.Converter):
     async def convert(self, ctx: commands.Context, argument: str):
-        # In this example we have made a custom converter.
-        # This checks if an input is convertible to a
-        # `qq.Member` or `qq.TextChannel` instance from the
-        # input the user has given us using the pre-existing converters
-        # that the library provides.
+        # 在这个例子中，我们制作了一个自定义转换器。
+        # 这会检查输入是否可以通过使用库提供的预制转换器转换为 `qq.Member` 或 `qq.TextChannel` 实例。
 
         member_converter = commands.MemberConverter()
         try:
-            # Try and convert to a Member instance.
-            # If this fails, then an exception is raised.
-            # Otherwise, we just return the converted member value.
+            # 尝试转换为 Member 实例。
+            # 如果失败，则会引发异常。
+            # 否则，我们只返回转换后的成员值。
             member = await member_converter.convert(ctx, argument)
         except commands.MemberNotFound:
             pass
         else:
             return member
 
-        # Do the same for TextChannel...
+        # 对 TextChannel 执行相同操作...
         textchannel_converter = commands.TextChannelConverter()
         try:
             channel = await textchannel_converter.convert(ctx, argument)
@@ -60,45 +57,43 @@ class ChannelOrMemberConverter(commands.Converter):
         else:
             return channel
 
-        # If the value could not be converted we can raise an error
-        # so our error handlers can deal with it in one place.
-        # The error has to be CommandError derived, so BadArgument works fine here.
-        raise commands.BadArgument(f'No Member or TextChannel could be converted from "{argument}"')
+        # 如果该值无法转换，我们可以引发错误
+        # 所以我们的错误处理程序可以在一个地方处理它。
+        # 错误必须是 CommandError 派生的，所以 BadArgument 在这里工作正常。
+        raise commands.BadArgument(f'没有成员或 TextChannel 可以从“{argument}”转换')
 
 
 @bot.command()
 async def notify(ctx: commands.Context, target: ChannelOrMemberConverter):
-    # This command signature utilises the custom converter written above
-    # What will happen during command invocation is that the `target` above will be passed to
-    # the `argument` parameter of the `ChannelOrMemberConverter.convert` method and 
-    # the conversion will go through the process defined there.
+    # 这个命令签名使用了上面写的自定义转换器 在命令调用期间会发生的是，
+    # 上面的 `target` 将被传递给 `ChannelOrMemberConverter.convert`
+    # 方法的 `argument` 参数，并且转换将通过那里定义的过程。
 
-    await target.send(f'Hello, {target.name}!')
+    await target.send(f'{target.name} 你好!')
 
 
 @bot.command()
 async def ignore(ctx: commands.Context, target: typing.Union[qq.Member, qq.TextChannel]):
-    # This command signature utilises the `typing.Union` typehint.
-    # The `commands` framework attempts a conversion of each type in this Union *in order*.
-    # So, it will attempt to convert whatever is passed to `target` to a `qq.Member` instance.
-    # If that fails, it will attempt to convert it to a `qq.TextChannel` instance.
-    # See: https://qqpy.readthedocs.io/zh_CN/latest/ext/commands/commands.html#typing-union
-    # NOTE: If a Union typehint converter fails it will raise `commands.BadUnionArgument`
-    # instead of `commands.BadArgument`.
+    # 这个命令签名使用了 `typing.Union` 类型提示。
+    # `commands` 框架尝试按 **顺序** 转换此 Union 中的每种类型。
+    # 因此，它会尝试将传递给 `target` 的任何内容转换为 `qq.Member` 实例。
+    # 如果失败，它将尝试将其转换为 `qq.TextChannel` 实例。
+    # 参见 : https://qqpy.readthedocs.io/zh_CN/latest/ext/commands/commands.html#typing-union
+    # 注意：如果联合类型提示转换器失败，它将引发 `commands.BadUnionArgument` 而不是 `commands.BadArgument`。
 
-    # To check the resulting type, `isinstance` is used
+    # 为了检查结果类型，使用`isinstance`
     if isinstance(target, qq.Member):
-        await ctx.send(f'Member found: {target.mention}, adding them to the ignore list.')
-    elif isinstance(target, qq.TextChannel):  # this could be an `else` but for completeness' sake.
-        await ctx.send(f'Channel found: {target.mention}, adding it to the ignore list.')
+        await ctx.send(f'成员找到：{target.mention}，将它们添加到忽略列表中。')
+    elif isinstance(target, qq.TextChannel):  # 这可以是一个“else”，但为了完整起见使用了 "elif"。
+        await ctx.send(f'频道找到：{target.mention}，将其添加到忽略列表中。')
 
 
-# Built-in type converters.
+# 内置类型转换器。
 @bot.command()
 async def multiply(ctx: commands.Context, number: int, maybe: bool):
-    # We want an `int` and a `bool` parameter here.
-    # `bool` is a slightly special case, as shown here:
-    # See: https://qqpy.readthedocs.io/zh_CN/latest/ext/commands/commands.html#bool
+    # 我们在这里需要一个 `int` 和一个 `bool` 参数。
+    # `bool` 是一个稍微特殊的情况，如下所示：
+    # 参见: https://qqpy.readthedocs.io/zh_CN/latest/ext/commands/commands.html#bool
 
     if maybe is True:
         return await ctx.send(number * 2)
