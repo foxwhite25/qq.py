@@ -2,11 +2,6 @@ import qq
 from qq.ext import commands
 import random
 
-description = '''展示 qq.ext.commands 扩展的示例机器人
-模块。
-
-这里展示了许多实用程序命令。'''
-
 intents = qq.Intents.default()
 
 bot = commands.Bot(command_prefix='?', description=description, intents=intents)

@@ -367,6 +367,7 @@ class ConnectionState:
 
     def parse_at_message_create(self, data) -> None:
         channel, _ = self._get_guild_channel(data)
+        data['content'] = data['content'].replace(self.user.mention, '').removeprefix(' ')
         # channel would be the correct type here
         message = Message(channel=channel, data=data, state=self)  # type: ignore
         self.dispatch('message', message)

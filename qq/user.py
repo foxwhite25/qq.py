@@ -110,7 +110,7 @@ class BaseUser(_UserTag):
     @property
     def mention(self) -> str:
         """:class:`str`: 返回一个字符串，允许你提及给定的用户。"""
-        return f'<@{self.id}>'
+        return f'<@!{self.id}>'
 
     @property
     def display_name(self) -> str:
