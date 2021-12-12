@@ -1,8 +1,7 @@
 <div align="center">
 
-# QQ.py
+![[object Object]](https://socialify.git.ci/foxwhite25/qq.py/image?description=1&font=Inter&forks=1&issues=1&language=1&owner=1&pattern=Circuit%20Board&stargazers=1&theme=Light)
 
-[![GitHub issues](https://img.shields.io/github/issues/foxwhite25/qq.py?style=for-the-badge)](https://github.com/foxwhite25/qq.py/issues)
 [![PyPI - License](https://img.shields.io/pypi/l/qq.py?style=for-the-badge)](https://pypi.org/project/qq.py/)
 [![PyPI - Status](https://img.shields.io/pypi/status/qq.py?style=for-the-badge)](https://pypi.org/project/qq.py/)
 [![PyPI](https://img.shields.io/pypi/v/qq.py?style=for-the-badge)](https://pypi.org/project/qq.py/)
@@ -19,7 +18,7 @@ _✨ 用 Python 编写的用于 QQ频道机器人 的现代化、易于使用、
 
 ## 安装
 
-**需要 Python 3.8或以上的版本**
+**需要 Python 3.8或以上的版本** 和一根接入互联网的网线。
 
 要安装库，你只需运行以下命令：
 ```
@@ -73,4 +72,4 @@ bot.run('app_id.token')
 ## 链接
 * [文档](https://qqpy.readthedocs.io/zh_CN/latest/?badge=latest)
 * [QQ API](https://bot.q.qq.com/wiki/develop/api/)
-* 帮助 QQ 群 -583799186
+* [帮助 QQ 群 - 583799186](https://qm.qq.com/cgi-bin/qm/qr?k=5BuK-ZVjbNxVmfdobpeLyeo_xPbsQcKz&jump_from=webapi)
