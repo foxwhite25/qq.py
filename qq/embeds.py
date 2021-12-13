@@ -101,7 +101,128 @@ class Ark:
     -----------
     template_id: :class:`str`
         要使用的模版 ID。
+    colour: Union[:class:`Colour`, :class:`int`]
+        嵌入的颜色代码。别名为 ``color``。这可以在初始化期间设置。目前官方还没有实现
     """
+    __slots__ = (
+        '_fields',
+        '_colour',
+        'template_id',
+        'colour',
+        'title',
+        'description',
+        'prompt',
+        '_extra'
+    )
+
+    def __init__(
+            self,
+            *,
+            colour: Optional[Union[int, Colour, _EmptyEmbed]] = EmptyEmbed,
+            color: Optional[Union[int, Colour, _EmptyEmbed]] = EmptyEmbed,
+            template_id: int,
+    ):
+        self._extra = {}
+        self.template_id = template_id
+        self.colour = colour if colour is not EmptyEmbed else color if color is not EmptyEmbed else None
+
+        if self.prompt is not EmptyEmbed:
+            self.prompt = str(self.prompt)
+
+        if self.title is not EmptyEmbed:
+            self.title = str(self.title)
+
+        if self.description is not EmptyEmbed:
+            self.description = str(self.description)
+
+    @property
+    def fields(self) -> List[_EmbedFieldProxy]:
+        """List[Union[``EmbedProxy``, :attr:`Empty`]]:
+        返回 ``EmbedProxy`` 的一个列表，表示字段内容。有关您可以访问的可能值，请参阅 :meth:`add_field`。
+        如果该属性没有值，则返回 :attr:`Empty`。
+        """
+        return [EmbedProxy(d) for d in getattr(self, '_fields', [])]  # type: ignore
+
+    def set_attribute(self: E, key: Any, value: Any) -> E:
+        """向 Ark 对象添加字段。此函数返回类实例以允许流式链接。
+
+        Parameters
+        -----------
+        key: :class:`str`
+            字段的名称。
+        value: :class:`str`
+            字段的值。
+        """
+
+        self._extra[str(key)] = str(value)
+        return self
+
+    def add_field(self: E, *, name: Any, value: Any) -> E:
+        """向 Ark 对象添加字段。此函数返回类实例以允许流式链接。
+
+        Parameters
+        -----------
+        name: :class:`str`
+            字段的名称。
+        value: :class:`str`
+            字段的值。
+        """
+
+        field = {
+            'key': str(name),
+            'value': str(value),
+        }
+
+        try:
+            self._fields.append(field)  # type: ignore
+        except AttributeError:
+            self._fields = [field]
+
+        return self
+
+    def insert_field_at(self: E, index: int, *, name: Any, value: Any) -> E:
+        """在 Ark 的指定索引之前插入一个字段。此函数返回类实例以允许流式链接。
+
+        Parameters
+        -----------
+        index: :class:`int`
+            插入字段的位置的索引。
+        name: :class:`str`
+            字段的名称。
+        value: :class:`str`
+            字段的值。
+        """
+
+        field = {
+            'key': str(name),
+            'value': str(value),
+        }
+
+        try:
+            self._fields.insert(index, field)  # type: ignore
+        except AttributeError:
+            self._fields = [field]
+
+        return self
+
+    def clear_fields(self) -> None:
+        """从此 Ark 中删除所有字段。"""
+        try:
+            self._fields.clear()
+        except AttributeError:
+            self._fields = []
+
+    def to_dict(self) -> EmbedData:
+        """将此 Ark 对象转换为字典。"""
+
+        result = {"template_id": self.template_id,
+                  "kv": [{"key": i, "value": j} for i, j in self._extra.items()]}
+
+        if self.fields:
+            obj = [{"objkv": [i]} for i in self._fields]
+            result["kv"].append({"key": "#LIST#", "obj": obj})  # type: ignore
+
+        return result  # type: ignore
 
 
 class Embed:
