@@ -158,14 +158,14 @@ class Ark:
             字段的 Url。
         """
 
-        field = {'objkv': []}
+        field = {'obj_kv': []}
         if desc:
-            field['objkv'].append({
+            field['obj_kv'].append({
                 "key": "desc",
                 "value": str(desc)
             })
         if url:
-            field['objkv'].append({
+            field['obj_kv'].append({
                 "key": "url",
                 "value": str(desc)
             })
@@ -190,14 +190,14 @@ class Ark:
             字段的 Url。
         """
 
-        field = {'objkv': []}
+        field = {'obj_kv': []}
         if desc:
-            field['objkv'].append({
+            field['obj_kv'].append({
                 "key": "desc",
                 "value": str(desc)
             })
         if url:
-            field['objkv'].append({
+            field['obj_kv'].append({
                 "key": "link",
                 "value": str(desc)
             })
