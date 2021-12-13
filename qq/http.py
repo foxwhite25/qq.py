@@ -10,13 +10,14 @@ from urllib.parse import quote as _uriquote
 import aiohttp
 import requests
 
-from . import __version__, utils, role
+from . import __version__, utils
+from.embeds import Ark
 from .types.member import MemberWithUser as MemberPayload
 from .error import HTTPException, Forbidden, NotFound, QQServerError, LoginFailure, GatewayNotFound
 from .gateway import QQClientWebSocketResponse
 from .types.message import Message
 from .types import user, guild, message, channel, member
-from .types.embed import Embed
+from .types.embed import Ark as ArkPayload
 from .utils import MISSING
 from .types.channel import Channel as ChannelPayload
 from .types.role import Role as RolePayload
@@ -459,6 +460,7 @@ class HTTPClient:
             channel_id: int,
             content: Optional[str],
             image_url: Optional[str],
+            ark: Optional[Union[Ark, ArkPayload]],
             *,
             tts: bool = False,
             message_reference: Optional[message.MessageReference] = None,
@@ -475,7 +477,13 @@ class HTTPClient:
         if message_reference:
             payload['msg_id'] = message_reference['message_id']
 
-        payload['image'] = image_url
+        if image_url:
+            payload['image'] = image_url
+
+        if ark:
+            if isinstance(ark, Ark):
+                ark = ark.to_dict()
+            payload['ark'] = ark
 
         return self.request(r, json=payload)
 

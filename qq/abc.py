@@ -73,7 +73,7 @@ class Messageable:
             image=None,
             reference=None,
             mention_author=None,
-            ark = None,
+            ark=None,
     ):
         """|coro|
         使用给定的内容向目的地发送消息。
@@ -85,11 +85,12 @@ class Messageable:
             发送的信息内容。
         image: :class:`str`
             要发送的图片链接
+        ark: Optional[:class:'qq.Ark']
+            要发送的 Ark 类
         reference: Union[:class:`~qq.Message`, :class:`~qq.MessageReference`, :class:`~qq.PartialMessage`]
             对您正在回复的 :class:`~qq.Message` 的引用，可以使用 :meth:`~qq.Message.to_reference` 创建或直接作为 :class:`~qq.Message` 传递。
         mention_author: Optional[:class:`Member`]
             如果设置了，将会在消息前面提及该用户。
-        ark: Optional[:class:'Ark']
 
 
         Raises
@@ -120,11 +121,12 @@ class Messageable:
                 reference = reference.to_message_reference_dict()
             except AttributeError:
                 raise InvalidArgument(
-                    'reference parameter must be Message, MessageReference, or PartialMessage') from None
+                    '参考参数必须是 Message、 MessageReference 或 PartialMessage') from None
 
         data = await state.http.send_message(
             channel.id,
             content,
+            ark=ark,
             message_reference=reference,
             image_url=image
         )

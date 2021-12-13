@@ -5,9 +5,11 @@ from typing import Any, Dict, Final, List, Mapping, Protocol, TYPE_CHECKING, Typ
 
 __all__ = (
     'Embed',
+    'Ark'
 )
 
-from . import Colour, utils
+from . import utils
+from .colour import Colour
 
 
 class _EmptyEmbed:
@@ -109,9 +111,6 @@ class Ark:
         '_colour',
         'template_id',
         'colour',
-        'title',
-        'description',
-        'prompt',
         '_extra'
     )
 
@@ -125,15 +124,6 @@ class Ark:
         self._extra = {}
         self.template_id = template_id
         self.colour = colour if colour is not EmptyEmbed else color if color is not EmptyEmbed else None
-
-        if self.prompt is not EmptyEmbed:
-            self.prompt = str(self.prompt)
-
-        if self.title is not EmptyEmbed:
-            self.title = str(self.title)
-
-        if self.description is not EmptyEmbed:
-            self.description = str(self.description)
 
     @property
     def fields(self) -> List[_EmbedFieldProxy]:
@@ -157,21 +147,28 @@ class Ark:
         self._extra[str(key)] = str(value)
         return self
 
-    def add_field(self: E, *, name: Any, value: Any) -> E:
+    def add_field(self: E, *, desc: Any, url: Any = None) -> E:
         """向 Ark 对象添加字段。此函数返回类实例以允许流式链接。
 
         Parameters
         -----------
-        name: :class:`str`
-            字段的名称。
-        value: :class:`str`
+        desc: :class:`str`
             字段的值。
+        url: :class:`str`
+            字段的 Url。
         """
 
-        field = {
-            'key': str(name),
-            'value': str(value),
-        }
+        field = {'objkv': []}
+        if desc:
+            field['objkv'].append({
+                "key": "desc",
+                "value": str(desc)
+            })
+        if url:
+            field['objkv'].append({
+                "key": "url",
+                "value": str(desc)
+            })
 
         try:
             self._fields.append(field)  # type: ignore
@@ -180,23 +177,30 @@ class Ark:
 
         return self
 
-    def insert_field_at(self: E, index: int, *, name: Any, value: Any) -> E:
+    def insert_field_at(self: E, index: int, *, desc: Any, url: Any = None) -> E:
         """在 Ark 的指定索引之前插入一个字段。此函数返回类实例以允许流式链接。
 
         Parameters
         -----------
         index: :class:`int`
             插入字段的位置的索引。
-        name: :class:`str`
-            字段的名称。
-        value: :class:`str`
+        desc: :class:`str`
             字段的值。
+        url: :class:`str`
+            字段的 Url。
         """
 
-        field = {
-            'key': str(name),
-            'value': str(value),
-        }
+        field = {'objkv': []}
+        if desc:
+            field['objkv'].append({
+                "key": "desc",
+                "value": str(desc)
+            })
+        if url:
+            field['objkv'].append({
+                "key": "link",
+                "value": str(desc)
+            })
 
         try:
             self._fields.insert(index, field)  # type: ignore
@@ -219,8 +223,7 @@ class Ark:
                   "kv": [{"key": i, "value": j} for i, j in self._extra.items()]}
 
         if self.fields:
-            obj = [{"objkv": [i]} for i in self._fields]
-            result["kv"].append({"key": "#LIST#", "obj": obj})  # type: ignore
+            result["kv"].append({"key": "#LIST#", "obj": self._fields})  # type: ignore
 
         return result  # type: ignore
 
