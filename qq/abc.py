@@ -78,6 +78,7 @@ class Messageable:
         """|coro|
         使用给定的内容向目的地发送消息。
         content 必须是可以通过 ``str(content)`` 转换为字符串的类型。
+        如果是主动信息，不一定会有返回。
 
         Parameters
         ------------
@@ -130,6 +131,9 @@ class Messageable:
             message_reference=reference,
             image_url=image
         )
+
+        if 'code' in data:
+            return None
 
         ret = state.create_message(channel=channel, data=data)
         return ret

@@ -14,13 +14,15 @@ from .channel import PartialMessageable, TextChannel, _channel_factory
 from .flags import Intents
 from .mention import AllowedMentions
 from .object import Object
+from .partial_emoji import PartialEmoji
+from .raw_models import RawReactionActionEvent, RawReactionClearEvent, RawReactionClearEmojiEvent
 from .user import User, ClientUser
 from .guild import Guild
 from .message import Message
 from .member import Member
 
 if TYPE_CHECKING:
-    from .abc import GuildChannel
+    from .abc import GuildChannel, MessageableChannel
     from .http import HTTPClient
     from .client import Client
     from .gateway import QQWebSocket
@@ -265,6 +267,14 @@ class ConnectionState:
         guild = self._get_guild(int(data['guild_id']))
         channel = guild and guild._resolve_channel(channel_id)
         return channel or PartialMessageable(state=self, id=channel_id), guild
+
+    def get_reaction_emoji(self, data) -> Union[PartialEmoji]:
+        emoji_id = data.get('id')
+
+        if not emoji_id:
+            return data['name']
+
+        return PartialEmoji.with_state(self, animated=data.get('animated', False), id=emoji_id, name=data['name'])
 
     async def chunker(
             self, guild_id: int, query: str = '', limit: int = 0, presences: bool = False, *,
@@ -583,7 +593,7 @@ class ConnectionState:
     def parse_message_reaction_add(self, data) -> None:
         emoji = data['emoji']
         emoji_id = emoji.get('id')
-        emoji = PartialEmoji.with_state(self, id=emoji_id, name=emoji['name'])
+        emoji = PartialEmoji.with_state(self, id=emoji_id, custom=True if emoji['type'] == '1' else False)
         raw = RawReactionActionEvent(data, emoji, 'REACTION_ADD')
 
         member_data = data.get('member')
@@ -620,7 +630,7 @@ class ConnectionState:
     def parse_message_reaction_remove(self, data) -> None:
         emoji = data['emoji']
         emoji_id = emoji.get('id')
-        emoji = PartialEmoji.with_state(self, id=emoji_id, name=emoji['name'])
+        emoji = PartialEmoji.with_state(self, id=emoji_id, custom=True if emoji['type'] == '1' else False)
         raw = RawReactionActionEvent(data, emoji, 'REACTION_REMOVE')
         self.dispatch('raw_reaction_remove', raw)
 
@@ -639,7 +649,7 @@ class ConnectionState:
     def parse_message_reaction_remove_emoji(self, data) -> None:
         emoji = data['emoji']
         emoji_id = emoji.get('id')
-        emoji = PartialEmoji.with_state(self, id=emoji_id, name=emoji['name'])
+        emoji = PartialEmoji.with_state(self, id=emoji_id, custom=True if emoji['type'] == '1' else False)
         raw = RawReactionClearEmojiEvent(data, emoji)
         self.dispatch('raw_reaction_clear_emoji', raw)
 
@@ -652,7 +662,6 @@ class ConnectionState:
             else:
                 if reaction:
                     self.dispatch('reaction_clear_emoji', reaction)
-
 
     def get_channel(self, id: Optional[int]) -> Optional[Union[Channel]]:
         if id is None:
@@ -667,6 +676,18 @@ class ConnectionState:
             self, *, channel: Union[TextChannel, PartialMessageable], data: MessagePayload
     ) -> Message:
         return Message(state=self, channel=channel, data=data)
+
+    def _upgrade_partial_emoji(self, emoji: PartialEmoji) -> Union[PartialEmoji, str]:
+        emoji_id = emoji.id
+        if not emoji_id:
+            return emoji.name
+
+        return emoji
+
+    def _get_reaction_user(self, channel: MessageableChannel, user_id: int) -> Optional[Union[User, Member]]:
+        if isinstance(channel, TextChannel):
+            return channel.guild.get_member(user_id)
+        return self.get_user(user_id)
 
 
 class AutoShardedConnectionState(ConnectionState):

@@ -16,10 +16,10 @@ extras_require = {
 
 setup(
     name='qq.py',
-    version='1.0.2',
+    version='1.0.3',
     description='QQ 频道 API 的 Python Wrapper',
     py_modules=["qq"],
-    packages=['qq', "qq.types"],
+    packages=['qq', "qq.types", "qq.ext.commands", "qq.ext.tasks"],
     license='MIT',
     long_description=readme,
     long_description_content_type="text/markdown",

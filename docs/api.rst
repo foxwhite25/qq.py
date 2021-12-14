@@ -292,12 +292,105 @@ AutoShardedClient
      - 更名
      - 等等
 
-    这需要启用 :attr:`Intents.guilds`。
+    这需要启用 :attr:`Intents.guilds` 。
 
     :param before: 更新前的公会。
     :type before: :class:`Guild`
     :param after: 更新后的公会。
     :type after: :class:`Guild`
+
+.. function:: on_reaction_add(reaction, user)
+
+    当消息添加了反应时调用。类似于:func:`on_message_edit` ，如果在内部消息缓存中找不到该消息，则不会调用此事件。
+    考虑使用 :func:`on_raw_reaction_add` 代替。
+
+    .. note::
+
+        要让 :class:`Message` 得到响应，请通过:attr:`Reaction.message` 访问它。
+
+    这需要启用 :attr:`Intents.reactions` 。
+
+    :param reaction: 反应的当前状态。
+    :type reaction: :class:`Reaction`
+    :param user: 添加反应的用户。
+    :type user: Union[:class:`Member`, :class:`User`]
+
+.. function:: on_raw_reaction_add(payload)
+
+    当消息添加了反应时调用。与:func:`on_reaction_add` 不同，无论内部消息缓存的状态如何，都会调用它。
+
+    这需要启用 :attr:`Intents.reactions`。
+
+    :param payload: 原始事件负载数据。
+    :type payload: :class:`RawReactionActionEvent`
+
+.. function:: on_reaction_remove(reaction, user)
+
+    当消息已删除反应时调用。与 :func:`on_message_edit` 类似，如果在内部消息缓存中找不到该消息，则不会调用此事件。
+
+    .. note::
+
+        要获得正在响应的消息，请通过:attr:`Reaction.message` 访问它。
+
+    这需要同时启用 :attr:`Intents.reactions` 和 :attr:`Intents.members` 。
+
+    :param reaction: 反应的当前状态。
+    :type reaction: :class:`Reaction`
+    :param user: 添加反应的用户。
+    :type user: Union[:class:`Member`, :class:`User`]
+
+.. function:: on_raw_reaction_remove(payload)
+
+    当消息已删除反应时调用。与:func:`on_reaction_remove` 不同，无论内部消息缓存的状态如何，都会调用它。
+
+    这需要启用 :attr:`Intents.reactions`。
+
+    :param payload: 原始事件负载数据。
+    :type payload: :class:`RawReactionActionEvent`
+
+.. function:: on_reaction_clear(message, reactions)
+
+    当一条消息的所有反应都被移除时调用。类似于:func:`on_message_edit` ，
+    如果在内部消息缓存中找不到该消息，则不会调用此事件。考虑使用 :func:`on_raw_reaction_clear` 代替。
+
+    这需要启用 :attr:`Intents.reactions` 。
+
+    :param message: 已清除其反应的消息。
+    :type message: :class:`Message`
+    :param reactions: 被移除的反应。
+    :type reactions: List[:class:`Reaction`]
+
+.. function:: on_raw_reaction_clear(payload)
+
+    当消息的所有反应都被删除时调用。与:func:`on_reaction_clear` 不同，无论内部消息缓存的状态如何，都会调用它。
+
+    这需要启用 :attr:`Intents.reactions`。
+
+    :param payload: 原始事件负载数据。
+    :type payload: :class:`RawReactionClearEvent`
+
+.. function:: on_reaction_clear_emoji(reaction)
+
+    当消息已删除特定反应时调用。类似于:func:`on_message_edit`，如果在内部消息缓存中找不到该消息，则不会调用此事件。
+    考虑使用 :func:`on_raw_reaction_clear_emoji` 代替。
+
+    这需要启用 :attr:`Intents.reactions`。
+
+    .. versionadded:: 1.3
+
+    :param reaction: 得到清除的反应。
+    :type reaction: :class:`Reaction`
+
+.. function:: on_raw_reaction_clear_emoji(payload)
+
+    当消息已删除特定反应时调用。与 :func:`on_reaction_clear_emoji` 不同，无论内部消息缓存的状态如何，它都会被调用。
+
+    这需要启用 :attr:`Intents.reactions`。
+
+    .. versionadded:: 1.3
+
+    :param payload: 原始事件负载数据。
+    :type payload: :class:`RawReactionClearEmojiEvent`
 
 .. _qq-api-utils:
 

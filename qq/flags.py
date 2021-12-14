@@ -151,7 +151,7 @@ class Intents(BaseFlags):
 
     @flag_value
     def guilds(self):
-        """:class:`bool`: 公会相关事件是否开启。
+        """:class:`bool`: 频道相关事件是否开启。
 
         这对应于以下事件：
 
@@ -178,7 +178,7 @@ class Intents(BaseFlags):
 
     @flag_value
     def members(self):
-        """:class:`bool`: 公会成员相关事件是否开启。
+        """:class:`bool`: 频道成员相关事件是否开启。
 
         这对应于以下事件：
 
@@ -203,7 +203,7 @@ class Intents(BaseFlags):
 
     @alias_flag_value
     def messages(self):
-        """:class:`bool`: 是否启用公会和直接消息相关事件。
+        """:class:`bool`: 是否启用频道和直接消息相关事件。
         这是设置或获取 :attr:`guild_messages` 和 :attr:`dm_messages` 的快捷方式。
 
         这对应于以下事件：
@@ -242,7 +242,7 @@ class Intents(BaseFlags):
 
     @flag_value
     def audio(self):
-        """:class:`bool`: 公会提及机器人的消息相关事件是否开启。
+        """:class:`bool`: 频道提及机器人的消息相关事件是否开启。
 
         这对应于以下事件：
 
@@ -255,7 +255,7 @@ class Intents(BaseFlags):
 
     @flag_value
     def at_guild_messages(self):
-        """:class:`bool`: 公会提及机器人的消息相关事件是否开启。
+        """:class:`bool`: 频道提及机器人的消息相关事件是否开启。
 
         这对应于以下事件：
 
@@ -270,7 +270,7 @@ class Intents(BaseFlags):
 
     @flag_value
     def guild_messages(self):
-        """:class:`bool`: 公会消息相关事件是否开启。
+        """:class:`bool`: 频道消息相关事件是否开启。
 
         这对应于以下事件：
 
@@ -289,7 +289,7 @@ class Intents(BaseFlags):
 
     @flag_value
     def guild_reactions(self):
-        """:class:`bool`: 公会消息反应相关事件是否开启。
+        """:class:`bool`: 频道消息反应相关事件是否开启。
 
         这对应于以下事件：
 
@@ -307,3 +307,13 @@ class Intents(BaseFlags):
             现在来说，这个 Intents 需要额外的申请，如果没有适当的权限 Websocket 将无法连接。
         """
         return 1 << 10
+
+    @flag_value
+    def threads(self):
+        """:class:`bool`: 论坛频道相关事件是否开启。
+
+        .. note::
+
+            现在来说，这个 Intents 需要额外的申请，如果没有适当的权限 Websocket 将无法连接。
+        """
+        return 1 << 28
