@@ -359,6 +359,8 @@ def parse_time(timestamp: Optional[str]) -> Optional[datetime.datetime]:
 
 def parse_time(timestamp: Optional[str]) -> Optional[datetime.datetime]:
     if timestamp:
+        if timestamp.isnumeric():
+            return datetime.datetime.fromtimestamp(int(timestamp))
         return datetime.datetime.fromisoformat(timestamp)
     return None
 
