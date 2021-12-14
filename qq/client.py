@@ -87,11 +87,11 @@ class Client:
     shard_count: Optional[:class:`int`]
         分片总数。
     intents: :class:`Intents`
-        您要为会话启用的意图。 这是一种禁用和启用某些网关事件触发和发送的方法。
+        你要为会话启用的意图。 这是一种禁用和启用某些网关事件触发和发送的方法。
          如果未给出，则默认为默认的 Intents 类。
     heartbeat_timeout: :class:`float`
         在未收到 HEARTBEAT_ACK 的情况下超时和重新启动 WebSocket 之前的最大秒数。
-        如果处理初始数据包花费的时间太长而导致您断开连接，则很有用。默认超时为 59 秒。
+        如果处理初始数据包花费的时间太长而导致你断开连接，则很有用。默认超时为 59 秒。
     guild_ready_timeout: :class:`float`
         在准备成员缓存和触发 READY 之前等待 GUILD_CREATE 流结束的最大秒数。默认超时为 2 秒。
 
@@ -329,7 +329,7 @@ class Client:
         Parameters
         -----------
         limit: Optional[:class:`int`]
-            要检索的频道数量。如果为 ``None`` ，它将检索您有权访问的每个频道。但是请注意，这会使其操作变慢。默认为“100”。
+            要检索的频道数量。如果为 ``None`` ，它将检索你有权访问的每个频道。但是请注意，这会使其操作变慢。默认为“100”。
         
         Raises
         ------
@@ -346,7 +346,7 @@ class Client:
 
     def run(self, *args: Any, **kwargs: Any) -> None:
         """一个阻塞调用，它从你那里抽象出事件循环初始化。
-        如果您想对事件循环进行更多控制，则不应使用此函数。使用 :meth:`start` 协程或 :meth:`connect` + :meth:`login`。
+        如果你想对事件循环进行更多控制，则不应使用此函数。使用 :meth:`start` 协程或 :meth:`connect` + :meth:`login`。
 
         大致相当于： ::
 
@@ -578,7 +578,7 @@ class Client:
         """|coro|
         等待调度 WebSocket 事件。 这可用于等待用户回复消息，或对消息做出反应，或以独立的方式编辑消息。
         ``timeout`` 参数传递给 :func:`asyncio.wait_for`。
-        默认情况下，它不会超时。 请注意，这确实会在超时的情况下为您传播 :exc:`asyncio.TimeoutError` 并且提供它是为了便于使用。
+        默认情况下，它不会超时。 请注意，为了便于使用这在超时的时候会传播 :exc:`asyncio.TimeoutError` 。
         如果事件返回多个参数，则返回包含这些参数的 :class:`tuple` 。 请查看 :ref:`文档 <qq-api-events>` 以获取事件列表及其参数。
         该函数返回 **第一个符合要求的事件** 。
 
@@ -651,7 +651,7 @@ class Client:
 
     def event(self, coro: Coro) -> Coro:
         """注册要监听的事件的装饰器。
-        您可以在 :ref:`下面的文档 <qq-api-events>` 上找到有关事件的更多信息.
+        你可以在 :ref:`下面的文档 <qq-api-events>` 上找到有关事件的更多信息.
         事件必须是 :ref:`协程 <coroutine>` ，如果不是，则引发 :exc:`TypeError` 。
 
         Example

@@ -670,6 +670,14 @@ Object
 .. autoclass:: Object
     :members:
 
+Ark
+~~~~~~
+
+.. attributetable:: Ark
+
+.. autoclass:: Ark
+    :members:
+
 Embed
 ~~~~~~
 

@@ -247,6 +247,8 @@ class HTTPClient:
         if self.token is not None:
             headers['Authorization'] = 'Bot ' + self.token
         rsp = requests.get(f'https://api.sgroup.qq.com/users/@me/guilds', headers=headers)
+        _log.debug('GET %s 与 %s 已返回 %s', f'https://api.sgroup.qq.com/users/@me/guilds', rsp.json(),
+                   rsp.status_code)
         return rsp.json()
 
     def sync_get_bot_member(self,guild_id: int, user_id: int) -> MemberPayload:
