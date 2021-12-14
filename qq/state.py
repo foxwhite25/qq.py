@@ -580,6 +580,80 @@ class ConnectionState:
     def parse_audio_off_mic(self, data) -> None:
         self.dispatch('mic_stop', data)
 
+    def parse_message_reaction_add(self, data) -> None:
+        emoji = data['emoji']
+        emoji_id = emoji.get('id')
+        emoji = PartialEmoji.with_state(self, id=emoji_id, name=emoji['name'])
+        raw = RawReactionActionEvent(data, emoji, 'REACTION_ADD')
+
+        member_data = data.get('member')
+        if member_data:
+            guild = self._get_guild(raw.guild_id)
+            if guild is not None:
+                raw.member = Member(data=member_data, guild=guild, state=self)
+            else:
+                raw.member = None
+        else:
+            raw.member = None
+        self.dispatch('raw_reaction_add', raw)
+
+        # rich interface here
+        message = self._get_message(raw.message_id)
+        if message is not None:
+            emoji = self._upgrade_partial_emoji(emoji)
+            reaction = message._add_reaction(data, emoji, raw.user_id)
+            user = raw.member or self._get_reaction_user(message.channel, raw.user_id)
+
+            if user:
+                self.dispatch('reaction_add', reaction, user)
+
+    def parse_message_reaction_remove_all(self, data) -> None:
+        raw = RawReactionClearEvent(data)
+        self.dispatch('raw_reaction_clear', raw)
+
+        message = self._get_message(raw.message_id)
+        if message is not None:
+            old_reactions = message.reactions.copy()
+            message.reactions.clear()
+            self.dispatch('reaction_clear', message, old_reactions)
+
+    def parse_message_reaction_remove(self, data) -> None:
+        emoji = data['emoji']
+        emoji_id = emoji.get('id')
+        emoji = PartialEmoji.with_state(self, id=emoji_id, name=emoji['name'])
+        raw = RawReactionActionEvent(data, emoji, 'REACTION_REMOVE')
+        self.dispatch('raw_reaction_remove', raw)
+
+        message = self._get_message(raw.message_id)
+        if message is not None:
+            emoji = self._upgrade_partial_emoji(emoji)
+            try:
+                reaction = message._remove_reaction(data, emoji, raw.user_id)
+            except (AttributeError, ValueError):  # eventual consistency lol
+                pass
+            else:
+                user = self._get_reaction_user(message.channel, raw.user_id)
+                if user:
+                    self.dispatch('reaction_remove', reaction, user)
+
+    def parse_message_reaction_remove_emoji(self, data) -> None:
+        emoji = data['emoji']
+        emoji_id = emoji.get('id')
+        emoji = PartialEmoji.with_state(self, id=emoji_id, name=emoji['name'])
+        raw = RawReactionClearEmojiEvent(data, emoji)
+        self.dispatch('raw_reaction_clear_emoji', raw)
+
+        message = self._get_message(raw.message_id)
+        if message is not None:
+            try:
+                reaction = message._clear_emoji(emoji)
+            except (AttributeError, ValueError):  # eventual consistency lol
+                pass
+            else:
+                if reaction:
+                    self.dispatch('reaction_clear_emoji', reaction)
+
+
     def get_channel(self, id: Optional[int]) -> Optional[Union[Channel]]:
         if id is None:
             return None

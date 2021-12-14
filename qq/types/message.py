@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import List, Literal, Optional, TypedDict, Union
 
 from .embed import Embed
+from .emoji import PartialEmoji
 from .member import Member
 from .user import User
 from ..utils import SnowflakeList
@@ -54,3 +55,9 @@ class MessageReference(TypedDict, total=False):
     channel_id: int
     guild_id: int
     fail_if_not_exists: bool
+
+
+class Reaction(TypedDict):
+    count: int
+    me: bool
+    emoji: PartialEmoji
