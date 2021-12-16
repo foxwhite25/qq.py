@@ -13,10 +13,20 @@ async def on_ready():  # 注册 on_ready 事件
     print('------')
 
 
-@bot.command()  # 注册指令 '?add'， 参数为 left right
-async def add(ctx, left: int, right: int):
-    """将两个数字相加。"""
-    await ctx.reply(left + right)  # 发送 left + right的结果
+@bot.command(name='早上好')
+async def _gm(ctx):
+    ran = ['1', '2', '3', '4']
+    await ctx.reply(random.choice(ran))
+
+
+@bot.command()
+async def add(ctx, content: str):
+    content = content.split('+')  # 将输入用 + 分开
+    result = 0  # 初始化 result
+    for num in content:  # 循环 content 里面的所有参数
+        if num.isnumeric():  # 如果 参数是数字
+            result += int(num)  # 加到 result里面
+    await ctx.reply(result)  # 发送 result
 
 
 @bot.command()  # 注册指令 '?roll', 参数为 dice

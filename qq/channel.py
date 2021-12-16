@@ -198,7 +198,7 @@ class VoiceChannel(abc.GuildChannel, Hashable):
         return f'<{self.__class__.__name__} {joined}>'
 
 
-class LiveChannel(abc.GuildChannel, Hashable):
+class LiveChannel(abc.GuildChannel, Hashable, abc.Messageable):
     """表示 QQ 直播子频道。
 
     .. container:: operations
