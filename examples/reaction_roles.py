@@ -1,5 +1,3 @@
-# This example requires the 'members' privileged intents
-
 import qq
 
 
@@ -7,76 +5,76 @@ class MyClient(qq.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.role_message_id = 0  # ID of the message that can be reacted to to add/remove a role.
+        self.role_message_id = 0  # 可以响应以添加删除身份组的消息的 ID。
         self.emoji_to_role = {
-            qq.PartialEmoji(name='🔴'): 0,  # ID of the role associated with unicode emoji '🔴'.
-            qq.PartialEmoji(name='🟡'): 0,  # ID of the role associated with unicode emoji '🟡'.
-            qq.PartialEmoji(name='green', id=0): 0,  # ID of the role associated with a partial emoji's ID.
+            qq.PartialEmoji(custom=False, id='🔴'): 0,  # 与 Unicode 表情符号 '🔴' 关联的身份组的 ID。
+            qq.PartialEmoji(custom=False, id='🟡'): 0,  # 与 Unicode 表情符号 '🟡' 关联的身份组的 ID。
+            qq.PartialEmoji(custom=True, id='0'): 0,  # 与表情符号 ID 0 关联的身份组 ID。
         }
 
     async def on_raw_reaction_add(self, payload: qq.RawReactionActionEvent):
-        """Gives a role based on a reaction emoji."""
-        # Make sure that the message the user is reacting to is the one we care about.
+        """根据反应表情给出一个身份组。"""
+        # 确保用户正在响应的消息是我们关心的消息。
         if payload.message_id != self.role_message_id:
             return
 
         guild = self.get_guild(payload.guild_id)
         if guild is None:
-            # Check if we're still in the guild and it's cached.
+            # 检查我们是否仍在频道中并且它已被缓存。
             return
 
         try:
             role_id = self.emoji_to_role[payload.emoji]
         except KeyError:
-            # If the emoji isn't the one we care about then exit as well.
+            # 如果表情符号不是我们关心的那个，那么也退出。
             return
 
         role = guild.get_role(role_id)
         if role is None:
-            # Make sure the role still exists and is valid.
+            # 确保身份组仍然存在并且有效。
             return
 
         try:
-            # Finally, add the role.
+            # 最后，添加身份组。
             await payload.member.add_roles(role)
         except qq.HTTPException:
-            # If we want to do something in case of errors we'd do it here.
+            # 如果我们想在出现错误的情况下做某事，我们会在这里做。
             pass
 
     async def on_raw_reaction_remove(self, payload: qq.RawReactionActionEvent):
-        """Removes a role based on a reaction emoji."""
-        # Make sure that the message the user is reacting to is the one we care about.
+        """删除基于反应表情符号的身份组。"""
+        # 确保用户正在响应的消息是我们关心的消息。
         if payload.message_id != self.role_message_id:
             return
 
         guild = self.get_guild(payload.guild_id)
         if guild is None:
-            # Check if we're still in the guild and it's cached.
+            # 检查我们是否仍在频道中并且它已被缓存。
             return
 
         try:
             role_id = self.emoji_to_role[payload.emoji]
         except KeyError:
-            # If the emoji isn't the one we care about then exit as well.
+            # 如果表情符号不是我们关心的那个，那么也退出。
             return
 
         role = guild.get_role(role_id)
         if role is None:
-            # Make sure the role still exists and is valid.
+            # 确保身份组仍然存在并且有效。
             return
 
-        # The payload for `on_raw_reaction_remove` does not provide `.member`
-        # so we must get the member ourselves from the payload's `.user_id`.
+        # `on_raw_reaction_remove` 的负载不提供 `.member`
+        # 所以我们必须自己从有效载荷的`.user_id` 中获取成员。
         member = guild.get_member(payload.user_id)
         if member is None:
-            # Make sure the member still exists and is valid.
+            # 确保该成员仍然存在并且有效。
             return
 
         try:
-            # Finally, remove the role.
+            # 最后，删除身份组。
             await member.remove_roles(role)
         except qq.HTTPException:
-            # If we want to do something in case of errors we'd do it here.
+            # 如果我们想在出现错误的情况下做某事，我们会在这里做。
             pass
 
 

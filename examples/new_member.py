@@ -1,18 +1,16 @@
-# This example requires the 'members' privileged intents
-
 import qq
 
 
 class MyClient(qq.Client):
     async def on_ready(self):
-        print(f'Logged in as {self.user} (ID: {self.user.id})')
+        print(f'以 {self.user} 身份登录（ID：{self.user.id}）')
         print('------')
 
-    async def on_member_join(self, member):
-        guild = member.guild
-        if guild.system_channel is not None:
-            to_send = f'Welcome {member.mention} to {guild.name}!'
-            await guild.system_channel.send(to_send)
+    async def on_member_join(self, member: qq.Member):
+        channel = member.guild.fetch_channel(114514)  # 频道ID
+        if channel is not None:
+            to_send = f'欢迎 {member.mention} 加入 {member.guild.name}！'
+            await channel.send(to_send)
 
 
 intents = qq.Intents.default()

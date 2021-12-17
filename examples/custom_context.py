@@ -6,26 +6,19 @@ from qq.ext import commands
 
 class MyContext(commands.Context):
     async def tick(self, value):
-        # reacts to the message with an emoji
-        # depending on whether value is True or False
-        # if its True, it'll add a green check mark
-        # otherwise, it'll add a red cross mark
-        emoji = '\N{WHITE HEAVY CHECK MARK}' if value else '\N{CROSS MARK}'
+        # 根据值是 True 还是 False 用表情符号对消息做出反应，如果它是 True，它会添加一个绿色复选标记否则，它会添加一个红十字标记
+        emoji = '✔️' if value else '❌'
         try:
-            # this will react to the command author's message
+            # 这将对命令作者的消息做出反应
             await self.message.add_reaction(emoji)
         except qq.HTTPException:
-            # sometimes errors occur during this, for example
-            # maybe you don't have permission to do that
-            # we don't mind, so we can just ignore them
+            # 有时在此期间会发生错误，例如您可能没有权限这样做，我们不介意，所以我们可以忽略它们
             pass
 
 
 class MyBot(commands.Bot):
     async def get_context(self, message, *, cls=MyContext):
-        # when you override this method, you pass your new Context
-        # subclass to the super() method, which tells the bot to
-        # use the new MyContext class
+        # 当您覆盖此方法时，您将新的 Context 子类传递给 super() 方法，该方法告诉机器人使用新的 MyContext 类
         return await super().get_context(message, cls=cls)
 
 
@@ -34,20 +27,15 @@ bot = MyBot(command_prefix='!')
 
 @bot.command()
 async def guess(ctx, number: int):
-    """ Guess a random number from 1 to 6. """
-    # explained in a previous example, this gives you
-    # a random number from 1-6
+    """ 猜一个从 1 到 6 的随机数。 """
+    # 在前面的例子中解释过，这会给你一个 1-6 的随机数
     value = random.randint(1, 6)
-    # with your new helper function, you can add a
-    # green check mark if the guess was correct,
-    # or a red cross mark if it wasn't
+    # 使用新的辅助函数，如果猜测正确，您可以添加一个绿色勾，如果不正确，您可以添加一个红叉
     await ctx.tick(number == value)
 
 
-# IMPORTANT: You shouldn't hard code your token
-# these are very important, and leaking them can 
-# let people do very malicious things with your
-# bot. Try to use a file or something to keep
-# them private, and don't commit it to GitHub
+# 重要提示：您不应该对您的令牌进行硬编码
+# 这些非常重要，泄露它们会让人们用你的机器人做非常恶意的事情。
+# 尝试使用文件或其他东西来保护它们的私密性，不要将其提交到 GitHub
 token = "your token here"
 bot.run(token)

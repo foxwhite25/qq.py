@@ -58,7 +58,7 @@ class PartialEmoji(_EmojiTag, AssetMixin):
     -----------
     custom: :class:`bool`
         表情是否是 QQ 自定义表情。
-    id: :class:`int`
+    id: :class:`str`
         自定义表情符号的 ID（如果适用）。
     """
 
@@ -67,9 +67,9 @@ class PartialEmoji(_EmojiTag, AssetMixin):
     _CUSTOM_EMOJI_RE = re.compile(r'<?(?P<animated>a)?:?(?P<name>[A-Za-z0-9\_]+):(?P<id>[0-9]{13,20})>?')
 
     if TYPE_CHECKING:
-        id: Optional[int]
+        id: Optional[str]
 
-    def __init__(self, *, custom: bool, id: int = None):
+    def __init__(self, *, custom: bool, id: str = None):
         self.custom = custom
         self.animated = False
         self.name = 'emoji'
@@ -79,7 +79,7 @@ class PartialEmoji(_EmojiTag, AssetMixin):
     @classmethod
     def from_dict(cls: Type[PE], data: Union[PartialEmojiPayload, Dict[str, Any]]) -> PE:
         return cls(
-            id=int(data.get('id')),
+            id=data.get('id'),
             custom=True if data.get('type') == 1 else 0,
         )
 
@@ -108,7 +108,7 @@ class PartialEmoji(_EmojiTag, AssetMixin):
         match = cls._CUSTOM_EMOJI_RE.match(value)
         if match is not None:
             groups = match.groupdict()
-            emoji_id = int(groups['id'])
+            emoji_id = groups['id']
             return cls(id=emoji_id, custom=True)
 
         return cls(id=value, custom=False)
@@ -122,7 +122,7 @@ class PartialEmoji(_EmojiTag, AssetMixin):
 
     @classmethod
     def with_state(
-            cls: Type[PE], state: ConnectionState, *, custom: bool, id: int = None
+            cls: Type[PE], state: ConnectionState, *, custom: bool, id: str = None
     ) -> PE:
         self = cls(custom=custom, id=id)
         self._state = state

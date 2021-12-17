@@ -325,7 +325,7 @@ class Member(Messageable, _UserTag):
             for role in roles:
                 await req(guild_id, user_id, role.id, reason=reason)
 
-    async def remove_roles(self, *roles: int, reason: Optional[str] = None, atomic: bool = True) -> None:
+    async def remove_roles(self, *roles: Role, reason: Optional[str] = None, atomic: bool = True) -> None:
         r"""|coro|
         从此成员中删除一些 :class:`Role` 。
 
@@ -350,7 +350,7 @@ class Member(Messageable, _UserTag):
             new_roles = [Object(id=r.id) for r in self.roles[1:]]  # remove @everyone
             for role in roles:
                 try:
-                    new_roles.remove(Object(id=role))
+                    new_roles.remove(Object(id=role.id))
                 except ValueError:
                     pass
 

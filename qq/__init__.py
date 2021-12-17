@@ -24,6 +24,8 @@ from .shard import *
 from .error import *
 from .embeds import *
 from .mention import *
+from .partial_emoji import *
+from .raw_models import *
 
 
 class VersionInfo(NamedTuple):
