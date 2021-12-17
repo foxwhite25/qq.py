@@ -5,7 +5,7 @@ __license__ = 'MIT'
 __version__ = '1.0.4'
 
 import logging
-from typing import NamedTuple
+from typing import NamedTuple, Literal
 from .client import *
 from .user import *
 from .channel import *
