@@ -164,7 +164,8 @@ class Member(Messageable, _UserTag):
         self.nick = data.get('nick', None)
 
     @classmethod
-    def _try_upgrade(cls: Type[M], *, data: UserWithMemberPayload, guild: Guild, state: ConnectionState) -> Union[User, M]:
+    def _try_upgrade(cls: Type[M], *, data: UserWithMemberPayload, guild: Guild, state: ConnectionState) -> Union[
+        User, M]:
         # A User object with a 'member' key
         try:
             member_data = data.pop('member')
@@ -337,6 +338,7 @@ class Member(Messageable, _UserTag):
             删除这些身份组的原因。 
         atomic: :class:`bool`
             是否以 atomic 方式删除身份组。这将确保无论缓存的当前状态如何，都将始终应用多个操作。
+
         Raises
         -------
         Forbidden
@@ -344,7 +346,6 @@ class Member(Messageable, _UserTag):
         HTTPException
             删除身份组失败。
         """
-
 
         if not atomic:
             new_roles = [Object(id=r.id) for r in self.roles[1:]]  # remove @everyone

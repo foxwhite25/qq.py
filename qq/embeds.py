@@ -320,9 +320,7 @@ class Embed:
         # fill in the basic fields
 
         self.title = data.get('title', EmptyEmbed)
-        self.type = data.get('type', EmptyEmbed)
         self.description = data.get('description', EmptyEmbed)
-        self.url = data.get('url', EmptyEmbed)
         self.prompt = data.get('prompt', EmptyEmbed)
 
         if self.title is not EmptyEmbed:
@@ -331,13 +329,10 @@ class Embed:
         if self.description is not EmptyEmbed:
             self.description = str(self.description)
 
-        if self.url is not EmptyEmbed:
-            self.url = str(self.url)
-
         # try to fill in the more rich fields
 
         try:
-            self._colour = Colour(value=data['color'])
+            self._colour = Colour(value=int(data['color']))
         except KeyError:
             pass
 
@@ -636,7 +631,7 @@ class Embed:
         """
         return [EmbedProxy(d) for d in getattr(self, '_fields', [])]  # type: ignore
 
-    def add_field(self: E, *, name: Any, value: Any, inline: bool = True) -> E:
+    def add_field(self: E, *, name: str, value: Optional[str] = '', inline: bool = True) -> E:
         """向嵌入对象添加字段。此函数返回类实例以允许流式链接。
 
         Parameters
@@ -644,9 +639,9 @@ class Embed:
         name: :class:`str`
             字段的名称。
         value: :class:`str`
-            字段的值。
+            字段的值。目前并无作用
         inline: :class:`bool`
-            该字段是否应内联显示。
+            该字段是否应内联显示。目前并无作用
         """
 
         field = {
@@ -662,7 +657,7 @@ class Embed:
 
         return self
 
-    def insert_field_at(self: E, index: int, *, name: Any, value: Any, inline: bool = True) -> E:
+    def insert_field_at(self: E, index: int, *, name: str, value: Optional[str] = '', inline: bool = True) -> E:
         """在嵌入的指定索引之前插入一个字段。此函数返回类实例以允许流式链接。
 
         Parameters
@@ -672,9 +667,9 @@ class Embed:
         name: :class:`str`
             字段的名称。
         value: :class:`str`
-            字段的值。
+            字段的值。目前并无作用
         inline: :class:`bool`
-            该字段是否应内联显示。
+            该字段是否应内联显示。目前并无作用
         """
 
         field = {

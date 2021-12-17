@@ -16,12 +16,12 @@ from .role import Role
 from .utils import escape_mentions
 from .guild import Guild
 from .error import HTTPException
+from .embeds import Embed
 
 if TYPE_CHECKING:
     from .state import ConnectionState
     from .abc import GuildChannel, PartialMessageableChannel, MessageableChannel
     from .channel import TextChannel
-    from .embeds import Embed
     from .enum import ChannelType
     from .types.message import Attachment as AttachmentPayload, Message as MessagePayload, \
         MessageReference as MessageReferencePayload
