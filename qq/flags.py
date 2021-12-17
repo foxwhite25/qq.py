@@ -2,6 +2,11 @@ from __future__ import annotations
 
 from typing import Type, Optional, Any, TypeVar, Callable, overload, Iterator, Tuple, ClassVar, Dict
 
+__all__ = (
+    'Intents',
+)
+
+
 FV = TypeVar('FV', bound='flag_value')
 BF = TypeVar('BF', bound='BaseFlags')
 

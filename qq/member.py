@@ -26,6 +26,10 @@ if TYPE_CHECKING:
     from .types.user import User as UserPayload
     from .role import Role
 
+__all__ = (
+    'Member',
+)
+
 
 def flatten_user(cls):
     for attr, value in itertools.chain(BaseUser.__dict__.items(), User.__dict__.items()):

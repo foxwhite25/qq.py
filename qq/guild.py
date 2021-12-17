@@ -29,7 +29,12 @@ from .file import File
 
 MISSING = utils.MISSING
 
+__all__ = (
+    'Guild',
+)
+
 if TYPE_CHECKING:
+    from .enum import ChannelType
     from .state import ConnectionState
     from .types.guild import Guild as GuildPayload
     from .channel import TextChannel, CategoryChannel, AppChannel, LiveChannel, ThreadChannel

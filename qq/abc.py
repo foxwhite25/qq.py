@@ -24,8 +24,10 @@ if TYPE_CHECKING:
     PartialMessageableChannel = Union[TextChannel, PartialMessageable]
     MessageableChannel = Union[PartialMessageableChannel]
 
-__all__ = ('Messageable',
-           'GuildChannel')
+__all__ = (
+    'Messageable',
+    'GuildChannel'
+)
 
 
 class _Undefined:

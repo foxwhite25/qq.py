@@ -2,6 +2,11 @@ import types
 from collections import namedtuple
 from typing import TYPE_CHECKING, ClassVar, Dict, Any, List, Type, TypeVar
 
+__all__ = (
+    'Enum',
+    'ChannelType',
+)
+
 
 def _create_value_cls(name, comparable):
     cls = namedtuple('_EnumValue_' + name, 'name value')

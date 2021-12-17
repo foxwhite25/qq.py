@@ -24,6 +24,11 @@ if TYPE_CHECKING:
     from .message import Message
     from .guild import Guild
 
+__all__ = (
+    'GuildIterator',
+    'MemberIterator',
+)
+
 T = TypeVar('T')
 OT = TypeVar('OT')
 _Func = Callable[[T], Union[OT, Awaitable[OT]]]

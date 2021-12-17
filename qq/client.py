@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-__all__ = ('Client',)
+__all__ = (
+    'Client',
+)
 
 import asyncio
 import logging

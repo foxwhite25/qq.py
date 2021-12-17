@@ -32,6 +32,13 @@ if TYPE_CHECKING:
 
     MR = TypeVar('MR', bound='MessageReference')
 
+__all__ = (
+    'Attachment',
+    'Message',
+    'PartialMessage',
+    'MessageReference',
+)
+
 
 class MessageReference:
     """表示对 :class:`~qq.Message` 的引用。 这个类现在可以由用户构建。
