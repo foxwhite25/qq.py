@@ -9,11 +9,11 @@ from typing import TypeVar, TYPE_CHECKING, Optional, List, Dict, Tuple, Any, Typ
 from . import utils
 from .user import _UserTag, BaseUser, User
 from .abc import Messageable
+from .colour import Colour
 
 if TYPE_CHECKING:
     from .guild import Guild
     from .asset import Asset
-    from .colour import Colour
     from .message import Message
     from .object import Object
     from .state import ConnectionState

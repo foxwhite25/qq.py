@@ -42,6 +42,36 @@ __all__ = (
 )
 
 
+class DeletedReferencedMessage:
+    """一种特殊的标记类型，表示已解析的消息引用的消息是否已被删除。
+    此类的目的是将无法获取的引用消息与先前获取但已被删除的消息分开。
+    """
+
+    __slots__ = ('_parent',)
+
+    def __init__(self, parent: MessageReference):
+        self._parent: MessageReference = parent
+
+    def __repr__(self) -> str:
+        return f"<DeletedReferencedMessage id={self.id} channel_id={self.channel_id} guild_id={self.guild_id!r}>"
+
+    @property
+    def id(self) -> int:
+        """:class:`int`: 已删除的引用消息的消息 ID。"""
+        # the parent's message id won't be None here
+        return self._parent.message_id  # type: ignore
+
+    @property
+    def channel_id(self) -> int:
+        """:class:`int`: 已删除的引用消息的子频道 ID。"""
+        return self._parent.channel_id
+
+    @property
+    def guild_id(self) -> Optional[int]:
+        """Optional[:class:`int`]: 删除的引用消息的频道 ID。"""
+        return self._parent.guild_id
+
+
 class MessageReference:
     """表示对 :class:`~qq.Message` 的引用。 这个类现在可以由用户构建。
 
@@ -163,9 +193,9 @@ class Attachment(Hashable):
         self.height: Optional[int] = data.get('height')
         self.width: Optional[int] = data.get('width')
         self.filename: str = data['filename']
-        self.url: str = 'https://' + data.get('url')\
-                        if not data.get('url').startswith('https://') \
-                        else data.get('url')
+        self.url: str = 'https://' + data.get('url') \
+            if not data.get('url').startswith('https://') \
+            else data.get('url')
         self._http = state.http
         self.content_type: Optional[str] = data.get('content_type')
 
@@ -409,6 +439,32 @@ class Message(Hashable):
         except AttributeError:
             self.guild = state._get_guild(data.get('guild_id'))
 
+        try:
+            ref = data['message_reference']
+        except KeyError:
+            self.reference = None
+        else:
+            self.reference = ref = MessageReference.with_state(state, ref)
+            try:
+                resolved = data['referenced_message']
+            except KeyError:
+                pass
+            else:
+                if resolved is None:
+                    ref.resolved = DeletedReferencedMessage(ref)
+                else:
+                    # Right now the channel IDs match but maybe in the future they won't.
+                    if ref.channel_id == channel.id:
+                        chan = channel
+                    else:
+                        chan, _ = state._get_guild_channel(resolved)
+
+                    # the channel will be the correct type here
+                    ref.resolved = self.__class__(channel=chan, data=resolved, state=state)  # type: ignore
+
+        if 'mentions' not in data:
+            data['mentions'] = []
+
         for handler in ('author', 'member', 'mentions'):
             try:
                 getattr(self, f'_handle_{handler}')(data[handler])
@@ -607,12 +663,12 @@ class Message(Hashable):
         transformations.update(mention_transforms)
         transformations.update(second_mention_transforms)
 
-        if self.guild is not None:
-            role_transforms = {
-                re.escape(f'<@&{role.id}>'): '@' + role.name
-                for role in self.role_mentions
-            }
-            transformations.update(role_transforms)
+        # if self.guild is not None:
+        #     role_transforms = {
+        #         re.escape(f'<@&{role.id}>'): '@' + role.name
+        #         for role in self.role_mentions
+        #     }
+        #     transformations.update(role_transforms)
 
         # fmt: on
 

@@ -210,18 +210,18 @@ class Guild(Hashable):
         """
         return self._roles.get(role_id)
 
-    @property
-    def large(self) -> bool:
-        """:class:`bool`: 指示频道是否是“大型”频道。
-
-        一个大型频道被定义为拥有超过 ``large_threshold`` 计数成员，对于这个库，它被设置为 250。
-        """
-        if self._large is None:
-            try:
-                return self._member_count >= 250
-            except AttributeError:
-                return len(self._members) >= 250
-        return self._large
+    # @property
+    # def large(self) -> bool:
+    #     """:class:`bool`: 指示频道是否是“大型”频道。
+    #
+    #     一个大型频道被定义为拥有超过 ``large_threshold`` 计数成员，对于这个库，它被设置为 250。
+    #     """
+    #     if self._large is None:
+    #         try:
+    #             return self._member_count >= 250
+    #         except AttributeError:
+    #             return len(self._members) >= 250
+    #     return self._large
 
     @property
     def me(self) -> Member:
