@@ -265,7 +265,7 @@ class HelpCommand:
     """
 
     MENTION_TRANSFORMS = {
-        '@所有成员': '@\u200b所有成员',
+        '@everyone': '@\u200beveryone',
         r'<@!?[0-9]{17,22}>': '@deleted-user',
         r'<@&[0-9]{17,22}>': '@deleted-role',
     }

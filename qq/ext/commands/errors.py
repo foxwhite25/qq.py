@@ -717,7 +717,7 @@ class ExtensionError(QQException):
         self.name: str = name
         message = message or f'扩展 {name!r} 有错误。'
         # clean-up @everyone and @here mentions
-        m = message.replace('@所有成员', '@\u200b所有成员')
+        m = message.replace('@everyone', '@\u200beveryone')
         super().__init__(m, *args)
 
 
