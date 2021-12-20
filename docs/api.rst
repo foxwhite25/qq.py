@@ -200,6 +200,42 @@ AutoShardedClient
 
     :param payload: 即将传递到 WebSocket 库的消息。它可以是 :class:`bytes` 表示二进制消息或 :class:`str` 表示常规文本消息。
 
+.. function:: on_audio_start(audio)
+
+    音频开始播放时调用。
+
+    这需要启用 :attr:`Intents.audio`。
+
+    :param audio: 音频资料。
+    :type message: :class:`AudioAction`
+
+.. function:: on_audio_start(audio)
+
+    音频开始播放时调用。
+
+    这需要启用 :attr:`Intents.audio`。
+
+    :param audio: 音频资料。
+    :type message: :class:`AudioAction`
+
+.. function:: on_audio_start(audio)
+
+    音频开始播放时调用。
+
+    这需要启用 :attr:`Intents.audio`。
+
+    :param audio: 音频资料。
+    :type message: :class:`AudioAction`
+
+.. function:: on_audio_start(audio)
+
+    音频开始播放时调用。
+
+    这需要启用 :attr:`Intents.audio`。
+
+    :param audio: 音频资料。
+    :type message: :class:`AudioAction`
+
 .. function:: on_message(message)
 
     在创建和发送 Message 时调用。

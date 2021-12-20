@@ -26,7 +26,8 @@ if TYPE_CHECKING:
 
 __all__ = (
     'Messageable',
-    'GuildChannel'
+    'GuildChannel',
+    'BaseAudioControl'
 )
 
 
@@ -89,9 +90,9 @@ class Messageable:
             发送的信息内容。
         image: :class:`str`
             要发送的图片链接
-        ark: Optional[:class:'qq.Ark']
+        ark: Optional[:class:`qq.Ark`]
             要发送的 Ark 类
-        embed: Optional[:class:'qq.Embed']
+        embed: Optional[:class:`qq.Embed`]
             要发送的 Embed 类
         reference: Union[:class:`~qq.Message`, :class:`~qq.MessageReference`, :class:`~qq.PartialMessage`]
             对您正在回复的 :class:`~qq.Message` 的引用，可以使用 :meth:`~qq.Message.to_reference` 创建或直接作为 :class:`~qq.Message` 传递。
@@ -454,3 +455,51 @@ class GuildChannel:
             payload.append(d)
 
         await asyncio.gather(*self._state.http.bulk_channel_update(self.guild.id, payload))
+
+
+class BaseAudioControl:
+    __slots__ = (
+        '_audio_url',
+        '_text',
+    )
+
+    def __str__(self) -> str:
+        return self._text
+
+    def __repr__(self) -> str:
+        attrs = [
+            ('audio_url', self.audio_url),
+            ('text', self._text),
+        ]
+        joined = ' '.join('%s=%r' % t for t in attrs)
+        return f'<{self.__class__.__name__} {joined}>'
+
+    def set_url(self, url: str):
+        """
+        设定要开始的音频地址。
+
+        Parameters
+        ------------
+        url: :class:`str`
+            设定的音频地址
+        """
+        self._audio_url = url
+
+    def set_text(self, text: str):
+        """
+        设定要开始的音频状态文本。
+
+        Parameters
+        ------------
+        text: :class:`str`
+            设定的音频状态文本
+        """
+        self._text = text
+
+    @property
+    def audio_url(self):
+        return self._audio_url
+
+    @property
+    def text(self):
+        return self._text

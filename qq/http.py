@@ -9,8 +9,11 @@ from typing import ClassVar, Any, Optional, Sequence, Iterable, Dict, Union, Typ
 from urllib.parse import quote as _uriquote
 import aiohttp
 import requests
+from aiohttp import FormData
+from requests_toolbelt import MultipartEncoder
 
 from . import __version__, utils
+from .file import File
 from .role import Role
 from .embeds import Ark, Embed
 from .types.member import MemberWithUser as MemberPayload
@@ -252,7 +255,7 @@ class HTTPClient:
                    rsp.status_code)
         return rsp.json()
 
-    def sync_get_bot_member(self,guild_id: int, user_id: int) -> MemberPayload:
+    def sync_get_bot_member(self, guild_id: int, user_id: int) -> MemberPayload:
         headers: Dict[str, str] = {
             'User-Agent': self.user_agent,
         }
@@ -264,7 +267,8 @@ class HTTPClient:
         if rsp.status_code == 200:
             return rsp.json()
 
-    def sync_guild_channels_roles(self, guild_id: int) -> Tuple[List[ChannelPayload], List[RolePayload], List[MemberPayload]]:
+    def sync_guild_channels_roles(self, guild_id: int) -> Tuple[
+        List[ChannelPayload], List[RolePayload], List[MemberPayload]]:
         headers: Dict[str, str] = {
             'User-Agent': self.user_agent,
         }

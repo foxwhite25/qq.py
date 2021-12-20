@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, ClassVar, Dict, Any, List, Type, TypeVar
 __all__ = (
     'Enum',
     'ChannelType',
+    'AudioStatusType'
 )
 
 

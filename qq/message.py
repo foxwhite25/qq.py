@@ -15,8 +15,9 @@ from .mixins import Hashable
 from .role import Role
 from .utils import escape_mentions
 from .guild import Guild
-from .error import HTTPException
+from .partial_emoji import PartialEmoji
 from .embeds import Embed
+from .reaction import Reaction
 
 if TYPE_CHECKING:
     from .state import ConnectionState
@@ -24,13 +25,14 @@ if TYPE_CHECKING:
     from .channel import TextChannel
     from .enum import ChannelType
     from .types.message import Attachment as AttachmentPayload, Message as MessagePayload, \
-        MessageReference as MessageReferencePayload
+        MessageReference as MessageReferencePayload, Reaction as ReactionPayload
     from .types.embed import Embed as EmbedPayload
     from .types.user import User as UserPayload
     from .types.member import Member as MemberPayload, UserWithMember as UserWithMemberPayload
     from .user import User
 
     MR = TypeVar('MR', bound='MessageReference')
+EmojiInputType = Union[PartialEmoji, str]
 
 __all__ = (
     'Attachment',
@@ -366,7 +368,8 @@ class Message(Hashable):
         'guild',
         'reference',
         'role_mentions',
-        'created_at'
+        'created_at',
+        'reactions'
     )
 
     if TYPE_CHECKING:
@@ -387,6 +390,7 @@ class Message(Hashable):
         self._state: ConnectionState = state
         self.created_at = datetime.datetime.now()
         self.id: str = data['id']
+        self.reactions: List[Reaction] = [Reaction(message=self, data=d) for d in data.get('reactions', [])]
         self.attachments: Optional[List[Attachment]] = \
             [Attachment(data=a, state=self._state) for a in data['attachments']] \
                 if 'attachments' in data else None
@@ -504,6 +508,39 @@ class Message(Hashable):
         self.guild = new_guild
         self.channel = new_channel
 
+    def _add_reaction(self, data, emoji, user_id) -> Reaction:
+        reaction = utils.find(lambda r: r.emoji == emoji, self.reactions)
+        is_me = data['me'] = user_id == self._state.self_id
+
+        if reaction is None:
+            reaction = Reaction(message=self, data=data, emoji=emoji)
+            self.reactions.append(reaction)
+        else:
+            reaction.count += 1
+            if is_me:
+                reaction.me = is_me
+
+        return reaction
+
+    def _remove_reaction(self, data: ReactionPayload, emoji: EmojiInputType, user_id: int) -> Reaction:
+        reaction = utils.find(lambda r: r.emoji == emoji, self.reactions)
+
+        if reaction is None:
+            # already removed?
+            raise ValueError('Emoji already removed?')
+
+        # if reaction isn't in the list, we crash. This means discord
+        # sent bad data, or we stored improperly
+        reaction.count -= 1
+
+        if user_id == self._state.self_id:
+            reaction.me = False
+        if reaction.count == 0:
+            # this raises ValueError if something went wrong as well.
+            self.reactions.remove(reaction)
+
+        return reaction
+
     @utils.cached_slot_property('_cs_raw_mentions')
     def raw_mentions(self) -> List[int]:
         """List[:class:`int`]: 返回与消息内容中的 ``<@user_id>`` 语法匹配的用户 ID 数组的属性。
@@ -588,9 +625,28 @@ class Message(Hashable):
 
     @property
     def edited_at(self) -> Optional[datetime.datetime]:
+        """Optional[:class:`datetime.datetime`]: 包含消息编辑时间的 aware UTC datetime 对象。"""
         return self._edited_timestamp
 
     async def reply(self, content: Optional[str] = None, **kwargs) -> Message:
+        """|coro|
+        :meth:`.abc.Messageable.send` 回复 :class:`.Message` 的快捷方法。
+
+
+        Raises
+        --------
+        ~qq.HTTPException
+            发送消息失败。
+        ~qq.Forbidden
+            您没有发送消息的适当权限。
+        ~qq.InvalidArgument
+            ``files`` 列表的大小不合适，或者您同时指定了 ``file`` 和 ``files``。
+
+        Returns
+        ---------
+        :class:`.Message`
+            发送的消息。
+        """
         return await self.channel.send(content, reference=self, **kwargs)
 
     def to_reference(self, *, fail_if_not_exists: bool = True) -> MessageReference:

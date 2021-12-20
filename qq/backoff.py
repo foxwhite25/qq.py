@@ -39,13 +39,10 @@ class ExponentialBackoff(Generic[T]):
         ...
 
     def delay(self) -> Union[int, float]:
-        """Compute the next delay
-        Returns the next delay to wait according to the exponential
-        backoff algorithm.  This is a value between 0 and base * 2^exp
-        where exponent starts off at 1 and is incremented at every
-        invocation of this method up to a maximum of 10.
-        If a period of more than base * 2^11 has passed since the last
-        retry, the exponent is reset to 1.
+        """计算下一个延迟
+        根据指数退避算法返回要等待的下一个延迟。
+        这是一个介于 0 和 基数 * 2^exp 之间的值，其中 exp 从 1 开始，并在每次调用此方法时递增，最大为 10。
+        如果自上次重试以来已经过去了超过基数 * 2^11 的时间段，则指数将重置为 1。
         """
         invocation = time.monotonic()
         interval = invocation - self._last_invocation

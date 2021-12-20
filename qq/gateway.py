@@ -220,8 +220,8 @@ class QQWebSocket:
     @classmethod
     async def from_client(cls, client, *, initial=False, gateway=None, shard_id=None, session=None, sequence=None,
                           resume=False):
-        """Creates a main websocket for qq from a :class:`Client`.
-        This is for internal use only.
+        """从 :class:`Client` 为 qq 创建一个主 websocket。
+        这仅供内部使用。
         """
         gateway = gateway or await client.http.get_gateway()
         socket = await client.http.ws_connect(gateway)
@@ -259,21 +259,21 @@ class QQWebSocket:
         return ws
 
     def wait_for(self, event, predicate, result=None):
-        """Waits for a DISPATCH'd event that meets the predicate.
+        """等待满足谓词的 DISPATCH 事件。
+
         Parameters
         -----------
         event: :class:`str`
-            The event name in all upper case to wait for.
+            等待的事件名称全部大写。
         predicate
-            A function that takes a data parameter to check for event
-            properties. The data parameter is the 'd' key in the JSON message.
+            使用数据参数来检查事件属性的函数。 data 参数是 JSON 消息中的“d”键。
         result
-            A function that takes the same data parameter and executes to send
-            the result to the future. If ``None``, returns the data.
+            一个采用相同数据参数并执行以将结果发送给未来的函数。如果为 ``None`` ，则返回数据。
+
         Returns
         --------
         asyncio.Future
-            A future to wait for.
+            等待的 Future。
         """
 
         future = self.loop.create_future()
@@ -282,7 +282,7 @@ class QQWebSocket:
         return future
 
     async def identify(self):
-        """Sends the IDENTIFY packet."""
+        """发送 IDENTIFY 数据包。"""
         payload = {
             'op': self.IDENTIFY,
             'd': {
@@ -307,7 +307,7 @@ class QQWebSocket:
         _log.info('分片 ID %s 已发送 IDENTIFY 负载。', self.shard_id)
 
     async def resume(self):
-        """Sends the RESUME packet."""
+        """发送 RESUME 数据包。"""
         payload = {
             'op': self.RESUME,
             'd': {
@@ -352,7 +352,7 @@ class QQWebSocket:
                 # "reconnect" can only be handled by the Client
                 # so we terminate our connection and raise an
                 # internal exception signalling to reconnect.
-                _log.debug('Received RECONNECT opcode.')
+                _log.debug('收到 RECONNECT 操作码。')
                 await self.close()
                 raise ReconnectWebSocket(self.shard_id)
 
@@ -440,7 +440,7 @@ class QQWebSocket:
 
     @property
     def latency(self):
-        """:class:`float`: Measures latency between a HEARTBEAT and a HEARTBEAT_ACK in seconds."""
+        """:class:`float`: 以秒为单位测量 HEARTBEAT 和 HEARTBEAT_ACK 之间的延迟。"""
         heartbeat = self._keep_alive
         return float('inf') if heartbeat is None else heartbeat.latency
 
@@ -449,11 +449,12 @@ class QQWebSocket:
         return code not in (1000, 4004, 4010, 4011, 4012, 4013, 4014, 4801)
 
     async def poll_event(self):
-        """Polls for a DISPATCH event and handles the general gateway loop.
+        """轮询 DISPATCH 事件并处理一般网关循环。\
+
         Raises
         ------
         ConnectionClosed
-            The websocket connection was terminated for unhandled reasons.
+            由于未处理的原因，websocket 连接被终止。
         """
         try:
             msg = await self.socket.receive(timeout=self._max_heartbeat_timeout)

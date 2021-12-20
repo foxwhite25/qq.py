@@ -39,7 +39,6 @@ async def _single_delete_strategy(messages: Iterable[Message]):
 
 
 class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
-
     """代表 QQ 频道中的文字子频道
 
     .. container:: operations

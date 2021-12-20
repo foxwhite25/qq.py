@@ -10,6 +10,7 @@ from collections import deque
 from typing import Callable, TYPE_CHECKING, Dict, Any, Optional, List, Union, Deque, Coroutine, TypeVar, Tuple
 
 from . import utils
+from .audio import AudioAction
 from .channel import PartialMessageable, TextChannel, _channel_factory
 from .flags import Intents
 from .mention import AllowedMentions
@@ -579,16 +580,20 @@ class ConnectionState:
         self.dispatch('guild_remove', guild)
 
     def parse_audio_start(self, data) -> None:
-        self.dispatch('audio_start', data)
+        audio = AudioAction(data)
+        self.dispatch('audio_start', audio)
 
     def parse_audio_finish(self, data) -> None:
-        self.dispatch('audio_stop', data)
+        audio = AudioAction(data)
+        self.dispatch('audio_stop', audio)
 
     def parse_audio_on_mic(self, data) -> None:
-        self.dispatch('mic_start', data)
+        audio = AudioAction(data)
+        self.dispatch('mic_start', audio)
 
     def parse_audio_off_mic(self, data) -> None:
-        self.dispatch('mic_stop', data)
+        audio = AudioAction(data)
+        self.dispatch('mic_stop', audio)
 
     def parse_message_reaction_add(self, data) -> None:
         emoji = data['emoji']

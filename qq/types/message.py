@@ -38,6 +38,7 @@ class Message(_MessageOptional):
     mentions: List[User]
     attachments: List[Attachment]
     embeds: List[Embed]
+    reactions: List[Reaction]
 
 
 AllowedMentionType = Literal['roles', 'users', 'everyone']
