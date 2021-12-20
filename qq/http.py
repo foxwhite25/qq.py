@@ -9,11 +9,8 @@ from typing import ClassVar, Any, Optional, Sequence, Iterable, Dict, Union, Typ
 from urllib.parse import quote as _uriquote
 import aiohttp
 import requests
-from aiohttp import FormData
-from requests_toolbelt import MultipartEncoder
 
 from . import __version__, utils
-from .file import File
 from .role import Role
 from .embeds import Ark, Embed
 from .types.member import MemberWithUser as MemberPayload
