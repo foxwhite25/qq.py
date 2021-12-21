@@ -133,8 +133,8 @@ class Member(Messageable, _UserTag):
         self._user: User = state.store_user(data['user'])
         self.guild: Guild = guild
         self.joined_at: Optional[datetime.datetime] = utils.parse_time(data.get('joined_at'))
-        self._roles: utils.SnowflakeList = utils.SnowflakeList(map(int, data['roles'])) if 'roles' in data else \
-            utils.SnowflakeList(map(int, []))
+        self._roles: utils.SnowflakeList = utils.SnowflakeList(map(int, data['roles'])) \
+            if 'roles' in data and 'Normal' not in data['roles'] else utils.SnowflakeList(map(int, []))
 
         self.nick: Optional[str] = data.get('nick', None)
         self._avatar: Optional[str] = data.get('avatar')

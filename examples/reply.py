@@ -12,7 +12,7 @@ class MyClient(qq.Client):
             return
 
         if message.content.startswith('!hello'):
-            await message.reply('你好!', mention_author=True)
+            await message.reply('你好!', mention_author=message.author)
 
 
 client = MyClient()
