@@ -369,3 +369,13 @@ class Member(Messageable, _UserTag):
 
     def get_role(self, role_id: int, /) -> Optional[Role]:
         return self.guild.get_role(role_id) if self._roles.has(role_id) else None
+
+    async def mute(
+            self,
+            *,
+            reason: Optional[str] = None,
+    ) -> None:
+        """|coro|
+        禁言这个用户，相当于 :meth:`Guild.mute_member` 。
+        """
+        await self.guild.mute_member(self, reason=reason)
