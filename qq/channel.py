@@ -189,6 +189,19 @@ class VoiceChannel(abc.GuildChannel, Hashable):
         子频道所属的频道。
     id: :class:`int`
         频道 ID。
+    private_type: :class:`int`
+        子频道私密类型。
+
+        +----+---------------------+
+        | 值 | 含义                |
+        +----+---------------------+
+        | 0  | 公开频道            |
+        +----+---------------------+
+        | 1  | 群主管理员可见      |
+        +----+---------------------+
+        | 2  | 群主管理员+指定成员 |
+        +----+---------------------+
+
     position: :class:`int`
         在类别列表中的位置。 这是一个从 0 开始的数字。例如顶部频道是位置 0。
     """
@@ -199,6 +212,7 @@ class VoiceChannel(abc.GuildChannel, Hashable):
         '_state',
         'position',
         'category_id',
+        'private_type'
     )
 
     def __init__(self, *, state: ConnectionState, guild: Guild, data: VoiceChannelPayload):
@@ -211,6 +225,7 @@ class VoiceChannel(abc.GuildChannel, Hashable):
         self.name: str = data['name']
         self.category_id: Optional[int] = int(data.get('parent_id'))
         self.position: int = data['position']
+        self.private_type: int = data.get('private_type')
 
     def __repr__(self) -> str:
         attrs = [
@@ -252,6 +267,19 @@ class LiveChannel(abc.GuildChannel, Hashable, abc.Messageable):
         子频道所属的频道。
     id: :class:`int`
         频道 ID。
+    private_type: :class:`int`
+        子频道私密类型。
+
+        +----+---------------------+
+        | 值 | 含义                |
+        +----+---------------------+
+        | 0  | 公开频道            |
+        +----+---------------------+
+        | 1  | 群主管理员可见      |
+        +----+---------------------+
+        | 2  | 群主管理员+指定成员 |
+        +----+---------------------+
+
     position: :class:`int`
         在类别列表中的位置。 这是一个从 0 开始的数字。例如顶部频道是位置 0。
     """
@@ -263,6 +291,7 @@ class LiveChannel(abc.GuildChannel, Hashable, abc.Messageable):
         '_state',
         'position',
         'category_id',
+        'private_type'
     )
 
     def __init__(self, *, state: ConnectionState, guild: Guild, data: LiveChannelPayload):
@@ -275,6 +304,7 @@ class LiveChannel(abc.GuildChannel, Hashable, abc.Messageable):
         self.name: str = data['name']
         self.category_id: Optional[int] = int(data.get('parent_id'))
         self.position: int = data['position']
+        self.private_type: int = data.get('private_type')
 
     def __repr__(self) -> str:
         attrs = [
@@ -316,6 +346,19 @@ class AppChannel(abc.GuildChannel, Hashable):
         子频道所属的频道。
     id: :class:`int`
         频道 ID。
+    private_type: :class:`int`
+        子频道私密类型。
+
+        +----+---------------------+
+        | 值 | 含义                |
+        +----+---------------------+
+        | 0  | 公开频道            |
+        +----+---------------------+
+        | 1  | 群主管理员可见      |
+        +----+---------------------+
+        | 2  | 群主管理员+指定成员 |
+        +----+---------------------+
+
     position: :class:`int`
         在类别列表中的位置。 这是一个从 0 开始的数字。例如顶部频道是位置 0。
     """
@@ -326,6 +369,7 @@ class AppChannel(abc.GuildChannel, Hashable):
         '_state',
         'position',
         'category_id',
+        'private_type'
     )
 
     def __init__(self, *, state: ConnectionState, guild: Guild, data: AppChannelPayload):
@@ -338,6 +382,7 @@ class AppChannel(abc.GuildChannel, Hashable):
         self.name: str = data['name']
         self.category_id: Optional[int] = int(data.get('parent_id'))
         self.position: int = data['position']
+        self.private_type: int = data.get('private_type')
 
     def __repr__(self) -> str:
         attrs = [
@@ -379,6 +424,19 @@ class ThreadChannel(abc.GuildChannel, Hashable):
         子频道所属的频道。
     id: :class:`int`
         频道 ID。
+    private_type: :class:`int`
+        子频道私密类型。
+
+        +----+---------------------+
+        | 值 | 含义                |
+        +----+---------------------+
+        | 0  | 公开频道            |
+        +----+---------------------+
+        | 1  | 群主管理员可见      |
+        +----+---------------------+
+        | 2  | 群主管理员+指定成员 |
+        +----+---------------------+
+
     position: :class:`int`
         在类别列表中的位置。 这是一个从 0 开始的数字。例如顶部频道是位置 0。
     """
@@ -389,6 +447,7 @@ class ThreadChannel(abc.GuildChannel, Hashable):
         '_state',
         'position',
         'category_id',
+        'private_type'
     )
 
     def __init__(self, *, state: ConnectionState, guild: Guild, data: ThreadChannelPayload):
@@ -401,6 +460,7 @@ class ThreadChannel(abc.GuildChannel, Hashable):
         self.name: str = data['name']
         self.category_id: Optional[int] = int(data.get('parent_id'))
         self.position: int = data['position']
+        self.private_type: int = data.get('private_type')
 
     def __repr__(self) -> str:
         attrs = [
@@ -443,11 +503,24 @@ class CategoryChannel(abc.GuildChannel, Hashable):
         类别所属的公会。
     id: :class:`int`
         类别频道 ID。
+    private_type: :class:`int`
+        子频道私密类型。
+
+        +----+---------------------+
+        | 值 | 含义                |
+        +----+---------------------+
+        | 0  | 公开频道            |
+        +----+---------------------+
+        | 1  | 群主管理员可见      |
+        +----+---------------------+
+        | 2  | 群主管理员+指定成员 |
+        +----+---------------------+
+
     position: :class:`int`
         在类别列表中的位置。 这是一个从 0 开始的数字。例如顶部频道是位置 0。
     """
 
-    __slots__ = ('name', 'id', 'guild', '_state', 'position', 'category_id')
+    __slots__ = ('name', 'id', 'guild', '_state', 'position', 'category_id', 'private_type')
 
     def __init__(self, *, state: ConnectionState, guild: Guild, data: CategoryChannelPayload):
         self._state: ConnectionState = state
@@ -462,6 +535,7 @@ class CategoryChannel(abc.GuildChannel, Hashable):
         self.name: str = data['name']
         self.category_id: Optional[int] = int(data.get('parent_id'))
         self.position: int = data['position']
+        self.private_type: int = data.get('private_type')
 
     @property
     def _sorting_bucket(self) -> int:
