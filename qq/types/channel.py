@@ -13,6 +13,7 @@ class _BaseGuildChannel(_BaseChannel):
     position: int
     parent_id: Optional[str]
     owner_id: str
+    private_type: int
 
 
 class TextChannel(_BaseGuildChannel):

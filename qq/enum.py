@@ -135,6 +135,15 @@ class ChannelType(Enum):
         return self.name
 
 
+class PrivateType(Enum):
+    public = 0
+    admin = 1
+    specific = 2
+
+    def __str__(self):
+        return self.name
+
+
 class AudioStatusType(Enum):
     START = 0
     PAUSE = 1

@@ -66,6 +66,19 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
         子频道所属的频道。
     id: :class:`int`
         子频道 ID。
+    private_type: :class:`int`
+        子频道私密类型。
+
+        +----+---------------------+
+        | 值 | 含义                |
+        +----+---------------------+
+        | 0  | 公开频道            |
+        +----+---------------------+
+        | 1  | 群主管理员可见      |
+        +----+---------------------+
+        | 2  | 群主管理员+指定成员 |
+        +----+---------------------+
+
     category_id: Optional[:class:`int`]
         这个子频道属于的分类频道，如果没有则返回 ``None`` 。
     position: :class:`int`
@@ -83,7 +96,8 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
         'category_id',
         'position',
         '_type',
-        'last_message_id'
+        'last_message_id',
+        'private_type'
     )
 
     def __init__(self, *, state: ConnectionState, guild: Guild, data: TextChannelPayload):
@@ -109,6 +123,7 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
         self.category_id: Optional[int] = int(data.get('parent_id'))
         self.position: int = data['position']
         self._type: int = data.get('type', self._type)
+        self.private_type: int = data.get('private_type')
 
     async def _get_channel(self):
         return self
