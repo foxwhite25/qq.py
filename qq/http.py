@@ -154,6 +154,14 @@ class HTTPClient:
             # wait until the global lock is complete
             await self._global_over.wait()
 
+        try:
+            reason = kwargs.pop('reason')
+        except KeyError:
+            pass
+        else:
+            if reason:
+                headers['X-Audit-Log-Reason'] = _uriquote(reason, safe='/ ')
+
         response: Optional[aiohttp.ClientResponse] = None
         data: Optional[Union[Dict[str, Any], str]] = None
         await lock.acquire()
@@ -534,9 +542,9 @@ class HTTPClient:
     ) -> Response[None]:
         params: Dict[str, Any] = {}
         if isinstance(duration, datetime.datetime):
-            params['mute_end_timestamp'] = duration.timestamp()
+            params['mute_end_timstamp'] = str(duration.timestamp())
         else:
-            params['mute_seconds'] = duration
+            params['mute_seconds'] = str(duration)
 
         r = Route('PATCH', '/guilds/{guild_id}/members/{user_id}/mute', guild_id=guild_id, user_id=user_id)
         return self.request(r, params=params, reason=reason)
@@ -546,9 +554,10 @@ class HTTPClient:
     ) -> Response[None]:
         params: Dict[str, Any] = {}
         if isinstance(duration, datetime.datetime):
-            params['mute_end_timestamp'] = duration.timestamp()
+            params['mute_end_timstamp'] = str(duration.timestamp())
         else:
-            params['mute_seconds'] = duration
+            params['mute_seconds'] = str(duration)
+        print(params)
 
         r = Route('PATCH', '/guilds/{guild_id}/mute', guild_id=guild_id)
         return self.request(r, params=params, reason=reason)
