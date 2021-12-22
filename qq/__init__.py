@@ -2,7 +2,7 @@ __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 __title__ = 'qq'
 __author__ = 'Foxwhite'
 __license__ = 'MIT'
-__version__ = '1.0.5'
+__version__ = '1.0.6'
 
 import logging
 from typing import NamedTuple, Literal
@@ -36,4 +36,4 @@ class VersionInfo(NamedTuple):
     serial: int
 
 
-version_info: VersionInfo = VersionInfo(major=1, minor=0, micro=5, releaselevel='beta', serial=0)
+version_info: VersionInfo = VersionInfo(major=1, minor=0, micro=6, releaselevel='beta', serial=0)
