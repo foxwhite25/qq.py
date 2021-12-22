@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 from typing import (
     Dict,
     List,
@@ -9,7 +10,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Sequence,
-    overload,
+    overload, Literal,
 )
 
 from . import utils, abc
@@ -25,7 +26,6 @@ from .user import User
 from .iterators import MemberIterator
 from .asset import Asset
 from .file import File
-
 
 MISSING = utils.MISSING
 
@@ -427,11 +427,11 @@ class Guild(Hashable):
         return channel
 
     def _create_channel(
-        self,
-        name: str,
-        channel_type: ChannelType,
-        category: Optional[CategoryChannel] = None,
-        **options: Any,
+            self,
+            name: str,
+            channel_type: ChannelType,
+            category: Optional[CategoryChannel] = None,
+            **options: Any,
     ):
         parent_id = category.id if category else None
         return self._state.http.create_channel(
@@ -439,12 +439,12 @@ class Guild(Hashable):
         )
 
     async def create_live_channel(
-        self,
-        name: str,
-        *,
-        position: int = MISSING,
-        category: Optional[CategoryChannel] = None,
-        reason: Optional[str] = None,
+            self,
+            name: str,
+            *,
+            position: int = MISSING,
+            category: Optional[CategoryChannel] = None,
+            reason: Optional[str] = None,
     ) -> LiveChannel:
         """|coro|
         这类似于 :meth:`create_live_channel` ，除了创建一个 :class:`LiveChannel` 。
@@ -487,12 +487,12 @@ class Guild(Hashable):
         return channel
 
     async def create_app_channel(
-        self,
-        name: str,
-        *,
-        position: int = MISSING,
-        category: Optional[CategoryChannel] = None,
-        reason: Optional[str] = None,
+            self,
+            name: str,
+            *,
+            position: int = MISSING,
+            category: Optional[CategoryChannel] = None,
+            reason: Optional[str] = None,
     ) -> AppChannel:
         """|coro|
         这类似于 :meth:`create_app_channel` ，除了生成一个 :class:`AppChannel`。
@@ -535,12 +535,12 @@ class Guild(Hashable):
         return channel
 
     async def create_thread_channel(
-        self,
-        name: str,
-        *,
-        position: int = MISSING,
-        category: Optional[CategoryChannel] = None,
-        reason: Optional[str] = None,
+            self,
+            name: str,
+            *,
+            position: int = MISSING,
+            category: Optional[CategoryChannel] = None,
+            reason: Optional[str] = None,
     ) -> ThreadChannel:
         """|coro|
         这类似于 :meth:`create_thread_channel` ，除了生成一个 :class:`ThreadChannel`。
@@ -583,11 +583,11 @@ class Guild(Hashable):
         return channel
 
     async def create_category(
-        self,
-        name: str,
-        *,
-        reason: Optional[str] = None,
-        position: int = MISSING,
+            self,
+            name: str,
+            *,
+            reason: Optional[str] = None,
+            position: int = MISSING,
     ) -> CategoryChannel:
         """|coro|
         与 :meth:`create_text_channel` 相同，除了创建一个 :class:`CategoryChannel`。
@@ -782,37 +782,37 @@ class Guild(Hashable):
 
     @overload
     async def create_role(
-        self,
-        *,
-        reason: Optional[str] = ...,
-        name: str = ...,
-        colour: Union[Colour, int] = ...,
-        hoist: bool = ...,
-        mentionable: bool = ...,
+            self,
+            *,
+            reason: Optional[str] = ...,
+            name: str = ...,
+            colour: Union[Colour, int] = ...,
+            hoist: bool = ...,
+            mentionable: bool = ...,
     ) -> Role:
         ...
 
     @overload
     async def create_role(
-        self,
-        *,
-        reason: Optional[str] = ...,
-        name: str = ...,
-        color: Union[Colour, int] = ...,
-        hoist: bool = ...,
-        mentionable: bool = ...,
+            self,
+            *,
+            reason: Optional[str] = ...,
+            name: str = ...,
+            color: Union[Colour, int] = ...,
+            hoist: bool = ...,
+            mentionable: bool = ...,
     ) -> Role:
         ...
 
     async def create_role(
-        self,
-        *,
-        name: str = MISSING,
-        color: Union[Colour, int] = MISSING,
-        colour: Union[Colour, int] = MISSING,
-        hoist: bool = MISSING,
-        mentionable: bool = MISSING,
-        reason: Optional[str] = None,
+            self,
+            *,
+            name: str = MISSING,
+            color: Union[Colour, int] = MISSING,
+            colour: Union[Colour, int] = MISSING,
+            hoist: bool = MISSING,
+            mentionable: bool = MISSING,
+            reason: Optional[str] = None,
     ) -> Role:
         """|coro|
         为频道创建一个身份组。
@@ -863,7 +863,7 @@ class Guild(Hashable):
 
         data = await self._state.http.create_role(self.id, reason=reason, **fields)
         role = Role(guild=self, data=data, state=self._state)
-        
+
         return role
 
     async def kick(self, user: Member, *, reason: Optional[str] = None) -> None:
@@ -886,4 +886,57 @@ class Guild(Hashable):
         """
         await self._state.http.kick(user.id, self.id, reason=reason)
 
+    async def mute_member(
+            self,
+            user: Member,
+            *,
+            duration: Union[datetime.datetime, int] = 10,
+            reason: Optional[str] = None,
+    ) -> None:
+        """|coro|
+        频道指定成员禁言。
+        需要使用的 token 对应的用户具备管理员权限。如果是机器人，要求被添加为管理员。
 
+        Parameters
+        -----------
+        user: :class:`qq.User`
+            这个频道禁言的用户。
+        duration: Union[:class:`datetime.datetime`, :class:`int`]
+            禁言的时间，可以是结束时间的一个 :class:`datetime.datetime` ， 也可以是持续的秒数。
+        reason: Optional[:class:`str`]
+            禁言的原因。
+
+        Raises
+        -------
+        Forbidden
+            你没有适当的权限。
+        HTTPException
+            禁言失败。
+        """
+        await self._state.http.mute_member(user.id, self.id, duration, reason=reason)
+
+    async def mute_guild(
+            self,
+            *,
+            duration: Union[datetime.datetime, int] = 10,
+            reason: Optional[str] = None,
+    ) -> None:
+        """|coro|
+        频道全局禁言。
+        需要使用的 token 对应的用户具备管理员权限。如果是机器人，要求被添加为管理员。
+
+        Parameters
+        -----------
+        duration: Union[:class:`datetime.datetime`, :class:`int`]
+            禁言的时间，可以是结束时间的一个 :class:`datetime.datetime` ， 也可以是持续的秒数。
+        reason: Optional[:class:`str`]
+            禁言的原因。
+
+        Raises
+        -------
+        Forbidden
+            你没有适当的权限。
+        HTTPException
+            禁言失败。
+        """
+        await self._state.http.mute_guild(self.id, duration, reason=reason)

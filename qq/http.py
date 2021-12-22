@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import logging
 import sys
 import weakref
@@ -527,3 +528,28 @@ class HTTPClient:
             r.url = f'{r.url}?reason={_uriquote(reason)}'
 
         return self.request(r)
+
+    def mute_member(
+            self, user_id: int, guild_id: int, duration: Union[datetime.datetime, int], reason: str
+    ) -> Response[None]:
+        params: Dict[str, Any] = {}
+        if isinstance(duration, datetime.datetime):
+            params['mute_end_timestamp'] = duration.timestamp()
+        else:
+            params['mute_seconds'] = duration
+
+        r = Route('PATCH', '/guilds/{guild_id}/members/{user_id}/mute', guild_id=guild_id, user_id=user_id)
+        return self.request(r, params=params, reason=reason)
+
+    def mute_guild(
+            self, guild_id: int, duration: Union[datetime.datetime, int], reason:str
+    ) -> Response[None]:
+        params: Dict[str, Any] = {}
+        if isinstance(duration, datetime.datetime):
+            params['mute_end_timestamp'] = duration.timestamp()
+        else:
+            params['mute_seconds'] = duration
+
+        r = Route('PATCH', '/guilds/{guild_id}/mute', guild_id=guild_id)
+        return self.request(r, params=params, reason=reason)
+
