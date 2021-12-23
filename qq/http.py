@@ -542,7 +542,7 @@ class HTTPClient:
     ) -> Response[None]:
         params: Dict[str, Any] = {}
         if isinstance(duration, datetime.datetime):
-            params['mute_end_timstamp'] = str(duration.timestamp())
+            params['mute_end_timestamp'] = str(duration.timestamp())
         else:
             params['mute_seconds'] = str(duration)
 
@@ -554,7 +554,7 @@ class HTTPClient:
     ) -> Response[None]:
         params: Dict[str, Any] = {}
         if isinstance(duration, datetime.datetime):
-            params['mute_end_timstamp'] = str(duration.timestamp())
+            params['mute_end_timestamp'] = str(duration.timestamp())
         else:
             params['mute_seconds'] = str(duration)
 
