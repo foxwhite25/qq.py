@@ -27,10 +27,15 @@ class MessageUpdateEvent(_MessageEventOptional):
     channel_id: str
 
 
+class Target(TypedDict, total=False):
+    id: str
+    type: int
+
+
 class ReactionActionEvent(_ReactionActionEventOptional):
     user_id: str
     channel_id: str
-    message_id: str
+    target: Target
     emoji: PartialEmoji
 
 

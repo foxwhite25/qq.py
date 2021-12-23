@@ -60,7 +60,7 @@ async def json_or_text(response: aiohttp.ClientResponse) -> Union[Dict[str, Any]
     try:
         if response.headers['content-type'] == 'application/json':
             return utils._from_json(text)
-    except KeyError:
+    except Exception:
         # Thanks Cloudflare
         pass
 
@@ -547,7 +547,7 @@ class HTTPClient:
             params['mute_seconds'] = str(duration)
 
         r = Route('PATCH', '/guilds/{guild_id}/members/{user_id}/mute', guild_id=guild_id, user_id=user_id)
-        return self.request(r, params=params, reason=reason)
+        return self.request(r, json=params, reason=reason)
 
     def mute_guild(
             self, guild_id: int, duration: Union[datetime.datetime, int], reason:str
@@ -557,8 +557,7 @@ class HTTPClient:
             params['mute_end_timstamp'] = str(duration.timestamp())
         else:
             params['mute_seconds'] = str(duration)
-        print(params)
 
         r = Route('PATCH', '/guilds/{guild_id}/mute', guild_id=guild_id)
-        return self.request(r, params=params, reason=reason)
+        return self.request(r, json=params, reason=reason)
 

@@ -71,4 +71,14 @@ async def _bot(ctx):
     await ctx.reply('是的，机器人很牛逼。')
 
 
+@bot.command()
+async def ark(ctx, count: int, *, anything: str):
+    ark = qq.Ark(template_id=23)
+    ark.set_attribute(key='#DESC#', value='aba')
+    ark.set_attribute(key='#PROMPT#', value='aba')
+    for _ in range(count):
+        ark.add_field(desc=anything)
+    await ctx.reply(ark=ark)
+
+
 bot.run('token')
