@@ -7,7 +7,9 @@ class MyClient(qq.Client):
         print('------')
 
     async def on_member_join(self, member: qq.Member):
-        channel = await member.guild.fetch_channel(114514)  # 频道ID
+        channel = member.guild.get_channel(114514)
+        if channel is None:
+            channel = await member.guild.fetch_channel(114514)  # 频道ID
         if channel is not None:
             to_send = f'欢迎 {member.mention} 加入 {member.guild.name}！'
             await channel.send(to_send)

@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 
 class Guild(Hashable):
     """代表一个 QQ guild.
-    这在官方 QQ UI 中称为 “频道” 。
+    这在官方 QQ UI 中称为  ``频道``  。
 
     .. container:: operations
 
@@ -206,13 +206,13 @@ class Guild(Hashable):
         Returns
         --------
         Optional[:class:`Role`]
-            Role 或如果未找到，则 “None”。
+            Role 或如果未找到，则  ``None`` 。
         """
         return self._roles.get(role_id)
 
     # @property
     # def large(self) -> bool:
-    #     """:class:`bool`: 指示频道是否是“大型”频道。
+    #     """:class:`bool`: 指示频道是否是 ``大型`` 频道。
     #
     #     一个大型频道被定义为拥有超过 ``large_threshold`` 计数成员，对于这个库，它被设置为 250。
     #     """
@@ -251,7 +251,7 @@ class Guild(Hashable):
     def by_category(self) -> List[ByCategoryItem]:
         """返回每个 :class:`CategoryChannel` 及其关联的频道。
         这些频道和类别按官方 QQ UI 顺序排序。
-        如果频道没有类别，则元组的第一个元素是 “None”。
+        如果频道没有类别，则元组的第一个元素是  ``None`` 。
 
         Returns
         --------
@@ -297,7 +297,7 @@ class Guild(Hashable):
         Returns
         --------
         Optional[:class:`.abc.GuildChannel`]
-            返回的频道或 “None”（如果未找到）。
+            返回的频道或 ``None``（如果未找到）。
         """
         return self._channels.get(channel_id)
 
@@ -312,7 +312,7 @@ class Guild(Hashable):
         Returns
         --------
         Optional[:class:`Member`]
-            返回成员或如果未找到 “None” 。
+            返回成员或如果未找到  ``None``  。
         """
         return self._members.get(user_id)
 
@@ -335,7 +335,7 @@ class Guild(Hashable):
     def get_member_named(self, name: str, /) -> Optional[Member]:
         """返回找到的第一个与提供的名称匹配的成员。
         如果传递了昵称，则通过昵称查找它。
-        如果没有找到成员，则返回 “None”。
+        如果没有找到成员，则返回  ``None`` 。
 
         Parameters
         -----------
@@ -345,7 +345,7 @@ class Guild(Hashable):
         Returns
         --------
         Optional[:class:`Member`]
-            此频道中具有关联名称的成员。如果未找到，则返回 “None”。
+            此频道中具有关联名称的成员。如果未找到，则返回  ``None`` 。
         """
         members = self.members
         result = utils.get(members, name=name[:-5])
@@ -662,7 +662,7 @@ class Guild(Hashable):
         Parameters
         ----------
         limit: Optional[:class:`int`]
-            要检索的成员数。默认为 1000。传递“无”以获取所有成员。请注意，这可能很慢。
+            要检索的成员数。默认为 1000。传递 ``无`` 以获取所有成员。请注意，这可能很慢。
 
         Raises
         ------
