@@ -325,6 +325,9 @@ class Guild(Hashable):
     def _add_member(self, member: Member, /) -> None:
         self._members[member.id] = member
 
+    def _remove_member(self, member: Member, /) -> None:
+        self._members.pop(member.id, None)
+
     @property
     def chunked(self) -> bool:
         count = getattr(self, '_member_count', None)
