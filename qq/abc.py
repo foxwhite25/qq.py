@@ -120,7 +120,7 @@ class Messageable:
             要发送的 Embed 类
         reference: Union[:class:`~qq.Message`, :class:`~qq.MessageReference`, :class:`~qq.PartialMessage`]
             对您正在回复的 :class:`~qq.Message` 的引用，可以使用 :meth:`~qq.Message.to_reference` 创建或直接作为 :class:`~qq.Message` 传递。
-        mention_author: Optional[:class:`Member`]
+        mention_author: Optional[:class:`qq.Member`]
             如果设置了，将会在消息前面提及该用户。
         delete_after: Optional[:class:`float`]
             如果设置了，则等待该秒数之后自动撤回消息。如果删除失败，则它会被静默忽略。

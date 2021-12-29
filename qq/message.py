@@ -722,7 +722,7 @@ class Message(Hashable):
         Raises
         ------
         Forbidden
-            您没有删除邮件的适当权限。
+            你没有删除消息的适当权限。
         NotFound
             该消息已被删除
         HTTPException
@@ -756,9 +756,9 @@ class Message(Hashable):
         ~qq.HTTPException
             发送消息失败。
         ~qq.Forbidden
-            您没有发送消息的适当权限。
+            你没有发送消息的适当权限。
         ~qq.InvalidArgument
-            ``files`` 列表的大小不合适，或者您同时指定了 ``file`` 和 ``files``。
+            ``files`` 列表的大小不合适，或者你同时指定了 ``file`` 和 ``files``。
 
         Returns
         ---------

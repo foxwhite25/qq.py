@@ -60,8 +60,8 @@ intersphinx_mapping = {
 }
 
 rst_prolog = """
-.. |coro| replace:: 这个函数是一个 |coroutine_link|_.
-.. |maybecoro| replace:: 这个函数 *可以是* |coroutine_link|_.
+.. |coro| replace:: 这个函数是一个 |coroutine_link|_。
+.. |maybecoro| replace:: 这个函数 *可以是* |coroutine_link|_。
 .. |coroutine_link| replace:: *coroutine*
 .. _coroutine_link: https://docs.python.org/3/library/asyncio-task.html#coroutine
 """
