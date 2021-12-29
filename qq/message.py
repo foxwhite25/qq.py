@@ -1,3 +1,33 @@
+#  The MIT License (MIT)
+#  Copyright (c) 2021-present foxwhite25
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a
+#  copy of this software and associated documentation files (the "Software"),
+#  to deal in the Software without restriction, including without limitation
+#  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#  and/or sell copies of the Software, and to permit persons to whom the
+#  Software is furnished to do so, subject to the following conditions:
+#
+#  The above copyright notice and this permission notice shall be included in
+#  all copies or substantial portions of the Software.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+#  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+#  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+#  DEALINGS IN THE SOFTWARE.
+
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a
+#  copy of this software and associated documentation files (the "Software"),
+#  to deal in the Software without restriction, including without limitation
+#  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#  and/or sell copies of the Software, and to permit persons to whom the
+#  Software is furnished to do so, subject to the following conditions:
+#
+#
 from __future__ import annotations
 
 import asyncio
@@ -9,6 +39,7 @@ from os import PathLike
 from typing import Union, Optional, TYPE_CHECKING, ClassVar, Tuple, List, Callable, overload, Any, Type, TypeVar
 
 from . import utils
+from .error import HTTPException
 from .file import File
 from .member import Member
 from .mixins import Hashable
@@ -678,6 +709,37 @@ class Message(Hashable):
         pattern = re.compile('|'.join(transformations.keys()))
         result = pattern.sub(repl, self.content)
         return escape_mentions(result)
+
+    async def delete(self, *, delay: Optional[float] = None) -> None:
+        """|coro|
+        撤回消息。
+
+        Parameters
+        -----------
+        delay: Optional[:class:`float`]
+            如果提供，则在删除消息之前在后台等待的秒数。如果删除失败，则它会被静默忽略。
+
+        Raises
+        ------
+        Forbidden
+            您没有删除邮件的适当权限。
+        NotFound
+            该消息已被删除
+        HTTPException
+            删除消息失败。
+        """
+        if delay is not None:
+
+            async def delete(delay: float):
+                await asyncio.sleep(delay)
+                try:
+                    await self._state.http.delete_message(self.channel.id, self.id)
+                except HTTPException:
+                    pass
+
+            asyncio.create_task(delete(delay))
+        else:
+            await self._state.http.delete_message(self.channel.id, self.id)
 
     @property
     def edited_at(self) -> Optional[datetime.datetime]:
