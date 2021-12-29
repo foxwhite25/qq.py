@@ -105,7 +105,7 @@ class RawReactionActionEvent(_RawReprMixin):
                  'event_type', 'member')
 
     def __init__(self, data: ReactionActionEvent, emoji: PartialEmoji, event_type: str) -> None:
-        self.message_id: int = int(data['target']['id'])
+        self.message_id: int = int(data['target']['id']) if data['target']['type'] == 0 else None
         self.channel_id: int = int(data['channel_id'])
         self.user_id: int = int(data['user_id'])
         self.emoji: PartialEmoji = emoji

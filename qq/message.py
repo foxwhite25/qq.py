@@ -417,6 +417,7 @@ class Message(Hashable):
         '_cs_raw_mentions',
         '_cs_clean_content',
         '_cs_raw_channel_mentions',
+        '_cs_raw_role_mentions',
         '_cs_system_content',
         'content',
         'channel',
@@ -564,7 +565,6 @@ class Message(Hashable):
 
     def _handle_author(self, author: UserPayload) -> None:
         self.author = self._state.store_user(author)
-        self.guild._add_member(self.author)
 
     def _handle_member(self, member: MemberPayload) -> None:
         author = self.author
@@ -574,6 +574,7 @@ class Message(Hashable):
         except AttributeError:
             # It's a user here
             self.author = Member._from_message(message=self, data=member)
+            self.guild._add_member(self.author)
 
     def _handle_mentions(self, mentions: List[UserWithMemberPayload]) -> None:
         self.mentions = r = []
@@ -709,6 +710,33 @@ class Message(Hashable):
         pattern = re.compile('|'.join(transformations.keys()))
         result = pattern.sub(repl, self.content)
         return escape_mentions(result)
+
+    @utils.cached_slot_property('_cs_raw_mentions')
+    def raw_mentions(self) -> List[int]:
+        """List[:class:`int`]: 返回与消息内容中的 ``<@user_id>`` 语法匹配的用户 ID 数组的属性。
+
+        这允许您即使在私人消息上下文中也可以接收提到用户的用户 ID。
+        """
+        return [int(x) for x in re.findall(r'<@!?([0-9]{15,20})>', self.content)]
+
+    @utils.cached_slot_property('_cs_raw_channel_mentions')
+    def raw_channel_mentions(self) -> List[int]:
+        """List[:class:`int`]: 返回与消息内容中的 ``<#channel_id>`` 语法匹配的子频道 ID 数组的属性。
+        """
+        return [int(x) for x in re.findall(r'<#([0-9]{6,20})>', self.content)]
+
+    @utils.cached_slot_property('_cs_raw_role_mentions')
+    def raw_role_mentions(self) -> List[int]:
+        """List[:class:`int`]: 返回与消息内容中的 ``<@&role_id>`` 语法匹配的身份组 ID 数组的属性。
+        """
+        return [int(x) for x in re.findall(r'<@&([0-9]{6,20})>', self.content)]
+
+    @utils.cached_slot_property('_cs_channel_mentions')
+    def channel_mentions(self) -> List[GuildChannel]:
+        if self.guild is None:
+            return []
+        it = filter(None, map(self.guild.get_channel, self.raw_channel_mentions))
+        return utils._unique(it)
 
     async def delete(self, *, delay: Optional[float] = None) -> None:
         """|coro|
