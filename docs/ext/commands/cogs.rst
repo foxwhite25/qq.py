@@ -10,7 +10,7 @@
 大概原理：
 
 - 每个齿轮都是一个 Python 类，它是 :class:`.commands.Cog` 的子类。
-- 每个命令都标有:func:`.commands.command` 装饰器。
+- 每个命令都标有 :func:`.commands.command` 装饰器。
 - 每个侦听器都标有 :meth:`.commands.Cog.listener` 装饰器。
 - 然后使用 :meth:`.Bot.add_cog` 调用注册齿轮。
 - 随后通过 :meth:`.Bot.remove_cog` 调用移除齿轮。
