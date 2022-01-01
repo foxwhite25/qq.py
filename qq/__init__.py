@@ -47,6 +47,7 @@ from .embeds import *
 from .mention import *
 from .partial_emoji import *
 from .raw_models import *
+from .permissions import *
 
 
 class VersionInfo(NamedTuple):
