@@ -864,6 +864,21 @@ Colour
 .. autoclass:: Colour
     :members:
 
+Permissions
+~~~~~~~~~~~~
+
+.. attributetable:: Permissions
+
+.. autoclass:: Permissions
+    :members:
+
+PermissionOverwrite
+~~~~~~~~~~~~~~~~~~~~
+
+.. attributetable:: PermissionOverwrite
+
+.. autoclass:: PermissionOverwrite
+    :members:
 
 ShardInfo
 ~~~~~~~~~~~
