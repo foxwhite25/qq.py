@@ -404,7 +404,7 @@ class Guild(Hashable):
 
         .. note::
 
-            创建指定位置的频道不会更新其他频道的位置以效仿。需要对 :meth:`~TextChannel.edit` 进行后续调用以更新频道在频道列表中的位置。
+            创建指定位置的频道不会更新其他频道的位置。需要 :meth:`~TextChannel.edit` 后续调用来更新频道在频道列表中的位置。
 
         Examples
         ----------
@@ -471,7 +471,7 @@ class Guild(Hashable):
             reason: Optional[str] = None,
     ) -> LiveChannel:
         """|coro|
-        这类似于 :meth:`create_live_channel` ，除了创建一个 :class:`LiveChannel` 。
+        这类似于 :meth:`create_text_channel` ，除了创建一个 :class:`LiveChannel` 。
 
         Parameters
         -----------
@@ -519,7 +519,7 @@ class Guild(Hashable):
             reason: Optional[str] = None,
     ) -> AppChannel:
         """|coro|
-        这类似于 :meth:`create_app_channel` ，除了生成一个 :class:`AppChannel`。
+        这类似于 :meth:`create_text_channel` ，除了生成一个 :class:`AppChannel`。
 
         Parameters
         -----------
@@ -567,7 +567,7 @@ class Guild(Hashable):
             reason: Optional[str] = None,
     ) -> ThreadChannel:
         """|coro|
-        这类似于 :meth:`create_thread_channel` ，除了生成一个 :class:`ThreadChannel`。
+        这类似于 :meth:`create_text_channel` ，除了生成一个 :class:`ThreadChannel`。
 
         Parameters
         -----------

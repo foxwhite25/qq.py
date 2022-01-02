@@ -21,9 +21,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, Optional, List
+from typing import TYPE_CHECKING, Iterable, Optional, List, overload
 
-from . import abc
+from . import abc, utils
 from .enum import ChannelType, try_enum
 from .mixins import Hashable
 from .object import Object
@@ -37,7 +37,6 @@ __all__ = (
     'ThreadChannel',
     'PartialMessageable',
 )
-
 
 if TYPE_CHECKING:
     from .member import Member
@@ -180,6 +179,64 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
 
         return PartialMessage(channel=self, id=message_id)
 
+    @overload
+    async def edit(
+            self,
+            *,
+            reason: Optional[str] = ...,
+            name: str = ...,
+            position: int = ...,
+            category: Optional[CategoryChannel] = ...,
+            type: ChannelType = ...,
+    ) -> Optional[TextChannel]:
+        ...
+
+    @overload
+    async def edit(self) -> Optional[TextChannel]:
+        ...
+
+    async def edit(self, *, reason=None, **options):
+        """|coro|
+        编辑子频道。
+
+        Parameters
+        ----------
+        name: :class:`str`
+            新频道名称。
+        position: :class:`int`
+            新频道的位置。
+        category: Optional[:class:`CategoryChannel`]
+            此频道的新类别。可以是 ``None`` 以删除类别。
+        type: :class:`ChannelType`
+            更改此文本频道的类型。 不保证能够成功转换。
+        reason: Optional[:class:`str`]
+            编辑此频道的原因。显示在审计日志中。
+
+        Raises
+        ------
+        InvalidArgument
+            如果 position 小于 0 或大于子频道数。
+        Forbidden
+            您没有编辑频道的权限。
+        HTTPException
+            编辑频道失败。
+        Returns
+        --------
+        Optional[:class:`.TextChannel`]
+            新编辑的文本通道。如果编辑只是位置性的，则返回 ``None`` 。
+        """
+
+        payload = await self._edit(options, reason=reason)
+        if payload is not None:
+            # the payload will always be the proper channel payload
+            return self.__class__(state=self._state, guild=self.guild, data=payload)  # type: ignore
+
+    @utils.copy_doc(abc.GuildChannel.clone)
+    async def clone(self, *, name: Optional[str] = None, reason: Optional[str] = None) -> TextChannel:
+        return await self._clone_impl(
+            {}, name=name, reason=reason
+        )
+
 
 class VoiceChannel(abc.GuildChannel, Hashable):
     """表示 QQ 语音子频道。
@@ -257,6 +314,65 @@ class VoiceChannel(abc.GuildChannel, Hashable):
         ]
         joined = ' '.join('%s=%r' % t for t in attrs)
         return f'<{self.__class__.__name__} {joined}>'
+
+    @property
+    def type(self) -> ChannelType:
+        """:class:`ChannelType`: 子频道的QQ类型。"""
+        return ChannelType.voice
+
+    @utils.copy_doc(abc.GuildChannel.clone)
+    async def clone(self, *, name: Optional[str] = None, reason: Optional[str] = None) -> VoiceChannel:
+        return await self._clone_impl({}, name=name, reason=reason)
+
+    @overload
+    async def edit(
+            self,
+            *,
+            name: str = ...,
+            position: int = ...,
+            category: Optional[CategoryChannel] = ...,
+            reason: Optional[str] = ...,
+    ) -> Optional[VoiceChannel]:
+        ...
+
+    @overload
+    async def edit(self) -> Optional[VoiceChannel]:
+        ...
+
+    async def edit(self, *, reason=None, **options):
+        """|coro|
+        编辑频道。
+
+        Parameters
+        ----------
+        name: :class:`str`
+            新频道的名称。
+        position: :class:`int`
+            新频道的位置。
+        category: Optional[:class:`CategoryChannel`]
+            此频道的新类别。可以是 ``None`` 以删除类别。
+        reason: Optional[:class:`str`]
+            编辑此频道的原因。显示在审计日志中。
+
+        Raises
+        ------
+        InvalidArgument
+            如果权限覆盖信息格式不正确。
+        Forbidden
+            您没有编辑频道的权限。
+        HTTPException
+            编辑频道失败。
+
+        Returns
+        --------
+        Optional[:class:`.VoiceChannel`]
+            新编辑的语音通道。如果编辑只是位置性的，则返回 ``None`` 。
+        """
+
+        payload = await self._edit(options, reason=reason)
+        if payload is not None:
+            # the payload will always be the proper channel payload
+            return self.__class__(state=self._state, guild=self.guild, data=payload)  # type: ignore
 
 
 class LiveChannel(abc.GuildChannel, Hashable, abc.Messageable):
