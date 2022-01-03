@@ -206,12 +206,8 @@ class Member(Messageable, _UserTag):
 
         self._roles = member._roles
         self.joined_at = member.joined_at
-        self.premium_since = member.premium_since
-        self._client_status = member._client_status.copy()
         self.guild = member.guild
         self.nick = member.nick
-        self.pending = member.pending
-        self.activities = member.activities
         self._state = member._state
         self._avatar = member._avatar
 

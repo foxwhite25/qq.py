@@ -296,7 +296,7 @@ class ConnectionState:
         if not emoji_id:
             return data['name']
 
-        return PartialEmoji.with_state(self, animated=data.get('animated', False), id=emoji_id, name=data['name'])
+        return PartialEmoji.with_state(self, id=emoji_id, custom=False)
 
     async def chunker(
             self, guild_id: int, query: str = '', limit: int = 0, presences: bool = False, *,
