@@ -30,10 +30,12 @@ import logging
 import signal
 import sys
 import traceback
-from typing import Optional, Any, Dict, Callable, List, Tuple, Coroutine, TypeVar, Generator, Union, TYPE_CHECKING
+from typing import Optional, Any, Dict, Callable, List, Tuple, Coroutine, TypeVar, Generator, Union, TYPE_CHECKING, \
+    Sequence
 
 import aiohttp
 
+from . import utils
 from .backoff import ExponentialBackoff
 from .error import HTTPException, GatewayNotFound, ConnectionClosed
 from .state import ConnectionState
@@ -46,7 +48,7 @@ from .user import ClientUser, User
 if TYPE_CHECKING:
     from .abc import GuildChannel
     from .member import Member
-
+    from .message import Message
 
 URL = r'https://api.sgroup.qq.com'
 _log = logging.getLogger(__name__)
@@ -289,6 +291,12 @@ class Client:
     def guilds(self) -> List[Guild]:
         """List[:class:`.Guild`]: 连接的客户端所属的频道。"""
         return self._connection.guilds
+
+    @property
+    def cached_messages(self) -> Sequence[Message]:
+        """Sequence[:class:`.Message`]: 连接的客户端已缓存的消息的只读列表。
+        """
+        return utils.SequenceProxy(self._connection._messages or [])
 
     def get_guild(self, id: int, /) -> Optional[Guild]:
         """返回具有给定 ID 的频道。

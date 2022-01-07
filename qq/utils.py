@@ -21,6 +21,7 @@
 
 import array
 import asyncio
+import collections.abc
 import datetime
 import json
 import re
@@ -29,7 +30,7 @@ import unicodedata
 from bisect import bisect_left
 from operator import attrgetter
 from typing import Any, Callable, TypeVar, overload, Optional, Iterable, List, TYPE_CHECKING, Generic, Type, Dict, \
-    ForwardRef, Literal, Tuple, Union, Iterator, AsyncIterator
+    ForwardRef, Literal, Tuple, Union, Iterator, AsyncIterator, Sequence
 from inspect import isawaitable as _isawaitable, signature as _signature
 
 T = TypeVar('T')
@@ -234,6 +235,7 @@ def remove_markdown(text: str, *, ignore_links: bool = True) -> str:
     :class:`str`
         删除了 Markdown 特殊字符的文本。
     """
+
     def replacement(match):
         groupdict = match.groupdict()
         return groupdict.get('url', '')
@@ -660,3 +662,31 @@ def resolve_annotation(
     if cache is None:
         cache = {}
     return evaluate_annotation(annotation, globalns, locals, cache)
+
+
+class SequenceProxy(Generic[T_co], collections.abc.Sequence):
+    """序列的只读代理。"""
+
+    def __init__(self, proxied: Sequence[T_co]):
+        self.__proxied = proxied
+
+    def __getitem__(self, idx: int) -> T_co:
+        return self.__proxied[idx]
+
+    def __len__(self) -> int:
+        return len(self.__proxied)
+
+    def __contains__(self, item: Any) -> bool:
+        return item in self.__proxied
+
+    def __iter__(self) -> Iterator[T_co]:
+        return iter(self.__proxied)
+
+    def __reversed__(self) -> Iterator[T_co]:
+        return reversed(self.__proxied)
+
+    def index(self, value: Any, *args, **kwargs) -> int:
+        return self.__proxied.index(value, *args, **kwargs)
+
+    def count(self, value: Any) -> int:
+        return self.__proxied.count(value)
