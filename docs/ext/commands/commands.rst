@@ -561,7 +561,7 @@ Greedy
 
 .. _ext_commands_error_handler:
 
-Error Handling
+错误处理
 ----------------
 
 当我们的命令无法解析时，默认情况下，我们会在控制台的 ``stderr`` 中收到一个嘈杂的错误，告诉我们发生了错误并且已被默默忽略。
@@ -585,7 +585,7 @@ Error Handling
         if isinstance(error, commands.BadArgument):
             await ctx.send('我找不到那个成员...')
 
-错误处理程序的第一个参数是 :class:`.Context`，而第二个参数是派生自:exc:`~ext.commands.CommandError` 的异常。
+错误处理程序的第一个参数是 :class:`.Context`，而第二个参数是派生自 :exc:`~ext.commands.CommandError` 的异常。
 在文档的 :ref:`ext_commands_api_errors` 页面中可以找到错误列表。
 
 检查
@@ -644,7 +644,7 @@ Error Handling
         """eval 命令的一个坏例子"""
         await ctx.send(eval(code))
 
-当指定多个检查时， **所有** 检查都必须为“True”：
+当指定多个检查时， **所有**检查都必须为 ``True`` ：
 
 .. code-block:: python3
 

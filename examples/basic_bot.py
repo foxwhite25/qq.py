@@ -4,7 +4,7 @@ import random
 
 intents = qq.Intents.default()
 
-bot = commands.Bot(command_prefix='?', intents=intents)  # 注册机器人前缀为 ?
+bot = commands.Bot(command_prefix='?', intents=intents, owner_id=114514)  # 注册机器人前缀为 ?
 
 
 @bot.event

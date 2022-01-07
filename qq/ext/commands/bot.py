@@ -992,7 +992,7 @@ class Bot(BotBase, qq.Client):
         拥有机器人的多个用户 ID。 这类似于 :attr:`owner_id`。
         出于性能原因，建议使用 :class:`set`。 必须设置 ``owner_id`` 或 ``owner_ids`` 其中一个
     strip_after_prefix: :class:`bool`
-        遇到命令前缀后是否去除空白字符。 这允许 ``!   hello`` 和 ``!hello`` 都生效，默认为 ''False''。
+        遇到命令前缀后是否去除空白字符。 这允许 ``!   hello`` 和 ``!hello`` 都生效，默认为 ''False'' 。
     """
     pass
 

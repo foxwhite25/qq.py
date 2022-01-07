@@ -70,7 +70,7 @@ AutoShardedBot
 
     一个错误处理程序，当在命令中通过用户输入错误、检查失败或您自己的代码中的错误引发错误时调用。
 
-    A default one is provided (:meth:`.Bot.on_command_error`).
+    提供了一个默认的（ :meth:`.Bot.on_command_error` ）。
 
     :param ctx: 调用 context。
     :type ctx: :class:`.Context`
@@ -572,12 +572,12 @@ Context
     :members:
 
 
-Exception Hierarchy
+异常层次结构
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. exception_hierarchy::
 
-    - :exc:`~.qqException`
+    - :exc:`~.QQException`
         - :exc:`~.commands.CommandError`
             - :exc:`~.commands.ConversionError`
             - :exc:`~.commands.UserInputError`
@@ -592,12 +592,7 @@ Exception Hierarchy
                     - :exc:`~.commands.ChannelNotReadable`
                     - :exc:`~.commands.BadColourArgument`
                     - :exc:`~.commands.RoleNotFound`
-                    - :exc:`~.commands.BadInviteArgument`
-                    - :exc:`~.commands.EmojiNotFound`
-                    - :exc:`~.commands.GuildStickerNotFound`
-                    - :exc:`~.commands.PartialEmojiConversionFailure`
                     - :exc:`~.commands.BadBoolArgument`
-                    - :exc:`~.commands.ThreadNotFound`
                     - :exc:`~.commands.FlagError`
                         - :exc:`~.commands.BadFlagArgument`
                         - :exc:`~.commands.MissingFlagArgument`
@@ -621,7 +616,6 @@ Exception Hierarchy
                 - :exc:`~.commands.BotMissingRole`
                 - :exc:`~.commands.MissingAnyRole`
                 - :exc:`~.commands.BotMissingAnyRole`
-                - :exc:`~.commands.NSFWChannelRequired`
             - :exc:`~.commands.DisabledCommand`
             - :exc:`~.commands.CommandInvokeError`
             - :exc:`~.commands.CommandOnCooldown`
