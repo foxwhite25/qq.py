@@ -216,6 +216,18 @@ class Guild(Hashable):
         """List[:class:`Member`]: 属于该频道的成员列表。"""
         return list(self._members.values())
 
+    @property
+    def large(self) -> bool:
+        """:class:`bool`: 指示频道是否是 ``大型`` 频道。
+        大型公会被定义为拥有超过 ``large_threshold`` 计数的成员，本库的最大值设置为 250。
+        """
+        if self._large is None:
+            try:
+                return self._member_count >= 250
+            except AttributeError:
+                return len(self._members) >= 250
+        return self._large
+
     def get_role(self, role_id: int, /) -> Optional[Role]:
         """返回具有给定 ID 的 Role。
 

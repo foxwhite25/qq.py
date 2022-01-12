@@ -168,7 +168,7 @@
 - :attr:`.Context.author` 获取调用命令的 :class:`Member` 或 :class:`User`。
 - :meth:`.Context.send` 向使用该命令的通道发送消息。
 
-context 实现了:class:`abc.Messageable` 接口，
+context 实现了 :class:`abc.Messageable` 接口，
 所以你可以在 :class:`abc.Messageable` 上做的任何事情都可以在 :class:`~ext.commands.Context` 上做。
 
 转换器
@@ -471,7 +471,7 @@ typing.Optional
 
 .. image:: /images/commands/optional1.png
 
-在这个例子中，由于参数不能被转换为一个 ``int``，默认的 ``99`` 被传递并且解析器继续处理，在这种情况下将把它传递到 ``liquid` ` 参数。
+在这个例子中，由于参数不能被转换为一个 ``int``，默认的 ``99`` 被传递并且解析器继续处理，在这种情况下将把它传递到 ``liquid`` 参数。
 
 .. note::
 

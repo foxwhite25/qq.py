@@ -282,7 +282,8 @@ class ConnectionState:
 
     def _guild_needs_chunking(self, guild: Guild) -> bool:
         # If presences are enabled then we get back the old guild.large behaviour
-        return self._chunk_guilds and not guild.chunked and not guild.large
+        return False
+        # return self._chunk_guilds and not guild.chunked and not guild.large
 
     def _get_guild_channel(self, data: MessagePayload) -> Tuple[Union[Channel], Optional[Guild]]:
         channel_id = int(data['channel_id'])
