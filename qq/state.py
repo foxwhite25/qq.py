@@ -400,7 +400,8 @@ class ConnectionState:
 
     def parse_at_message_create(self, data) -> None:
         channel, _ = self._get_guild_channel(data)
-        data['content'] = data['content'].replace(self.user.mention, '').strip()
+        if 'content' in data:
+            data['content'] = data['content'].replace(self.user.mention, '').strip()
         # channel would be the correct type here
         message = Message(channel=channel, data=data, state=self)  # type: ignore
         self.dispatch('message', message)
@@ -512,7 +513,7 @@ class ConnectionState:
                 self.dispatch('user_update', user_update[0], user_update[1])
 
             guild._add_member(member)
-            _log.debug('GUILD_MEMBER_UPDATE 引用了一个未知的频道 ID：%s。丢弃。', user_id)
+            _log.debug('GUILD_MEMBER_UPDATE 引用了一个未知的成员 ID：%s。丢弃。', user_id)
 
     def _get_create_guild(self, data):
         return self._add_guild_from_data(data)

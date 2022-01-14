@@ -186,7 +186,7 @@ class Member(Messageable, _UserTag):
 
     def _update_from_message(self, data: MemberPayload) -> None:
         self.joined_at = utils.parse_time(data.get('joined_at'))
-        self.nick = data.get('nick', None)
+        # self.nick = data.get('nick', None)
 
     @classmethod
     def _try_upgrade(cls: Type[M], *, data: UserWithMemberPayload, guild: Guild, state: ConnectionState) -> Union[
@@ -225,6 +225,7 @@ class Member(Messageable, _UserTag):
         # if it isn't in the payload then it didn't change
         try:
             self.nick = data['nick']
+            print(self.nick)
         except KeyError:
             pass
 
