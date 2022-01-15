@@ -21,6 +21,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import datetime
 from typing import (
     Dict,
@@ -37,7 +38,7 @@ from typing import (
 from . import utils, abc
 from .role import Role
 from .member import Member
-from .error import InvalidData
+from .error import InvalidData, HTTPException
 from .colour import Colour
 from .error import InvalidArgument, ClientException
 from .channel import *
@@ -175,15 +176,20 @@ class Guild(Hashable):
     def _sync(self) -> None:
         # I know it's jank to put a sync requests here,
         # but QQ just does not give all the info about guilds unless you requests it
-        channels, roles, members = self._state.http.sync_guild_channels_roles(self.id)
-        if members:
+        channels = asyncio.run(self._state.http.get_guild_channels(self.id))
+        roles = asyncio.run(self._state.http.get_roles(self.id))
+        try:
+            members = asyncio.run(self._state.http.get_members(self.id, 500))
             for mdata in members:
                 member = Member(data=mdata, guild=self, state=self._state)
                 self._add_member(member)
-        else:
-            member = Member(data=self._state.http.sync_get_bot_member(self.id, self._state.user.id),
+        except HTTPException:
+            result = asyncio.run(self._state.http.get_member(self.id, self._state.user.id))
+
+            member = Member(data=result,
                             guild=self, state=self._state)
             self._add_member(member)
+
         if 'roles' in roles:
             for r in roles['roles']:
                 role = Role(guild=self, data=r, state=self._state)

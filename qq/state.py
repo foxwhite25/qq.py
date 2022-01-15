@@ -22,6 +22,7 @@
 from __future__ import annotations
 
 import asyncio
+import concurrent.futures
 import copy
 import inspect
 import itertools
@@ -145,6 +146,7 @@ class ConnectionState:
         self.application_id: Optional[int] = options.get('application_id')
         self.heartbeat_timeout: float = options.get('heartbeat_timeout', 60.0)
         self.guild_ready_timeout: float = options.get('guild_ready_timeout', 2.0)
+        self.pool = concurrent.futures.ThreadPoolExecutor()
         if self.guild_ready_timeout < 0:
             raise ValueError('guild_ready_timeout 不能为负')
 
@@ -389,7 +391,10 @@ class ConnectionState:
                 pass
             else:
                 self.application_id = application.get('id')
-        for guild_data in self.http._sync_get_guilds():
+
+        result = asyncio.run(self.http.get_guilds())
+
+        for guild_data in result:
             self._add_guild_from_data(guild_data)
 
         self.dispatch('connect')
@@ -841,7 +846,9 @@ class AutoShardedConnectionState(ConnectionState):
             else:
                 self.application_id = application.get('id')
 
-        for guild_data in self.http._sync_get_guilds():
+        result = self.pool.submit(asyncio.run, self.http.get_guilds()).result()
+
+        for guild_data in result:
             self._add_guild_from_data(guild_data)
 
         if self._messages:

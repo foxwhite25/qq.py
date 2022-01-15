@@ -44,7 +44,7 @@ from .guild import Guild
 from .http import HTTPClient
 from .iterators import GuildIterator
 from .user import ClientUser, User
-
+from .nest_asyncio import apply
 if TYPE_CHECKING:
     from .abc import GuildChannel
     from .member import Member
@@ -136,6 +136,7 @@ class Client:
     ):
         self.ws: QQWebSocket = None  # type: ignore
         self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop() if loop is None else loop
+        apply(self.loop)
         self._listeners: Dict[str, List[Tuple[asyncio.Future, Callable[..., bool]]]] = {}
         self.token = ""
         self.shard_id: Optional[int] = options.get('shard_id')

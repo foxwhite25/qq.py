@@ -22,6 +22,7 @@
 from __future__ import annotations
 
 import asyncio
+import concurrent.futures
 import datetime
 import logging
 import sys
@@ -271,17 +272,6 @@ class HTTPClient:
 
         return self.request(Route('GET', '/users/@me/guilds'), params=params)
 
-    def _sync_get_guilds(self):
-        headers: Dict[str, str] = {
-            'User-Agent': self.user_agent,
-        }
-        if self.token is not None:
-            headers['Authorization'] = 'Bot ' + self.token
-        rsp = requests.get(f'https://api.sgroup.qq.com/users/@me/guilds', headers=headers)
-        _log.debug('GET %s 与 %s 已返回 %s', f'https://api.sgroup.qq.com/users/@me/guilds', rsp.json(),
-                   rsp.status_code)
-        return rsp.json()
-
     def sync_get_bot_member(self, guild_id: int, user_id: int) -> MemberPayload:
         headers: Dict[str, str] = {
             'User-Agent': self.user_agent,
@@ -528,7 +518,7 @@ class HTTPClient:
         return self.request(r, json=payload)
 
     def get_members(
-            self, guild_id: int, limit: int, after: Optional[int]
+            self, guild_id: int, limit: int, after: Optional[int] = None
     ) -> Response[List[member.MemberWithUser]]:
         params: Dict[str, Any] = {
             'limit': limit,
