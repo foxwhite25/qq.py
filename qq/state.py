@@ -405,8 +405,6 @@ class ConnectionState:
 
     def parse_at_message_create(self, data) -> None:
         channel, _ = self._get_guild_channel(data)
-        if 'content' in data:
-            data['content'] = data['content'].replace(self.user.mention, '').strip()
         # channel would be the correct type here
         message = Message(channel=channel, data=data, state=self)  # type: ignore
         self.dispatch('message', message)
@@ -417,15 +415,7 @@ class ConnectionState:
             channel.last_message_id = message.id  # type: ignore
 
     def parse_message_create(self, data) -> None:
-        channel, _ = self._get_guild_channel(data)
-        # channel would be the correct type here
-        message = Message(channel=channel, data=data, state=self)  # type: ignore
-        self.dispatch('message', message)
-        if self._messages is not None:
-            self._messages.append(message)
-        # we ensure that the channel is either a TextChannel or Thread
-        if channel and channel.__class__ in (TextChannel,):
-            channel.last_message_id = message.id  # type: ignore
+        self.parse_at_message_create(data)
 
     def parse_channel_delete(self, data) -> None:
         guild = self._get_guild(data.get('guild_id'))
