@@ -16,7 +16,7 @@ extras_require = {
 
 setup(
     name='qq.py',
-    version='1.0.14',
+    version='1.0.15',
     description='QQ 频道 API 的 Python Wrapper',
     py_modules=["qq"],
     packages=['qq', "qq.types", "qq.ext.commands", "qq.ext.tasks"],
