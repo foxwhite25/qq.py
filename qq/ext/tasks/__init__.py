@@ -18,7 +18,6 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 #  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 #  DEALINGS IN THE SOFTWARE.
-
 from __future__ import annotations
 
 import asyncio
@@ -32,14 +31,15 @@ from typing import (
     Optional,
     Type,
     TypeVar,
-    Union,
+    Union, cast,
 )
 
 import aiohttp
+import qq
 import inspect
 import sys
 import traceback
-import qq
+
 from collections.abc import Sequence
 from qq.backoff import ExponentialBackoff
 from qq.utils import MISSING
@@ -81,6 +81,9 @@ class SleepHandle:
 
 
 class Loop(Generic[LF]):
+    """抽象循环和重新连接逻辑的后台任务助手。创建它的主要方法是通过 :func:`loop` 。
+    """
+
     def __init__(
         self,
         coro: LF,
@@ -217,30 +220,41 @@ class Loop(Generic[LF]):
 
     @property
     def seconds(self) -> Optional[float]:
+        """Optional[:class:`float`]: 每次迭代之间的秒数的只读值。如果传递了明确的 ``time`` 值，则为 ``None`` 。
+        """
         if self._seconds is not MISSING:
             return self._seconds
 
     @property
     def minutes(self) -> Optional[float]:
+        """Optional[:class:`float`]: 每次迭代之间的分钟数的只读值。如果传递了明确的 ``time`` 值，则为 ``None`` 。
+        """
         if self._minutes is not MISSING:
             return self._minutes
 
     @property
     def hours(self) -> Optional[float]:
+        """Optional[:class:`float`]: 每次迭代之间的小时数的只读值。如果传递了明确的 ``time`` 值，则为 ``None`` 。
+        """
         if self._hours is not MISSING:
             return self._hours
 
     @property
     def time(self) -> Optional[List[datetime.time]]:
+        """Optional[List[:class:`datetime.time`]]: 此循环运行的确切时间的只读列表。如果通过了相对时间，则为 ``None`` 。
+        """
         if self._time is not MISSING:
             return self._time.copy()
 
     @property
     def current_loop(self) -> int:
+        """:class:`int`: 循环的当前迭代。"""
         return self._current_loop
 
     @property
     def next_iteration(self) -> Optional[datetime.datetime]:
+        """Optional[:class:`datetime.datetime`]: 当循环的下一次迭代将发生时。
+        """
         if self._task is MISSING:
             return None
         elif self._task and self._task.done() or self._stop_next_iteration:
@@ -248,12 +262,44 @@ class Loop(Generic[LF]):
         return self._next_iteration
 
     async def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        r"""|coro|
+        调用任务持有的内部回调。
+        .. versionadded:: 1.0.16
+
+        Parameters
+        ------------
+        \*args
+            要使用的参数。
+        \*\*kwargs
+            要使用的关键字参数。
+        """
+
         if self._injected is not None:
             args = (self._injected, *args)
 
         return await self.coro(*args, **kwargs)
 
     def start(self, *args: Any, **kwargs: Any) -> asyncio.Task[None]:
+        r"""在事件循环中启动内部任务。
+
+        Parameters
+        ------------
+        \*args
+            要使用的参数。
+        \*\*kwargs
+            要使用的关键字参数。
+
+        Raises
+        --------
+        RuntimeError
+            任务已启动并正在运行。
+
+        Returns
+        ---------
+        :class:`asyncio.Task`
+            已创建的任务。
+        """
+
         if self._task is not MISSING and not self._task.done():
             raise RuntimeError('任务已启动且未完成。')
 
@@ -267,6 +313,13 @@ class Loop(Generic[LF]):
         return self._task
 
     def stop(self) -> None:
+        r"""优雅地停止任务运行。与 :meth:`cancel`\ 不同，这允许任务在正常退出之前完成其当前迭代。
+
+        .. note::
+
+            如果内部函数引发了一个可以在完成之前处理的错误，那么它将重试直到成功。
+            如果这是不可取的，要么在通过 :meth:`clear_exception_types` 停止之前删除错误处理，要么使用 :meth:`cancel 代替。
+        """
         if self._task is not MISSING and not self._task.done():
             self._stop_next_iteration = True
 
@@ -274,10 +327,25 @@ class Loop(Generic[LF]):
         return bool(not self._is_being_cancelled and self._task and not self._task.done())
 
     def cancel(self) -> None:
+        """取消内部任务，如果它正在运行。"""
         if self._can_be_cancelled():
             self._task.cancel()
 
     def restart(self, *args: Any, **kwargs: Any) -> None:
+        r"""一种重新启动内部任务的便捷方法。
+
+        .. note::
+
+            由于这个函数的工作方式，任务不会像 :meth:`start` 那样返回。
+
+        Parameters
+        ------------
+        \*args
+            要使用的参数。
+        \*\*kwargs
+            要使用的关键字参数。
+        """
+
         def restart_when_over(fut: Any, *, args: Any = args, kwargs: Any = kwargs) -> None:
             self._task.remove_done_callback(restart_when_over)
             self.start(*args, **kwargs)
@@ -287,6 +355,21 @@ class Loop(Generic[LF]):
             self._task.cancel()
 
     def add_exception_type(self, *exceptions: Type[BaseException]) -> None:
+        r"""添加要在重新连接逻辑期间处理的异常类型。
+        默认情况下，处理的异常类型是由 :meth:`qq.Client.connect` 处理的异常类型，其中包括很多断网错误。
+        如果您正在与引发自己的一组异常的第 3 方库进行交互，则此函数很有用。
+
+        Parameters
+        ------------
+        \*exceptions: Type[:class:`BaseException`]
+            要处理的异常类的参数列表。
+
+        Raises
+        --------
+        TypeError
+            传递的异常要么不是类，要么不是从 BaseException 继承的。
+        """
+
         for exc in exceptions:
             if not inspect.isclass(exc):
                 raise TypeError(f'{exc!r} 必须是一个类。')
@@ -296,23 +379,47 @@ class Loop(Generic[LF]):
         self._valid_exception = (*self._valid_exception, *exceptions)
 
     def clear_exception_types(self) -> None:
+        """删除所有处理的异常类型。
+
+        .. note::
+            这个操作显然是无法撤消的！
+
+        """
         self._valid_exception = tuple()
 
     def remove_exception_type(self, *exceptions: Type[BaseException]) -> bool:
+        r"""删除在重新连接逻辑期间处理的异常类型。
+
+        Parameters
+        ------------
+        \*exceptions: Type[:class:`BaseException`]
+            要处理的异常类的参数列表。
+
+        Returns
+        ---------
+        :class:`bool`
+            是否已成功删除所有异常。
+        """
         old_length = len(self._valid_exception)
         self._valid_exception = tuple(x for x in self._valid_exception if x not in exceptions)
         return len(self._valid_exception) == old_length - len(exceptions)
 
     def get_task(self) -> Optional[asyncio.Task[None]]:
+        """Optional[:class:`asyncio.Task`]: 如果没有运行，则获取内部任务或 ``None`` 。"""
         return self._task if self._task is not MISSING else None
 
     def is_being_cancelled(self) -> bool:
+        """任务是否被取消。"""
         return self._is_being_cancelled
 
     def failed(self) -> bool:
+        """:class:`bool`: 内部任务是否失败。
+        """
         return self._has_failed
 
     def is_running(self) -> bool:
+        """:class:`bool`: 检查任务当前是否正在运行。
+        """
         return not bool(self._task.done()) if self._task is not MISSING else False
 
     async def _error(self, *args: Any) -> None:
@@ -321,6 +428,21 @@ class Loop(Generic[LF]):
         traceback.print_exception(type(exception), exception, exception.__traceback__, file=sys.stderr)
 
     def before_loop(self, coro: FT) -> FT:
+        """在循环开始运行之前注册要调用的协程的装饰器。如果您想在循环开始之前等待一些机器人状态，这很有用，例如 :meth:`qq.Client.wait_until_ready`。
+
+        协程必须不带任何参数（类上下文中的 ``self`` 除外）。
+
+        Parameters
+        ------------
+        coro: :ref:`coroutine <coroutine>`
+            在循环运行之前注册的协程。
+
+        Raises
+        -------
+        TypeError
+            该函数不是协程。
+        """
+
         if not inspect.iscoroutinefunction(coro):
             raise TypeError(f'预期协程函数，收到 {coro.__class__.__name__!r}。')
 
@@ -328,6 +450,22 @@ class Loop(Generic[LF]):
         return coro
 
     def after_loop(self, coro: FT) -> FT:
+        """一个装饰器，注册一个在循环完成运行后要调用的协程。协程必须不带任何参数（类上下文中的 ``self`` 除外）。
+
+        .. note::
+            即使在取消期间也会调用此协程。如果需要区分某事是否被取消，请检查 :meth:`is_being_cancelled` 是否为 ``True`` 。
+
+        Parameters
+        ------------
+        coro: :ref:`coroutine <coroutine>`
+            循环完成后要注册的协程。
+
+        Raises
+        -------
+        TypeError
+            该函数不是协程。
+        """
+
         if not inspect.iscoroutinefunction(coro):
             raise TypeError(f'预期协程函数，收到 {coro.__class__.__name__!r}。')
 
@@ -335,6 +473,20 @@ class Loop(Generic[LF]):
         return coro
 
     def error(self, coro: ET) -> ET:
+        """A decorator that registers a coroutine to be called if the task encounters an unhandled exception.
+        The coroutine must take only one argument the exception raised (except ``self`` in a class context).
+        By default this prints to :data:`sys.stderr` however it could be
+        overridden to have a different implementation.
+        .. versionadded:: 1.4
+        Parameters
+        ------------
+        coro: :ref:`coroutine <coroutine>`
+            The coroutine to register in the event of an unhandled exception.
+        Raises
+        -------
+        TypeError
+            The function was not a coroutine.
+        """
         if not inspect.iscoroutinefunction(coro):
             raise TypeError(f'预期协程函数，收到 {coro.__class__.__name__!r}。')
 
@@ -357,11 +509,13 @@ class Loop(Generic[LF]):
 
         if self._current_loop == 0:
             self._time_index += 1
-            return datetime.datetime.combine(datetime.datetime.now(datetime.timezone.utc), next_time)
+            if next_time > datetime.datetime.now(datetime.timezone.utc).timetz():
+                return datetime.datetime.combine(datetime.datetime.now(datetime.timezone.utc), next_time)
+            else:
+                return datetime.datetime.combine(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1), next_time)
 
-        next_date = self._last_iteration
-        if self._time_index == 0:
-            # we can assume that the earliest time should be scheduled for "tomorrow"
+        next_date = cast(datetime.datetime, self._last_iteration)
+        if next_time < next_date.timetz():
             next_date += datetime.timedelta(days=1)
 
         self._time_index += 1
@@ -418,6 +572,31 @@ class Loop(Generic[LF]):
         hours: float = 0,
         time: Union[datetime.time, Sequence[datetime.time]] = MISSING,
     ) -> None:
+        """更改时间的间隔。
+
+        Parameters
+        ------------
+        seconds: :class:`float`
+            每次迭代之间的秒数。
+        minutes: :class:`float`
+            每次迭代之间的分钟数。
+        hours: :class:`float`
+            每次迭代之间的小时数。
+        time: Union[:class:`datetime.time`, Sequence[:class:`datetime.time`]]
+            运行此循环的确切时间。应该传递非空列表或 :class:`datetime.time` 的单个值。这不能与相对时间参数一起使用。
+
+            .. note::
+
+                重复次数将被忽略，并且只运行一次。
+
+        Raises
+        -------
+        ValueError
+            给出了无效值。
+        TypeError
+            传递了 ``time`` 参数的无效值，或者 ``time`` 参数与相对时间参数一起传递。
+        """
+
         if time is MISSING:
             seconds = seconds or 0
             minutes = minutes or 0
@@ -458,7 +637,7 @@ def loop(
     reconnect: bool = True,
     loop: asyncio.AbstractEventLoop = MISSING,
 ) -> Callable[[LF], Loop[LF]]:
-    """使用可选的重新连接逻辑在后台为您安排任务的装饰器。装饰器返回一个:class:`Loop`。
+    """使用可选的重新连接逻辑在后台为您安排任务的装饰器。装饰器返回一个 :class:`Loop`。
 
     Parameters
     ------------
