@@ -260,7 +260,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
             在此定义的任何 ``pre_invoke`` 或 ``after_invoke`` 都将覆盖父项。
 
-        .. versionadded:: 1.0.16
+        .. versionadded:: 1.1.0
 
     """
     __original_kwargs__: Dict[str, Any]

@@ -264,7 +264,7 @@ class Loop(Generic[LF]):
     async def __call__(self, *args: Any, **kwargs: Any) -> Any:
         r"""|coro|
         调用任务持有的内部回调。
-        .. versionadded:: 1.0.16
+        .. versionadded:: 1.1.0
 
         Parameters
         ------------
