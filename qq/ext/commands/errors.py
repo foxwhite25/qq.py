@@ -772,6 +772,16 @@ class NoEntryPointError(ExtensionError):
         super().__init__(f"扩展 {name!r} 没有“setup” 函数。", name=name)
 
 
+class InvalidSetupArguments(ExtensionError):
+    """当扩展包含一个除了 ``kwargs`` 但 ``kwargs`` 被传递的``setup`` 函数时引发异常。
+
+    这继承自 :exc:`ExtensionError`
+    """
+
+    def __init__(self, name: str) -> None:
+        super().__init__(f"扩展 {name!r} 不采用“kwargs”，但给出了“kwargs”。", name=name)
+
+
 class ExtensionFailed(ExtensionError):
     """在执行模块或 ``setup`` 入口点期间无法加载扩展时引发的异常。
 

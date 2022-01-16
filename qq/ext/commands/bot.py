@@ -607,7 +607,12 @@ class BotBase(GroupMixin):
                 if _is_submodule(name, module):
                     del sys.modules[module]
 
-    def _load_from_module_spec(self, spec: importlib.machinery.ModuleSpec, key: str) -> None:
+    def _load_from_module_spec(
+            self,
+            spec: importlib.machinery.ModuleSpec,
+            key: str,
+            extras: Optional[Dict[str, Any]] = None
+    ) -> None:
         # precondition: key not in self.__extensions
         lib = importlib.util.module_from_spec(spec)
         sys.modules[key] = lib
@@ -623,8 +628,18 @@ class BotBase(GroupMixin):
             del sys.modules[key]
             raise errors.NoEntryPointError(key)
 
+        params = inspect.signature(setup).parameters
+        has_kwargs = len(params) > 1
+
+        if extras is not None:
+            if not has_kwargs:
+                raise errors.InvalidSetupArguments(key)
+            elif not isinstance(extras, dict):
+                raise errors.ExtensionFailed(key, TypeError("Expected 'extras' to be a dictionary"))
+
+        extras = extras or {}
         try:
-            setup(self)
+            setup(self, **extras)
         except Exception as e:
             del sys.modules[key]
             self._remove_module_references(lib.__name__)
@@ -639,7 +654,14 @@ class BotBase(GroupMixin):
         except ImportError:
             raise errors.ExtensionNotFound(name)
 
-    def load_extension(self, name: str, *, package: Optional[str] = None) -> None:
+    def load_extension(
+            self,
+            name: str,
+            *,
+            package: Optional[str] = None,
+            extras: Optional[Dict[str, Any]] = None
+    ) -> None:
+
         """加载扩展。
 
         扩展是包含命令、cog 或监听器的 Python 模块。
@@ -653,6 +675,10 @@ class BotBase(GroupMixin):
             例如如果你想导入 ``foo/test.py`` 你可以使用 ``foo.test``  。
         package: Optional[:class:`str`]
             用于解析相对导入的包名。当使用相对路径加载扩展时，这是必需的，例如 ``.foo.test`` 。 默认为 ``None`` 。
+        extras: Optional[:class:`dict`]
+            kwargs 到要作为关键字参数传递给 cog 的 ``__init__`` 方法的值的映射。
+            .. versionadded:: 1.0.16
+
 
         Raises
         --------
@@ -665,6 +691,8 @@ class BotBase(GroupMixin):
             该扩展没有 ``setup`` 函数。
         ExtensionFailed
             扩展程序或其设置函数有执行错误。
+        InvalidSetupArguments
+            ``load_extension`` 被赋予了 ``extras`` 但 ``setup`` 函数没有接受任何额外的参数。
         """
 
         name = self._resolve_name(name, package)
@@ -675,7 +703,7 @@ class BotBase(GroupMixin):
         if spec is None:
             raise errors.ExtensionNotFound(name)
 
-        self._load_from_module_spec(spec, name)
+        self._load_from_module_spec(spec, name, extras=extras)
 
     def unload_extension(self, name: str, *, package: Optional[str] = None) -> None:
         """卸载扩展。

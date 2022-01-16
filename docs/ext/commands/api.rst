@@ -562,6 +562,9 @@ Context
 .. autoexception:: qq.ext.commands.NoEntryPointError
     :members:
 
+.. autoexception:: qq.ext.commands.InvalidSetupArguments
+    :members:
+
 .. autoexception:: qq.ext.commands.ExtensionFailed
     :members:
 
@@ -624,6 +627,7 @@ Context
             - :exc:`~.commands.ExtensionAlreadyLoaded`
             - :exc:`~.commands.ExtensionNotLoaded`
             - :exc:`~.commands.NoEntryPointError`
+            - :exc:`~.commands.InvalidSetupArguments`
             - :exc:`~.commands.ExtensionFailed`
             - :exc:`~.commands.ExtensionNotFound`
     - :exc:`~.ClientException`
