@@ -253,6 +253,15 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         .. note::
             该对象可由库复制。
 
+    inherit_hooks: :class:`bool`, default=False
+        如果 ``True`` 并且这个命令有一个父 :class:`Group`，那么这个命令将继承所有在 :class:`Group`的检查，``pre_invoke`` 和 ``after_invoke`` 定义。
+
+        .. note::
+
+            在此定义的任何 ``pre_invoke`` 或 ``after_invoke`` 都将覆盖父项。
+
+        .. versionadded:: 1.0.16
+
     """
     __original_kwargs__: Dict[str, Any]
 
@@ -361,6 +370,35 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             pass
         else:
             self.after_invoke(after_invoke)
+
+        # Attempt to bind to parent hooks if applicable
+        if not kwargs.get("inherit_hooks", False):
+            return
+
+        # We should be binding hooks
+        if not self.parent:
+            return
+
+        inherited_before_invoke: Optional[Hook] = None
+        try:
+            inherited_before_invoke = self.parent._before_invoke  # type: ignore
+        except AttributeError:
+            pass
+        else:
+            if inherited_before_invoke:
+                self.before_invoke(inherited_before_invoke)
+
+        inherited_after_invoke: Optional[Hook] = None
+        try:
+            inherited_after_invoke = self.parent._after_invoke  # type: ignore
+        except AttributeError:
+            pass
+        else:
+            if inherited_after_invoke:
+                self.after_invoke(inherited_after_invoke)
+
+        self.checks.extend(self.parent.checks)  # type: ignore
+
 
     @property
     def callback(self) -> Union[
