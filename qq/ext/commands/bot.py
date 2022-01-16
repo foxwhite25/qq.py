@@ -677,6 +677,25 @@ class BotBase(GroupMixin):
             用于解析相对导入的包名。当使用相对路径加载扩展时，这是必需的，例如 ``.foo.test`` 。 默认为 ``None`` 。
         extras: Optional[:class:`dict`]
             kwargs 到要作为关键字参数传递给 cog 的 ``__init__`` 方法的值的映射。
+
+            Usage ::
+
+                # main.py
+
+                bot.load_extensions("cogs.me_cog", extras={"keyword_arg": True})
+
+                # cogs/me_cog.py
+                class MeCog(commands.Cog):
+                    def __init__(self, bot, keyword_arg):
+                        self.bot = bot
+                        self.keyword_arg = keyword_arg
+                def setup(bot, **kwargs):
+                    bot.add_cog(MeCog(bot, **kwargs))
+
+                # 或者
+                def setup(bot, keyword_arg):
+                    bot.add_cog(MeCog(bot, keyword_arg))
+
             .. versionadded:: 1.0.16
 
 
