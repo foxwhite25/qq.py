@@ -982,3 +982,22 @@ class Guild(Hashable):
             禁言失败。
         """
         await self._state.http.mute_guild(self.id, duration, reason=reason)
+
+    @property
+    def bots(self) -> List[Member]:
+        """List[:class:`Member`]: 属于该频道的机器人列表。
+
+        .. versionadded:: 1.0.16"""
+        return [m for m in self._members.values() if m.bot]
+
+    @property
+    def humans(self) -> List[Member]:
+        """List[:class:`Member`]: 属于该频道的用户帐户列表。
+
+        .. warning::
+
+            由于 QQ 的限制，为了使该属性保持最新和准确，它需要 ``Intents.members``。
+
+        .. versionadded:: 1.0.16"""
+        return [m for m in self._members.values() if not m.bot]
+
