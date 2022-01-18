@@ -26,7 +26,8 @@ import datetime
 import time
 from typing import TYPE_CHECKING, Iterable, Optional, List, overload, Callable
 
-from . import abc, utils, ClientException
+from . import abc, utils
+from .error import ClientException
 from .enum import ChannelType, try_enum
 from .mixins import Hashable
 from .object import Object
