@@ -578,3 +578,25 @@ class HTTPClient:
         r = Route('DELETE', '/channels/{channel_id}/messages/{message_id}', channel_id=channel_id,
                   message_id=message_id)
         return self.request(r, reason=reason)
+
+    def logs_from(
+        self,
+        channel_id: int,
+        limit: int,
+        before: Optional[datetime.datetime] = None,
+        after: Optional[datetime.datetime] = None,
+        around: Optional[datetime.datetime] = None,
+    ) -> Response[List[message.Message]]:
+        params: Dict[str, Any] = {
+            'limit': limit,
+        }
+
+        if before is not None:
+            params['before'] = datetime.datetime.timestamp(before)
+        if after is not None:
+            params['after'] = datetime.datetime.timestamp(after)
+        if around is not None:
+            params['around'] = datetime.datetime.timestamp(around)
+
+        return self.request(Route('GET', '/channels/{channel_id}/messages', channel_id=channel_id), params=params)
+

@@ -29,7 +29,6 @@ from .error import NoMoreItems
 from .utils import maybe_coroutine
 from .object import Object
 
-
 if TYPE_CHECKING:
     from .types.guild import (
         Guild as GuildPayload,
@@ -291,3 +290,155 @@ class MemberIterator(_AsyncIterator['Member']):
         from .member import Member
 
         return Member(data=data, guild=self.guild, state=self.state)
+
+
+class HistoryIterator(_AsyncIterator['Message']):
+    """用于接收频道消息历史的迭代器。
+    消息端点有两个我们关心的行为：
+    如果指定了 ``before`` ，则消息端点返回 ``before`` 之前的 ``limit`` 最新消息，以最新的优先排序。
+    要填充超过 100 条消息，请将 ``before`` 参数更新为收到的最旧消息。消息将按时间顺序返回。
+    如果指定了 ``after``，它返回 ``after`` 之后的 ``limit`` 最旧的消息，以最新的在前排序。
+    要填充超过 100 条消息，请将 ``after`` 参数更新为收到的最新消息。如果消息没有反转，它们将乱序（99-0、199-100 等）
+    注意如果同时指定了 ``before`` 和 ``after`` ，则 ``before`` 将被忽略。
+
+    Parameters
+    -----------
+    messageable: :class:`abc.Messageable`
+        可从中检索消息历史记录的 Messageable 类。
+
+    limit: :class:`int`
+        要检索的最大消息数
+
+    before: Optional[:class:`datetime.datetime`]
+        所有消息必须在其之前的消息。
+
+    after: Optional[:class:`datetime.datetime`]
+        所有消息必须在其后的消息。
+
+    around: Optional[:class:`datetime.datetime`]
+        所有消息必须围绕的消息。 Limit max 101。注意，如果limit是偶数，这将最多返回limit+1条消息。
+
+    oldest_first: Optional[:class:`bool`]
+        如果设置为 ``True``，以最旧->最新的顺序返回消息。如果指定了“after”，则默认为“True”，否则为“False”。
+    """
+
+    def __init__(self, messageable, limit, before=None, after=None, around=None, oldest_first=None):
+
+        if oldest_first is None:
+            self.reverse = after is not None
+        else:
+            self.reverse = oldest_first
+
+        self.messageable = messageable
+        self.limit = limit
+        self.before = before
+        self.after = after or 0
+        self.around = around
+
+        self._filter = None  # message dict -> bool
+
+        self.state = self.messageable._state
+        self.logs_from = self.state.http.logs_from
+        self.messages = asyncio.Queue()
+
+        if self.around:
+            if self.limit is None:
+                raise ValueError('历史不支持limit=None')
+            if self.limit > 101:
+                raise ValueError("指定 around 参数时的历史最大限制 101")
+            elif self.limit == 101:
+                self.limit = 100  # Thanks qq
+
+            self._retrieve_messages = self._retrieve_messages_around_strategy  # type: ignore
+            if self.before and self.after:
+                self._filter = lambda m:\
+                    self.timestamp(self.after) < self.timestamp(m['timestamp']) < self.timestamp(self.before)  # type: ignore
+            elif self.before:
+                self._filter = lambda m: self.timestamp(m['timestamp']) < self.timestamp(self.before)  # type: ignore
+            elif self.after:
+                self._filter = lambda m: self.timestamp(self.after) < self.timestamp(m['timestamp'])  # type: ignore
+        else:
+            if self.reverse:
+                self._retrieve_messages = self._retrieve_messages_after_strategy  # type: ignore
+                if self.before:
+                    self._filter = lambda m: self.timestamp(m['timestamp']) < self.timestamp(self.before)  # type: ignore
+            else:
+                self._retrieve_messages = self._retrieve_messages_before_strategy  # type: ignore
+                if self.after and self.after != 0:
+                    self._filter = lambda m: self.timestamp(m['timestamp']) > self.timestamp(self.after)  # type: ignore
+
+    def timestamp(self, dt: Union[datetime.datetime, str]):
+        if isinstance(dt, str):
+            dt = datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%SZ")
+        return int(datetime.datetime.timestamp(dt))
+
+    async def next(self) -> Message:
+        if self.messages.empty():
+            await self.fill_messages()
+
+        try:
+            return self.messages.get_nowait()
+        except asyncio.QueueEmpty:
+            raise NoMoreItems()
+
+    def _get_retrieve(self):
+        l = self.limit
+        if l is None or l > 100:
+            r = 100
+        else:
+            r = l
+        self.retrieve = r
+        return r > 0
+
+    async def fill_messages(self):
+        if not hasattr(self, 'channel'):
+            # do the required set up
+            channel = await self.messageable._get_channel()
+            self.channel = channel
+
+        if self._get_retrieve():
+            data = await self._retrieve_messages(self.retrieve)
+            if len(data) < 100:
+                self.limit = 0  # terminate the infinite loop
+
+            if self.reverse:
+                data = reversed(data)
+            if self._filter:
+                data = filter(self._filter, data)
+
+            channel = self.channel
+            for element in data:
+                await self.messages.put(self.state.create_message(channel=channel, data=element))
+
+    async def _retrieve_messages(self, retrieve) -> List[Message]:
+        """检索消息并更新下一个参数"""
+        raise NotImplementedError
+
+    async def _retrieve_messages_before_strategy(self, retrieve):
+        """使用 before 参数检索消息。"""
+        before = self.timestamp(self.before) if self.before else None
+        data: List[MessagePayload] = await self.logs_from(self.channel.id, retrieve, before=before)
+        if len(data):
+            if self.limit is not None:
+                self.limit -= retrieve
+            self.before = datetime.datetime.strptime(data[-1]['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
+        return data
+
+    async def _retrieve_messages_after_strategy(self, retrieve):
+        """使用 after 参数检索消息。"""
+        after = self.timestamp(self.after) if self.after else None
+        data: List[MessagePayload] = await self.logs_from(self.channel.id, retrieve, after=after)
+        if len(data):
+            if self.limit is not None:
+                self.limit -= retrieve
+            self.after = datetime.datetime.strptime(data[0]['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
+        return data
+
+    async def _retrieve_messages_around_strategy(self, retrieve):
+        """使用 around 参数检索消息。"""
+        if self.around:
+            around = self.around.id if self.around else None
+            data: List[MessagePayload] = await self.logs_from(self.channel.id, retrieve, around=around)
+            self.around = None
+            return data
+        return []
