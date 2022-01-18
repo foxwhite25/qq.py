@@ -1,9 +1,35 @@
 from setuptools import setup
 
-with open('requirements.txt') as f:
-    requirements = f.read().splitlines()
+from setuptools import setup
+import re
 
-with open('README.md', encoding='utf-8') as f:
+with open('requirements.txt') as f:
+  requirements = f.read().splitlines()
+
+with open('qq/__init__.py') as f:
+    version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
+
+if not version:
+    raise RuntimeError('version is not set')
+
+if version.endswith(('a', 'b', 'rc')):
+    # append version identifier based on commit count
+    try:
+        import subprocess
+        p = subprocess.Popen(['git', 'rev-list', '--count', 'HEAD'],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        if out:
+            version += out.decode('utf-8').strip()
+        p = subprocess.Popen(['git', 'rev-parse', '--short', 'HEAD'],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        if out:
+            version += '+g' + out.decode('utf-8').strip()
+    except Exception:
+        pass
+
+with open('README.rst') as f:
     readme = f.read()
 
 extras_require = {
@@ -16,7 +42,7 @@ extras_require = {
 
 setup(
     name='qq.py',
-    version='1.1.2',
+    version=version,
     description='QQ 频道 API 的 Python Wrapper',
     py_modules=["qq"],
     packages=['qq', "qq.types", "qq.ext.commands", "qq.ext.tasks"],
