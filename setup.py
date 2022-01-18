@@ -3,10 +3,10 @@ from setuptools import setup
 from setuptools import setup
 import re
 
-with open('requirements.txt') as f:
+with open('requirements.txt', encoding='utf-8') as f:
   requirements = f.read().splitlines()
 
-with open('qq/__init__.py') as f:
+with open('qq/__init__.py', encoding='utf-8') as f:
     version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
 
 if not version:
@@ -29,7 +29,7 @@ if version.endswith(('a', 'b', 'rc')):
     except Exception:
         pass
 
-with open('README.md') as f:
+with open('README.md', encoding='utf-8') as f:
     readme = f.read()
 
 extras_require = {
