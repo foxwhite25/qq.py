@@ -21,9 +21,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, Optional, List, overload
+import asyncio
+import datetime
+import time
+from typing import TYPE_CHECKING, Iterable, Optional, List, overload, Callable
 
-from . import abc, utils
+from . import abc, utils, ClientException
 from .enum import ChannelType, try_enum
 from .mixins import Hashable
 from .object import Object
@@ -37,6 +40,8 @@ __all__ = (
     'ThreadChannel',
     'PartialMessageable',
 )
+
+from .utils import MISSING
 
 if TYPE_CHECKING:
     from .member import Member
@@ -236,6 +241,130 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
         return await self._clone_impl(
             {}, name=name, reason=reason
         )
+
+    async def delete_messages(self, messages: Iterable[Message]) -> None:
+        """|coro|
+        删除消息列表。这类似于 :meth:`Message.delete`，除了它批量删除多条消息。
+        作为一种特殊情况，如果消息数为 0，则什么也不做。如果消息数为 1，则完成单个消息删除。
+        如果超过两个，则使用批量删除。您不能批量删除超过 100 条消息或超过 14 天的消息。
+
+        Parameters
+        -----------
+        messages: Iterable[:class:`qq.Message`]
+            一个可迭代的消息，表示要批量删除的消息。
+
+        Raises
+        ------
+        ClientException
+            要删除的消息数量超过 100 条。
+        Forbidden
+            您没有删除消息的适当权限。
+        NotFound
+            如果单次删除，则该消息已被删除。
+        HTTPException
+            删除消息失败。
+        """
+        if not isinstance(messages, (list, tuple)):
+            messages = list(messages)
+
+        if len(messages) == 0:
+            return  # do nothing
+
+        if len(messages) == 1:
+            message_id: str = messages[0].id
+            await self._state.http.delete_message(self.id, message_id)
+            return
+
+        if len(messages) > 100:
+            raise ClientException('最多只能批量删除 100 条消息')
+
+        message_ids = [m.id for m in messages]
+        await self._state.http.delete_messages(self.id, message_ids)
+
+    async def purge(
+            self,
+            *,
+            limit: Optional[int] = 100,
+            check: Callable[[Message], bool] = MISSING,
+            before: Optional[datetime.datetime] = None,
+            after: Optional[datetime.datetime] = None,
+            around: Optional[datetime.datetime] = None,
+            oldest_first: Optional[bool] = False,
+            bulk: bool = True,
+    ) -> List[Message]:
+        """|coro|
+        清除符合谓词 ``check`` 给定标准的消息列表。
+        如果未提供 ``check`` ，则所有消息都将被删除，一视同仁。
+
+        Examples
+        ---------
+        删除机器人的消息 ::
+            def is_me(m):
+                return m.author == client.user
+            deleted = await channel.purge(limit=100, check=is_me)
+            await channel.send(f'已删除 {len(deleted)} 个消息')
+
+        Parameters
+        -----------
+        limit: Optional[:class:`int`]
+            要搜索的消息数。这不是将被删除的消息数，尽管可以是。
+        check: Callable[[:class:`Message`], :class:`bool`]
+            用于检查是否应删除消息的功能。它必须将 Message 作为其唯一参数。
+        before: Optional[Union[:class:`abc.Snowflake`, :class:`datetime.datetime`]]
+            与 :meth:`history` 中的 ``before`` 相同。
+        after: Optional[Union[:class:`abc.Snowflake`, :class:`datetime.datetime`]]
+            与 :meth:`history` 中的 ``after`` 相同。
+        around: Optional[Union[:class:`abc.Snowflake`, :class:`datetime.datetime`]]
+            与 :meth:`history`中的 ``around`` 相同。
+        oldest_first: Optional[:class:`bool`]
+            与 :meth:`history` 中的 ``oldest_first`` 相同。
+        bulk: :class:`bool`
+            如果 ``True`` ，使用批量删除。
+
+        Raises
+        -------
+        Forbidden
+            您没有执行所需操作的适当权限。
+        HTTPException
+            清除消息失败。
+
+        Returns
+        --------
+        List[:class:`.Message`]
+            已删除的消息列表。
+        """
+
+        if check is MISSING:
+            check = lambda m: True
+
+        iterator = self.history(limit=limit, before=before, after=after, oldest_first=oldest_first, around=around)
+        ret: List[Message] = []
+        count = 0
+        strategy = self.delete_messages if bulk else _single_delete_strategy
+
+        async for message in iterator:
+            if count == 100:
+                to_delete = ret[-100:]
+                await strategy(to_delete)
+                count = 0
+                await asyncio.sleep(1)
+
+            if not check(message):
+                continue
+
+            count += 1
+            ret.append(message)
+
+        # SOme messages remaining to poll
+        if count >= 2:
+            # more than 2 messages -> bulk delete
+            to_delete = ret[-count:]
+            await strategy(to_delete)
+        elif count == 1:
+            # delete a single message
+            await ret[-1].delete()
+
+        return ret
 
 
 class VoiceChannel(abc.GuildChannel, Hashable):

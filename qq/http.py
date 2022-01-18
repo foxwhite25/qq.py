@@ -579,6 +579,15 @@ class HTTPClient:
                   message_id=message_id)
         return self.request(r, reason=reason)
 
+    def delete_messages(
+        self, channel_id: int, message_ids: List[str], *, reason: Optional[str] = None
+    ) -> Response[None]:
+        r = Route('POST', '/channels/{channel_id}/messages/bulk-delete', channel_id=channel_id)
+        payload = {
+            'messages': message_ids,
+        }
+        return self.request(r, json=payload, reason=reason)
+
     def logs_from(
         self,
         channel_id: int,
