@@ -29,6 +29,7 @@ from typing import overload, Optional, Union, List, TYPE_CHECKING, TypeVar, Dict
 from .asset import Asset
 from .enum import ChannelType
 from .error import InvalidArgument
+from .iterators import HistoryIterator
 from .mention import AllowedMentions
 from .utils import MISSING
 
@@ -482,6 +483,63 @@ class GuildChannel:
             payload.append(d)
 
         await asyncio.gather(*self._state.http.bulk_channel_update(self.guild.id, payload))
+
+    def history(
+        self,
+        *,
+        limit: Optional[int] = 100,
+        before: Optional[datetime] = None,
+        after: Optional[datetime] = None,
+        around: Optional[datetime] = None,
+        oldest_first: Optional[bool] = None,
+    ) -> HistoryIterator:
+        """返回允许接收目标消息历史记录的 :class:`~qq.AsyncIterator`。
+
+        Examples
+        ---------
+
+        Usage ::
+
+            counter = 0
+            async for message in channel.history(limit=200):
+                if message.author == client.user:
+                    counter += 1
+
+        Flattening into a list: ::
+            messages = await channel.history(limit=123).flatten()
+            # messages is now a list of Message...
+
+        All parameters are optional.
+
+        Parameters
+        -----------
+        limit: Optional[:class:`int`]
+            要检索的消息数。如果为 ``None`` ，则检索频道中的每条消息。但是请注意，这会使其运行缓慢。
+        before: Optional[:class:`datetime.datetime`]
+            检索此日期或消息之前的消息。如果提供了日期时间，建议使用 UTC 感知日期时间。如果 datetime 是本地的，则假定它是本地时间。
+        after: Optional[:class:`datetime.datetime`]
+            在此日期或消息之后检索消息。如果提供了日期时间，建议使用 UTC 感知日期时间。如果 datetime 是本地的，则假定它是本地时间。
+        around: Optional[:class:`datetime.datetime`]
+            检索围绕此日期或消息的消息。如果提供了日期时间，建议使用 UTC 感知日期时间。如果 datetime 是本地的，则假定它是本地时间。
+            使用此参数时，最大限制为 101。
+            请注意，如果限制为偶数，则最多返回 limit + 1 条消息。
+        oldest_first: Optional[:class:`bool`]
+            如果设置为 ``True``，以最旧->最新的顺序返回消息。如果指定了 ``after`` ，则默认为 ``True`` ，否则为 ``False`` 。
+
+        Raises
+        ------
+        ~qq.Forbidden
+            您无权获取频道消息历史记录。
+        ~qq.HTTPException
+            获取消息历史记录的请求失败。
+
+        Yields
+        -------
+        :class:`~qq.Message`
+            已解析消息数据的消息。
+        """
+        return HistoryIterator(self, limit=limit, before=before, after=after, around=around, oldest_first=oldest_first)
+
 
 
 class BaseAudioControl:
