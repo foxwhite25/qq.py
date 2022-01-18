@@ -149,7 +149,7 @@ class Ark:
     @property
     def fields(self) -> List[_EmbedFieldProxy]:
         """List[Union[``EmbedProxy``, :attr:`Empty`]]:
-        返回 ``EmbedProxy`` 的一个列表，表示字段内容。有关您可以访问的可能值，请参阅 :meth:`add_field`。
+        返回 ``EmbedProxy`` 的一个列表，表示字段内容。有关你可以访问的可能值，请参阅 :meth:`add_field`。
         如果该属性没有值，则返回 :attr:`Empty`。
         """
         return [EmbedProxy(d) for d in getattr(self, '_fields', [])]  # type: ignore
@@ -266,7 +266,7 @@ class Embed:
     除了使用点访问，该类型的行为类似于常规 :class:`dict`，例如 ``embed.author.icon_url``。
     如果属性无效或为空，则返回一个特殊的值，:attr:`Embed.Empty`。
 
-    为了便于使用，所有需要 :class:`str` 的参数都为您隐式转换为 :class:`str`。
+    为了便于使用，所有需要 :class:`str` 的参数都为你隐式转换为 :class:`str`。
 
     Attributes
     -----------
@@ -325,7 +325,7 @@ class Embed:
     @classmethod
     def from_dict(cls: Type[E], data: Mapping[str, Any]) -> E:
         """将 :class:`dict` 转换为 :class:`Embed`，前提是它采用 QQ 期望的格式。
-        您可以在 ``官方 QQ 文档``__ 中找到有关此格式的信息。
+        你可以在 ``官方 QQ 文档``__ 中找到有关此格式的信息。
 
         .. _QQDocs: https://bot.q.qq.com/wiki/develop/api/openapi/message/model.html#messageembed
         __ QQDocs_
@@ -449,7 +449,7 @@ class Embed:
     @property
     def footer(self) -> _EmbedFooterProxy:
         """返回表示页脚内容的 ``EmbedProxy``。
-        请参阅 :meth:`set_footer` 以获取您可以访问的可能值。
+        请参阅 :meth:`set_footer` 以获取你可以访问的可能值。
         如果该属性没有值，则返回 :attr:`Empty`。
 
 
@@ -494,7 +494,7 @@ class Embed:
     def image(self) -> _EmbedMediaProxy:
         """返回表示图像内容的 ``EmbedProxy`` 。
 
-        您可以访问的可能属性是：
+        你可以访问的可能属性是：
 
         - ``url``
         - ``proxy_url``
@@ -536,7 +536,7 @@ class Embed:
     def thumbnail(self) -> _EmbedMediaProxy:
         """返回表示缩略图内容的 ``EmbedProxy`` 。
 
-        您可以访问的可能属性是：
+        你可以访问的可能属性是：
 
         - ``url``
         - ``proxy_url``
@@ -599,7 +599,7 @@ class Embed:
 
     @property
     def author(self) -> _EmbedAuthorProxy:
-        """返回表示作者内容的 ``EmbedProxy`` 。有关您可以访问的可能值，请参阅 :meth:`set_author`。
+        """返回表示作者内容的 ``EmbedProxy`` 。有关你可以访问的可能值，请参阅 :meth:`set_author`。
         如果该属性没有值，则返回 :attr:`Empty`。
 
 
@@ -647,7 +647,7 @@ class Embed:
     @property
     def fields(self) -> List[_EmbedFieldProxy]:
         """List[Union[``EmbedProxy``, :attr:`Empty`]]:
-        返回 ``EmbedProxy`` 的一个列表，表示字段内容。有关您可以访问的可能值，请参阅 :meth:`add_field`。
+        返回 ``EmbedProxy`` 的一个列表，表示字段内容。有关你可以访问的可能值，请参阅 :meth:`add_field`。
         如果该属性没有值，则返回 :attr:`Empty`。
         """
         return [EmbedProxy(d) for d in getattr(self, '_fields', [])]  # type: ignore

@@ -265,7 +265,7 @@ class Guild(Hashable):
     @property
     def me(self) -> Member:
         """:class:`Member`: 类似于 :attr:`Client.user` ，除了它是 :class:`Member` 的一个实例。
-        这主要用于获取您自己的 Member 版本。
+        这主要用于获取你自己的 Member 版本。
         """
         self_id = self._state.user.id
         # The self member is *always* cached
@@ -446,7 +446,7 @@ class Guild(Hashable):
         Raises
         -------
         Forbidden
-            您没有创建此频道的适当权限。
+            你没有创建此频道的适当权限。
         HTTPException
             创建频道失败。
         Returns
@@ -505,7 +505,7 @@ class Guild(Hashable):
         Raises
         ------
         Forbidden
-            您没有创建此频道的适当权限。
+            你没有创建此频道的适当权限。
         HTTPException
             创建频道失败。
 
@@ -553,7 +553,7 @@ class Guild(Hashable):
         Raises
         ------
         Forbidden
-            您没有创建此频道的适当权限。
+            你没有创建此频道的适当权限。
         HTTPException
             创建频道失败。
 
@@ -601,7 +601,7 @@ class Guild(Hashable):
         Raises
         ------
         Forbidden
-            您没有创建此频道的适当权限。
+            你没有创建此频道的适当权限。
         HTTPException
             创建频道失败。
 
@@ -640,7 +640,7 @@ class Guild(Hashable):
         Raises
         ------
         Forbidden
-            您没有创建此频道的适当权限。
+            你没有创建此频道的适当权限。
         HTTPException
             创建频道失败。
 
@@ -742,7 +742,7 @@ class Guild(Hashable):
         从频道 ID 和成员 ID 中检索:class:`Member`。
 
         .. note::
-            该方法是一个 API 调用。如果您启用了 :attr:`Intents.members` 和成员缓存，请考虑使用 :meth:`get_member`。
+            该方法是一个 API 调用。如果你启用了 :attr:`Intents.members` 和成员缓存，请考虑使用 :meth:`get_member`。
 
         Parameters
         -----------
@@ -752,7 +752,7 @@ class Guild(Hashable):
         Raises
         -------
         Forbidden
-            您无权访问频道。
+            你无权访问频道。
         HTTPException
             获取成员失败。
 
@@ -781,7 +781,7 @@ class Guild(Hashable):
         :exc:`.NotFound`
             无效的频道 ID。
         :exc:`.Forbidden`
-            您无权获取此频道。
+            你无权获取此频道。
 
         Returns
         --------
@@ -875,7 +875,7 @@ class Guild(Hashable):
         Raises
         -------
         Forbidden
-            您无权创建该身份组。
+            你无权创建该身份组。
         HTTPException
             创建身份组失败。
         InvalidArgument
@@ -922,7 +922,7 @@ class Guild(Hashable):
         Raises
         -------
         Forbidden
-            您没有正确的踢出权限。
+            你没有正确的踢出权限。
         HTTPException
             踢出失败。
         """

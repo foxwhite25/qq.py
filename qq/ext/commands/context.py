@@ -65,7 +65,7 @@ else:
 class Context(qq.abc.Messageable, Generic[BotT]):
     r"""表示在其中调用命令的 context。
 
-    该类包含大量元数据，可帮助您更多地了解调用的实际情况。
+    该类包含大量元数据，可帮助你更多地了解调用的实际情况。
     这个类不是手动创建的，而是作为第一个参数传递给命令的。
 
     这个类实现了 :class:`~qq.abc.Messageable` ABC。
@@ -143,14 +143,14 @@ class Context(qq.abc.Messageable, Generic[BotT]):
 
         使用给定的参数调用命令。
 
-        如果您只想调用 :class:`.Command` 在内部保存的回调，这很有用。
+        如果你只想调用 :class:`.Command` 在内部保存的回调，这很有用。
 
         .. note::
 
             这不会处理任何情况下的转换器、检查、冷却、调用前或调用后钩。
             它直接调用内部回调，就好像它是一个常规函数一样。
 
-            使用此函数时，您必须注意传递正确的参数。
+            使用此函数时，你必须注意传递正确的参数。
 
         Parameters
         -----------

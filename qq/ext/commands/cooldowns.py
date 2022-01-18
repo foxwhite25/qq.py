@@ -279,7 +279,7 @@ class DynamicCooldownMapping(CooldownMapping):
 class _Semaphore:
     """这个类是信号量的一个版本。
 
-    如果您想知道为什么没有使用 asyncio.Semaphore，那是因为它没有公开内部值。
+    如果你想知道为什么没有使用 asyncio.Semaphore，那是因为它没有公开内部值。
     这个内部值是必要的，因为我需要同时支持 `wait=True` 和 `wait=False`。
 
     也可以使用 asyncio.Queue 来做到这一点——但它并不是那么低效，

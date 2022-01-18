@@ -50,7 +50,7 @@ P = TypeVar('P', bound='Permissions')
 
 @fill_with_flags()
 class Permissions(BaseFlags):
-    """QQ 权限值。提供的属性有两种方式。你可以使用属性设置和检索单个位，就像它们是常规布尔值一样。这允许您编辑权限。
+    """QQ 权限值。提供的属性有两种方式。你可以使用属性设置和检索单个位，就像它们是常规布尔值一样。这允许你编辑权限。
 
     .. container:: operations
     
@@ -89,7 +89,7 @@ class Permissions(BaseFlags):
     Attributes
     -----------
     value: :class:`int`
-        原始值。该值是一个 53 位整数的位数组字段，表示当前可用的权限。您应该通过属性查询权限，而不是使用此原始值。
+        原始值。该值是一个 53 位整数的位数组字段，表示当前可用的权限。你应该通过属性查询权限，而不是使用此原始值。
     """
 
     __slots__ = ()
@@ -144,7 +144,7 @@ class Permissions(BaseFlags):
 
     def update(self, **kwargs: bool) -> None:
         r"""批量更新此权限对象。
-        允许您使用关键字参数设置多个属性。名称必须与列出的属性相同。无关的键值对将被默默忽略。
+        允许你使用关键字参数设置多个属性。名称必须与列出的属性相同。无关的键值对将被默默忽略。
 
         Parameters
         ------------
@@ -323,7 +323,7 @@ class PermissionOverwrite:
         return len(self._values) == 0
 
     def update(self, **kwargs: bool) -> None:
-        r"""批量更新此权限覆盖对象。允许您使用关键字参数设置多个属性。名称必须与列出的属性相同。无关的键值对将被默默忽略。
+        r"""批量更新此权限覆盖对象。允许你使用关键字参数设置多个属性。名称必须与列出的属性相同。无关的键值对将被默默忽略。
 
         Parameters
         ------------

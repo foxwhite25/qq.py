@@ -120,7 +120,7 @@ class Messageable:
         embed: Optional[:class:`qq.Embed`]
             要发送的 Embed 类
         reference: Union[:class:`~qq.Message`, :class:`~qq.MessageReference`, :class:`~qq.PartialMessage`]
-            对您正在回复的 :class:`~qq.Message` 的引用，可以使用 :meth:`~qq.Message.to_reference` 创建或直接作为 :class:`~qq.Message` 传递。
+            对你正在回复的 :class:`~qq.Message` 的引用，可以使用 :meth:`~qq.Message.to_reference` 创建或直接作为 :class:`~qq.Message` 传递。
         mention_author: Optional[:class:`qq.Member`]
             如果设置了，将会在消息前面提及该用户。
         delete_after: Optional[:class:`float`]
@@ -131,7 +131,7 @@ class Messageable:
         ~qq.HTTPException
             发送信息失败。
         ~qq.Forbidden
-            您没有发送消息的适当权限。
+            你没有发送消息的适当权限。
         ~qq.InvalidArgument
             ``reference`` 不是 :class:`~qq.Message` 、
             :class:`~qq.MessageReference` 或 :class:`~qq.PartialMessage` 。
@@ -187,7 +187,7 @@ class Messageable:
         ~qq.NotFound
             未找到指定的消息。
         ~qq.Forbidden
-            您没有获取消息所需的权限。
+            你没有获取消息所需的权限。
         ~qq.HTTPException
             检索消息失败。
 
@@ -247,7 +247,7 @@ class Messageable:
         Raises
         ------
         ~qq.Forbidden
-            您无权获取频道消息历史记录。
+            你无权获取频道消息历史记录。
         ~qq.HTTPException
             获取消息历史记录的请求失败。
 
@@ -375,7 +375,7 @@ class GuildChannel:
 
     @property
     def mention(self) -> str:
-        """:class:`str`: 允许您提及频道的字符串。"""
+        """:class:`str`: 允许你提及频道的字符串。"""
         return f'<#{self.id}>'
 
     @property
@@ -483,7 +483,7 @@ class GuildChannel:
         InvalidArgument
             给出了无效的位置或传递了错误的参数组合。
         Forbidden
-            您无权移动频道。
+            你无权移动频道。
         HTTPException
             移动频道失败。
         """

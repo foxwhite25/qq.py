@@ -197,7 +197,7 @@ class Intents(BaseFlags):
 
         .. warning::
 
-            强烈建议您启用此意图，以便您的机器人正常运行。
+            强烈建议你启用此意图，以便你的机器人正常运行。
         """
 
         return 1 << 0

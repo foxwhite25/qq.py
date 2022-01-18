@@ -68,7 +68,7 @@ AutoShardedBot
 
 .. function:: qq.ext.commands.on_command_error(ctx, error)
 
-    一个错误处理程序，当在命令中通过用户输入错误、检查失败或您自己的代码中的错误引发错误时调用。
+    一个错误处理程序，当在命令中通过用户输入错误、检查失败或你自己的代码中的错误引发错误时调用。
 
     提供了一个默认的（ :meth:`.Bot.on_command_error` ）。
 

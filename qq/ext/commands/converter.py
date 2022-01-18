@@ -91,7 +91,7 @@ CT = TypeVar('CT', bound=qq.abc.GuildChannel)
 class Converter(Protocol[T_co]):
     """需要传递 :class:`.Context` 的自定义转换器的基类才有用。
 
-    这允许您实现功能类似于特殊情况的 ``qq`` 类的转换器。
+    这允许你实现功能类似于特殊情况的 ``qq`` 类的转换器。
 
     派生自此的类应覆盖 :meth:`~.Converter.convert` 方法以执行其转换逻辑。这个方法必须是一个 :ref:`协程 <coroutine>`。
     """

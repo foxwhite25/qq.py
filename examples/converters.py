@@ -11,9 +11,9 @@ bot = commands.Bot('!', intents=intents)
 
 @bot.command()
 async def userinfo(ctx: commands.Context, user: qq.User):
-    # 在上面的命令签名中，您可以看到 `user` 参数被类型提示为 `qq.User`。 
+    # 在上面的命令签名中，你可以看到 `user` 参数被类型提示为 `qq.User`。 
     # 这意味着在命令调用期间，我们将尝试将作为 `user` 传递的值转换为 `qq.User` 实例。 
-    # 文档说明了可以转换的内容，在 `qq.User` 的情况下，您传递一个 ID、提及或用户名例如 80088516616269824，@Danny 或 Danny
+    # 文档说明了可以转换的内容，在 `qq.User` 的情况下，你传递一个 ID、提及或用户名例如 80088516616269824，@Danny 或 Danny
     # 
     # 注意：typehinting 仅在 `commands` 框架内充当转换器。 在标准 Python 中，它用于文档和 IDE 辅助目的。
     # 如果转换成功，我们将有一个 `qq.User` 实例，可以执行以下操作：

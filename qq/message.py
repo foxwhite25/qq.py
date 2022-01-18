@@ -715,7 +715,7 @@ class Message(Hashable):
     def raw_mentions(self) -> List[int]:
         """List[:class:`int`]: 返回与消息内容中的 ``<@user_id>`` 语法匹配的用户 ID 数组的属性。
 
-        这允许您即使在私人消息上下文中也可以接收提到用户的用户 ID。
+        这允许你即使在私人消息上下文中也可以接收提到用户的用户 ID。
         """
         return [int(x) for x in re.findall(r'<@!?([0-9]{15,20})>', self.content)]
 

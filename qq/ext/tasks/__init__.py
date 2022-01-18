@@ -357,7 +357,7 @@ class Loop(Generic[LF]):
     def add_exception_type(self, *exceptions: Type[BaseException]) -> None:
         r"""添加要在重新连接逻辑期间处理的异常类型。
         默认情况下，处理的异常类型是由 :meth:`qq.Client.connect` 处理的异常类型，其中包括很多断网错误。
-        如果您正在与引发自己的一组异常的第 3 方库进行交互，则此函数很有用。
+        如果你正在与引发自己的一组异常的第 3 方库进行交互，则此函数很有用。
 
         Parameters
         ------------
@@ -428,7 +428,7 @@ class Loop(Generic[LF]):
         traceback.print_exception(type(exception), exception, exception.__traceback__, file=sys.stderr)
 
     def before_loop(self, coro: FT) -> FT:
-        """在循环开始运行之前注册要调用的协程的装饰器。如果您想在循环开始之前等待一些机器人状态，这很有用，例如 :meth:`qq.Client.wait_until_ready`。
+        """在循环开始运行之前注册要调用的协程的装饰器。如果你想在循环开始之前等待一些机器人状态，这很有用，例如 :meth:`qq.Client.wait_until_ready`。
 
         协程必须不带任何参数（类上下文中的 ``self`` 除外）。
 
@@ -637,7 +637,7 @@ def loop(
     reconnect: bool = True,
     loop: asyncio.AbstractEventLoop = MISSING,
 ) -> Callable[[LF], Loop[LF]]:
-    """使用可选的重新连接逻辑在后台为您安排任务的装饰器。装饰器返回一个 :class:`Loop`。
+    """使用可选的重新连接逻辑在后台为你安排任务的装饰器。装饰器返回一个 :class:`Loop`。
 
     Parameters
     ------------

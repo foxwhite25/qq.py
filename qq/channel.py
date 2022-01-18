@@ -168,7 +168,7 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
 
     def get_partial_message(self, message_id: int, /) -> PartialMessage:
         """从消息 ID 创建一个 :class:`PartialMessage`。
-        如果您想处理消息并且只有它的 ID 而不进行不必要的 API 调用，这将非常有用。
+        如果你想处理消息并且只有它的 ID 而不进行不必要的 API 调用，这将非常有用。
 
         Parameters
         ------------
@@ -222,7 +222,7 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
         InvalidArgument
             如果 position 小于 0 或大于子频道数。
         Forbidden
-            您没有编辑频道的权限。
+            你没有编辑频道的权限。
         HTTPException
             编辑频道失败。
         Returns
@@ -246,7 +246,7 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
         """|coro|
         删除消息列表。这类似于 :meth:`Message.delete`，除了它批量删除多条消息。
         作为一种特殊情况，如果消息数为 0，则什么也不做。如果消息数为 1，则完成单个消息删除。
-        如果超过两个，则使用批量删除。您不能批量删除超过 100 条消息或超过 14 天的消息。
+        如果超过两个，则使用批量删除。你不能批量删除超过 100 条消息或超过 14 天的消息。
 
         Parameters
         -----------
@@ -258,7 +258,7 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
         ClientException
             要删除的消息数量超过 100 条。
         Forbidden
-            您没有删除消息的适当权限。
+            你没有删除消息的适当权限。
         NotFound
             如果单次删除，则该消息已被删除。
         HTTPException
@@ -324,7 +324,7 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
         Raises
         -------
         Forbidden
-            您没有执行所需操作的适当权限。
+            你没有执行所需操作的适当权限。
         HTTPException
             清除消息失败。
 
@@ -488,7 +488,7 @@ class VoiceChannel(abc.GuildChannel, Hashable):
         InvalidArgument
             如果权限覆盖信息格式不正确。
         Forbidden
-            您没有编辑频道的权限。
+            你没有编辑频道的权限。
         HTTPException
             编辑频道失败。
 

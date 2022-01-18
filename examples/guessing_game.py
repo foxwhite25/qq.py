@@ -24,7 +24,7 @@ class MyClient(qq.Client):
             try:
                 guess = await self.wait_for('message', check=is_correct, timeout=5.0)
             except asyncio.TimeoutError:
-                return await message.channel.send(f'抱歉，您花了太长时间，答案是{answer}。')
+                return await message.channel.send(f'抱歉，你花了太长时间，答案是{answer}。')
 
             if int(guess.content) == answer:
                 await message.channel.send('你说对了！')
