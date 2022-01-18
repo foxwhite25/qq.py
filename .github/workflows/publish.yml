@@ -22,7 +22,7 @@ jobs:
         pip install twine
     - name: Compile package
       run: |
-        python3 setup.py bdist_wheel sdist
+        python3 setup.py sdist
     - name: Upload package
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
