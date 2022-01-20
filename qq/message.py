@@ -463,7 +463,7 @@ class Message(Hashable):
             if 'edited_timestamp' in data else None
         self.mention_everyone: bool = data['mention_everyone'] \
             if 'mention_everyone' in data else None
-        self.content: str = data['content']
+        self.content: str = data['content'] if 'content' in data else None
 
         try:
             # if the channel doesn't have a guild attribute, we handle that
