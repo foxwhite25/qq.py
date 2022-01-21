@@ -469,7 +469,7 @@ class Message(Hashable):
             # if the channel doesn't have a guild attribute, we handle that
             self.guild = channel.guild  # type: ignore
         except AttributeError:
-            self.guild = state._get_guild(data.get('guild_id'))
+            self.guild = state._get_guild(int(data.get('guild_id')))
 
         try:
             ref = data['message_reference']
