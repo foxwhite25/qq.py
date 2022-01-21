@@ -217,7 +217,7 @@ class Member(Messageable, _UserTag):
         return self
 
     async def _get_channel(self):
-        ch = await self.create_dm()
+        ch = await self.create_dm(self.guild)
         return ch
 
     def _update(self, data: MemberPayload) -> None:

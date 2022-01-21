@@ -24,7 +24,7 @@ from __future__ import annotations
 import asyncio
 import datetime
 import time
-from typing import TYPE_CHECKING, Iterable, Optional, List, overload, Callable
+from typing import TYPE_CHECKING, Iterable, Optional, List, overload, Callable, TypeVar, Type
 
 from . import abc, utils
 from .error import ClientException
@@ -45,6 +45,7 @@ __all__ = (
 from .utils import MISSING
 
 if TYPE_CHECKING:
+    from .user import *
     from .member import Member
     from .message import Message, PartialMessage
     from .state import ConnectionState
@@ -55,7 +56,8 @@ if TYPE_CHECKING:
         CategoryChannel as CategoryChannelPayload,
         LiveChannel as LiveChannelPayload,
         AppChannel as AppChannelPayload,
-        ThreadChannel as ThreadChannelPayload
+        ThreadChannel as ThreadChannelPayload,
+        DMChannel as DMChannelPayload,
     )
 
 
@@ -890,3 +892,92 @@ def _guild_channel_factory(channel_type: int):
 def _channel_factory(channel_type: int):
     cls, value = _guild_channel_factory(channel_type)
     return cls, value
+
+
+DMC = TypeVar('DMC', bound='DMChannel')
+
+
+class DMChannel(abc.Messageable, Hashable):
+    """代表一个QQ私信子频道。
+    
+    .. container:: operations
+        .. describe:: x == y
+            检查两个子频道是否相等。
+        .. describe:: x != y
+            检查两个子频道是否不相等。
+        .. describe:: hash(x)
+            返回子频道的哈希值。
+        .. describe:: str(x)
+            返回子频道的字符串表示形式
+
+    Attributes
+    ----------
+    recipient: Optional[:class:`User`]
+        在私信子频道中参与的用户。如果通过网关接收此子频道，则接收者信息可能并不总是可用。
+    me: :class:`ClientUser`
+        代表你自己的用户。
+    id: :class:`int`
+        私信会话关联的子频道 id
+    guild_id: :class:`int`
+        私信会话关联的频道 id
+    """
+
+    __slots__ = ('id', 'recipient', 'me', 'guild_id', '_state', '_created_time')
+
+    def __init__(self, *, me: ClientUser, state: ConnectionState, data: DMChannelPayload, recipients: User):
+        self._state: ConnectionState = state
+        self.recipient: Optional[User] = recipients
+        self.me: ClientUser = me
+        self.id: int = int(data['channel_id'])
+        self.guild_id: int = int(data['guild_id'])
+
+    async def _get_channel(self):
+        return self
+
+    def __str__(self) -> str:
+        if self.recipient:
+            return f'与 {self.recipient} 的直接消息'
+        return '与未知用户的直接消息'
+
+    def __repr__(self) -> str:
+        return f'<DMChannel id={self.id} guild_id={self.guild_id} recipient={self.recipient!r}>'
+
+    @classmethod
+    def _from_message(cls: Type[DMC], state: ConnectionState, channel_id: int, guild_id: int) -> DMC:
+        self: DMC = cls.__new__(cls)
+        self._state = state
+        self.id = channel_id
+        self.guild_id = guild_id
+        self.recipient = None
+        # state.user won't be None here
+        self.me = state.user  # type: ignore
+        return self
+
+    @property
+    def type(self) -> ChannelType:
+        """:class:`ChannelType`: 频道的 QQ 类型。"""
+        return ChannelType.private
+
+    @property
+    def created_at(self) -> datetime.datetime:
+        """:class:`datetime.datetime`: 以 UTC 格式返回直接消息通道的创建时间。"""
+        return utils.parse_time(self._created_time)
+
+    def get_partial_message(self, message_id: int, /) -> PartialMessage:
+        """从消息 ID 创建一个 :class:`PartialMessage` 。
+        如果您想处理消息并且只拥有其 ID 而不进行不必要的 API 调用，这将非常有用。
+
+        Parameters
+        ------------
+        message_id: :class:`int`
+            要为其创建部分消息的消息 ID。
+
+        Returns
+        ---------
+        :class:`PartialMessage`
+            部分消息。
+        """
+
+        from .message import PartialMessage
+
+        return PartialMessage(channel=self, id=message_id)

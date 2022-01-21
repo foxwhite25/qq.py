@@ -146,6 +146,7 @@ else:
 
 class ChannelType(Enum):
     text = 0
+    private = 1
     voice = 2
     category = 4
     live = 10005

@@ -19,7 +19,9 @@
 #  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 #  DEALINGS IN THE SOFTWARE.
 
-from typing import Literal, TypedDict, Optional, Union
+from typing import Literal, TypedDict, Optional, Union, List
+
+from .user import PartialUser
 
 ChannelType = Literal[0, 1, 2, 3, 4, 10005, 10006, 10007]
 
@@ -35,6 +37,15 @@ class _BaseGuildChannel(_BaseChannel):
     parent_id: Optional[str]
     owner_id: str
     private_type: int
+
+
+class DMChannel(_BaseChannel):
+    channel_id: str
+    type: Literal[1]
+    guild_id: str
+    create_time: str
+    last_message_id: Optional[str]
+    recipients: PartialUser
 
 
 class TextChannel(_BaseGuildChannel):
@@ -63,4 +74,4 @@ class ThreadChannel(_BaseGuildChannel):
 
 
 GuildChannel = Union[TextChannel, LiveChannel, VoiceChannel, CategoryChannel, AppChannel, ThreadChannel]
-Channel = Union[GuildChannel]
+Channel = Union[GuildChannel, DMChannel]

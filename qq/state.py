@@ -28,12 +28,12 @@ import inspect
 import itertools
 import logging
 import os
-from collections import deque
+from collections import deque, OrderedDict
 from typing import Callable, TYPE_CHECKING, Dict, Any, Optional, List, Union, Deque, Coroutine, TypeVar, Tuple
 
 from . import utils
 from .audio import AudioAction
-from .channel import PartialMessageable, TextChannel, _channel_factory
+from .channel import PartialMessageable, TextChannel, _channel_factory, DMChannel
 from .flags import Intents
 from .mention import AllowedMentions
 from .object import Object
@@ -45,13 +45,17 @@ from .message import Message
 from .member import Member
 
 if TYPE_CHECKING:
-    from .abc import GuildChannel, MessageableChannel
+    from .message import MessageableChannel
+    from .abc import PrivateChannel
+    from .guild import GuildChannel
     from .http import HTTPClient
     from .client import Client
     from .gateway import QQWebSocket
+
     from .types.user import User as UserPayload
     from .types.message import Message as MessagePayload
     from .types.guild import Guild as GuildPayload
+    from .types.channel import DMChannel as DMChannelPayload
 
     T = TypeVar('T')
     CS = TypeVar('CS', bound='ConnectionState')
@@ -191,6 +195,12 @@ class ConnectionState:
         self.user: Optional[ClientUser] = None
         self._users: Dict[int, User] = {}
         self._guilds: Dict[int, Guild] = {}
+
+        # LRU of max size 128
+        self._private_channels: OrderedDict[int, PrivateChannel] = OrderedDict()
+        # extra dict to look up private channels by user id
+        self._private_channels_by_user: Dict[int, DMChannel] = {}
+
         if self.max_messages is not None:
             self._messages: Optional[Deque[Message]] = deque(maxlen=self.max_messages)
         else:
@@ -328,6 +338,50 @@ class ConnectionState:
             _log.warning('等待查询 %r 的块超时，guild_id %d 限制为 %d', query, limit,
                          guild_id)
             raise
+
+    @property
+    def private_channels(self) -> List[PrivateChannel]:
+        return list(self._private_channels.values())
+
+    def _get_private_channel(self, channel_id: Optional[int]) -> Optional[PrivateChannel]:
+        try:
+            # the keys of self._private_channels are ints
+            value = self._private_channels[channel_id]  # type: ignore
+        except KeyError:
+            return None
+        else:
+            self._private_channels.move_to_end(channel_id)  # type: ignore
+            return value
+
+    def _get_private_channel_by_user(self, user_id: Optional[int]) -> Optional[DMChannel]:
+        # the keys of self._private_channels are ints
+        return self._private_channels_by_user.get(user_id)  # type: ignore
+
+    def _add_private_channel(self, channel: PrivateChannel) -> None:
+        channel_id = channel.id
+        self._private_channels[channel_id] = channel
+
+        if len(self._private_channels) > 128:
+            _, to_remove = self._private_channels.popitem(last=False)
+            if isinstance(to_remove, DMChannel) and to_remove.recipient:
+                self._private_channels_by_user.pop(to_remove.recipient.id, None)
+
+        if isinstance(channel, DMChannel) and channel.recipient:
+            self._private_channels_by_user[channel.recipient.id] = channel
+
+    def add_dm_channel(self, data: DMChannelPayload, recipients) -> DMChannel:
+        # self.user is *always* cached when this is called
+        channel = DMChannel(me=self.user, state=self, data=data, recipients=recipients)  # type: ignore
+        self._add_private_channel(channel)
+        return channel
+
+    def _remove_private_channel(self, channel: PrivateChannel) -> None:
+        self._private_channels.pop(channel.id, None)
+        if isinstance(channel, DMChannel):
+            recipient = channel.recipient
+            if recipient is not None:
+                self._private_channels_by_user.pop(recipient.id, None)
+
 
     async def _delay_ready(self) -> None:
         try:

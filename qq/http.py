@@ -479,6 +479,15 @@ class HTTPClient:
 
         return await self.__session.ws_connect(url, **kwargs)
 
+    def start_private_message(self, user_id: int, guild_id: int) -> Response[channel.DMChannel]:
+        payload = {
+            'recipient_id': str(user_id),
+            'source_guild_id': str(guild_id),
+        }
+
+        return self.request(Route('POST', '/users/@me/dms'), json=payload)
+
+
     def send_message(
             self,
             channel_id: int,

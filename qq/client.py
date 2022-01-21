@@ -46,6 +46,7 @@ from .iterators import GuildIterator
 from .user import ClientUser, User
 from .nest_asyncio import apply
 if TYPE_CHECKING:
+    from .channel import DMChannel
     from .abc import GuildChannel
     from .member import Member
     from .message import Message
@@ -707,3 +708,29 @@ class Client:
         setattr(self, coro.__name__, coro)
         _log.debug('%s 已成功注册为事件', coro.__name__)
         return coro
+
+    async def create_dm(self, user: User, guild: Guild) -> DMChannel:
+        """|coro|
+        用这个用户创建一个 :class:`.DMChannel`。
+        这应该很少被调用，因为这对大多数人来说都不需要用到的。
+
+        Parameters
+        -----------
+        user: :class:`~qq.User`
+            用于创建私信的用户。
+        guild: :class: `~qq.Guild`
+            用于创建私信的源频道
+
+        Returns
+        -------
+        :class:`.DMChannel`
+            创建的频道。
+        """
+        state = self._connection
+        found = state._get_private_channel_by_user(user.id)
+        if found:
+            return found
+
+        data = await state.http.start_private_message(user.id, guild.id)
+        return state.add_dm_channel(data, user)
+

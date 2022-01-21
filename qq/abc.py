@@ -24,7 +24,7 @@ from __future__ import annotations
 import asyncio
 import copy
 from datetime import datetime
-from typing import overload, Optional, Union, List, TYPE_CHECKING, TypeVar, Dict, Any
+from typing import overload, Optional, Union, List, TYPE_CHECKING, TypeVar, Dict, Any, runtime_checkable, Protocol
 
 from .asset import Asset
 from .enum import ChannelType
@@ -34,8 +34,10 @@ from .mention import AllowedMentions
 from .utils import MISSING
 
 if TYPE_CHECKING:
+    from .user import ClientUser
+    from .embeds import Ark, Embed
     from .member import Member
-    from .channel import CategoryChannel, TextChannel, PartialMessageable
+    from .channel import CategoryChannel, TextChannel, PartialMessageable, DMChannel
     from .guild import Guild
     from .state import ConnectionState
     from .message import Message, MessageReference, PartialMessage
@@ -43,7 +45,7 @@ if TYPE_CHECKING:
         Channel as ChannelPayload,
     )
 
-    PartialMessageableChannel = Union[TextChannel, PartialMessageable]
+    PartialMessageableChannel = Union[TextChannel, PartialMessageable, DMChannel]
     MessageableChannel = Union[PartialMessageableChannel]
 
 __all__ = (
@@ -59,6 +61,26 @@ class _Undefined:
 
 
 _undefined: Any = _Undefined()
+
+
+@runtime_checkable
+class PrivateChannel(Protocol):
+    """详细说明私人QQ频道上的常见操作的抽象类。
+
+    以下实现了这个 ABC：
+
+    - :class:`~qq.DMChannel`
+
+    Attributes
+    -----------
+    me: :class:`~discord.ClientUser`
+        代表你自己的用户。
+    """
+
+    __slots__ = ()
+
+    me: ClientUser
+    id: int
 
 
 class Messageable:
@@ -102,7 +124,7 @@ class Messageable:
             mention_author=None,
             ark=None,
             embed=None,
-            delete_after = None,
+            delete_after=None,
     ):
         """|coro|
         使用给定的内容向目的地发送消息。
@@ -201,15 +223,14 @@ class Messageable:
         data = await self._state.http.get_message(channel.id, id)
         return self._state.create_message(channel=channel, data=data)
 
-
     def history(
-        self,
-        *,
-        limit: Optional[int] = 100,
-        before: Optional[datetime] = None,
-        after: Optional[datetime] = None,
-        around: Optional[datetime] = None,
-        oldest_first: Optional[bool] = None,
+            self,
+            *,
+            limit: Optional[int] = 100,
+            before: Optional[datetime] = None,
+            after: Optional[datetime] = None,
+            around: Optional[datetime] = None,
+            oldest_first: Optional[bool] = None,
     ) -> HistoryIterator:
         """返回允许接收目标消息历史记录的 :class:`~qq.AsyncIterator`。
 
@@ -257,7 +278,6 @@ class Messageable:
             已解析消息数据的消息。
         """
         return HistoryIterator(self, limit=limit, before=before, after=after, around=around, oldest_first=oldest_first)
-
 
 
 GCH = TypeVar('GCH', bound='GuildChannel')

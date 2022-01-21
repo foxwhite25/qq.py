@@ -25,12 +25,14 @@ from typing import Any, TYPE_CHECKING, Optional, Type, TypeVar, Dict, List
 
 from .abc import *
 from .asset import Asset
-from .colour import Colour
 
 if TYPE_CHECKING:
+    from .channel import DMChannel
     from .guild import Guild
     from .message import Message
     from .state import ConnectionState
+
+    from .types.channel import DMChannel as DMChannelPayload
     from .types.user import User as UserPayload
 
 __all__ = (
@@ -257,6 +259,13 @@ class User(BaseUser, Messageable):
         return self
 
     @property
+    def dm_channel(self) -> Optional[DMChannel]:
+        """Optional[:class:`DMChannel`]: 如果存在，则返回与此用户关联的子频道。
+        如果返回 ``None`` ，您可以通过调用 :meth:`create_dm` 协程函数来创建私信子频道。
+        """
+        return self._state._get_private_channel_by_user(self.id)
+
+    @property
     def mutual_guilds(self) -> List[Guild]:
         """List[:class:`Guild`]: 用户与客户端共同的频道。
 
@@ -266,3 +275,27 @@ class User(BaseUser, Messageable):
 
         """
         return [guild for guild in self._state._guilds.values() if guild.get_member(self.id)]
+
+    async def create_dm(self, guild: Guild) -> DMChannel:
+        """|coro|
+        用这个用户创建一个 :class:`.DMChannel`。
+        这应该很少被调用，因为这对大多数人来说都不需要用到的。
+
+        Parameters
+        -----------
+        guild: :class: `~qq.Guild`
+            用于创建私信的源频道
+
+        Returns
+        -------
+        :class:`.DMChannel`
+            创建的频道。
+        """
+        found = self.dm_channel
+        if found is not None:
+            return found
+
+        state = self._state
+        data: DMChannelPayload = await state.http.start_private_message(self.id, guild.id)
+        return state.add_dm_channel(data, recipients=self)
+
