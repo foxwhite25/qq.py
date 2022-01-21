@@ -227,73 +227,6 @@ class Intents(BaseFlags):
         """
         return 1 << 1
 
-    @alias_flag_value
-    def messages(self):
-        """:class:`bool`: 是否启用频道和直接消息相关事件。
-        这是设置或获取 :attr:`guild_messages` 和 :attr:`dm_messages` 的快捷方式。
-
-        这对应于以下事件：
-        - :func:`on_message` (both guilds and DMs)
-
-        这也对应于缓存方面的以下属性和类：
-        - :class:`Message`
-        - :attr:`Client.cached_messages`
-
-        .. note::
-
-            现在来说，这个 Intents 需要额外的申请，如果没有适当的权限 Websocket 将无法连接。
-        """
-
-        return (1 << 12) | (1 << 9)
-
-    @flag_value
-    def dm_messages(self):
-        """:class:`bool`: 是否启用直接消息相关事件。
-        另见 :attr:`guild_messages` 来获取频道信息或 :attr:`messages` 同时获取两者。
-
-        这对应于以下事件：
-
-        - :func:`on_message` (only for DMs)
-
-        这也对应于缓存方面的以下属性和类：
-
-        - :class:`Message`
-        - :attr:`Client.cached_messages` (only for DMs)
-
-        .. note::
-
-            现在来说，这个 Intents 需要额外的申请，如果没有适当的权限 Websocket 将无法连接。
-        """
-        return 1 << 12
-
-    @flag_value
-    def audio(self):
-        """:class:`bool`: 频道提及机器人的消息相关事件是否开启。
-
-        这对应于以下事件：
-
-        - :func:`on_audio_start`
-        - :func:`on_audio_stop`
-        - :func:`on_mic_start`
-        - :func:`on_mic_stop`
-        """
-        return 1 << 29
-
-    @flag_value
-    def at_guild_messages(self):
-        """:class:`bool`: 频道提及机器人的消息相关事件是否开启。
-
-        这对应于以下事件：
-
-        - :func:`on_message` (只适用于频道)
-
-        这也对应于缓存方面的以下属性和类：
-
-        - :class:`Message`
-        - :attr:`Client.cached_messages` (只适用于频道)
-        """
-        return 1 << 30
-
     @flag_value
     def guild_messages(self):
         """:class:`bool`: 频道消息相关事件是否开启。
@@ -334,12 +267,96 @@ class Intents(BaseFlags):
         """
         return 1 << 10
 
-    @flag_value
-    def threads(self):
-        """:class:`bool`: 论坛频道相关事件是否开启。
+    @alias_flag_value
+    def messages(self):
+        """:class:`bool`: 是否启用频道和直接消息相关事件。
+        这是设置或获取 :attr:`guild_messages` 和 :attr:`dm_messages` 的快捷方式。
+
+        这对应于以下事件：
+        - :func:`on_message` (both guilds and DMs)
+
+        这也对应于缓存方面的以下属性和类：
+        - :class:`Message`
+        - :attr:`Client.cached_messages`
 
         .. note::
 
             现在来说，这个 Intents 需要额外的申请，如果没有适当的权限 Websocket 将无法连接。
         """
+
+        return (1 << 12) | (1 << 9)
+
+    @flag_value
+    def dm_messages(self):
+        """:class:`bool`: 是否启用直接消息相关事件。
+        另见 :attr:`guild_messages` 来获取频道信息或 :attr:`messages` 同时获取两者。
+
+        这对应于以下事件：
+
+        - :func:`on_message` (only for DMs)
+
+        这也对应于缓存方面的以下属性和类：
+
+        - :class:`Message`
+        - :attr:`Client.cached_messages` (only for DMs)
+
+        .. note::
+
+            现在来说，这个 Intents 需要额外的申请，如果没有适当的权限 Websocket 将无法连接。
+        """
+        return 1 << 12
+
+    @flag_value
+    def audit(self):
+        """:class:`bool`: 消息审核相关事件是否开启。
+
+        这对应于以下事件：
+
+        - :func:`on_audit_pass`
+        - :func:`on_audit_reject`
+        """
+        return 1 << 27
+
+    @flag_value
+    def thread(self):
+        """:class:`bool`: 论坛相关事件是否开启。
+
+        这对应于以下事件：
+
+        - :func:`on_thread_create`
+        - :func:`on_thread_update`
+        - :func:`on_thread_delete`
+        - :func:`on_post_create`
+        - :func:`on_post_delete`
+        - :func:`on_reply_create`
+        - :func:`on_reply_delete`
+        """
         return 1 << 28
+
+    @flag_value
+    def audio(self):
+        """:class:`bool`: 频道提及机器人的消息相关事件是否开启。
+
+        这对应于以下事件：
+
+        - :func:`on_audio_start`
+        - :func:`on_audio_stop`
+        - :func:`on_mic_start`
+        - :func:`on_mic_stop`
+        """
+        return 1 << 29
+
+    @flag_value
+    def at_guild_messages(self):
+        """:class:`bool`: 频道提及机器人的消息相关事件是否开启。
+
+        这对应于以下事件：
+
+        - :func:`on_message` (只适用于频道)
+
+        这也对应于缓存方面的以下属性和类：
+
+        - :class:`Message`
+        - :attr:`Client.cached_messages` (只适用于频道)
+        """
+        return 1 << 30
