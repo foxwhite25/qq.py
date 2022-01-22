@@ -28,15 +28,16 @@ from operator import attrgetter
 from typing import TypeVar, TYPE_CHECKING, Optional, List, Dict, Tuple, Any, Type, Literal, Union
 
 from . import utils
+from .channel import DMChannel
 from .user import _UserTag, BaseUser, User
 from .abc import Messageable
 from .colour import Colour
+from .object import Object
 
 if TYPE_CHECKING:
     from .guild import Guild
     from .asset import Asset
     from .message import Message
-    from .object import Object
     from .state import ConnectionState
     from .user import *
     from .types.member import (
@@ -217,8 +218,11 @@ class Member(Messageable, _UserTag):
         return self
 
     async def _get_channel(self):
-        ch = await self.create_dm(self.guild)
-        return ch
+        if isinstance(self.guild, Object):
+            ch = self.guild.channels[0]
+        else:
+            ch = await self.create_dm(self.guild)
+        return ch, True
 
     def _update(self, data: MemberPayload) -> None:
         # the nickname change is optional,

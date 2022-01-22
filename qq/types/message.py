@@ -30,6 +30,15 @@ from .user import User
 from ..utils import SnowflakeList
 
 
+class MessageAudit(TypedDict, total=False):
+    audit_id: str
+    message_id: Optional[str]
+    guild_id: str
+    channel_id: str
+    audit_time: str
+    create_time: str
+
+
 class _AttachmentOptional(TypedDict, total=False):
     height: Optional[int]
     width: Optional[int]

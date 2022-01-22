@@ -24,7 +24,7 @@ from __future__ import annotations
 import asyncio
 import datetime
 import time
-from typing import TYPE_CHECKING, Iterable, Optional, List, overload, Callable, TypeVar, Type
+from typing import TYPE_CHECKING, Iterable, Optional, List, overload, Callable, TypeVar, Type, Tuple
 
 from . import abc, utils
 from .error import ClientException
@@ -154,7 +154,7 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
         self.private_type: int = data.get('private_type')
 
     async def _get_channel(self):
-        return self
+        return self, False
 
     @property
     def type(self) -> ChannelType:
@@ -862,8 +862,8 @@ class PartialMessageable(abc.Messageable, Hashable):
         self.id: int = id
         self.type: Optional[ChannelType] = type
 
-    async def _get_channel(self) -> Object:
-        return self._channel
+    async def _get_channel(self) -> Tuple[Object, bool]:
+        return self._channel, True
 
     def get_partial_message(self, message_id: int, /) -> PartialMessage:
         from .message import PartialMessage
@@ -918,21 +918,21 @@ class DMChannel(abc.Messageable, Hashable):
         代表你自己的用户。
     id: :class:`int`
         私信会话关联的子频道 id
-    guild_id: :class:`int`
-        私信会话关联的频道 id
+    channel_id: :class:`int`
+        垃圾资讯，无视即可，官方不知道在搞什么jb东西
     """
 
-    __slots__ = ('id', 'recipient', 'me', 'guild_id', '_state', '_created_time')
+    __slots__ = ('id', 'recipient', 'me', 'channel_id', '_state', '_created_time')
 
     def __init__(self, *, me: ClientUser, state: ConnectionState, data: DMChannelPayload, recipients: User):
         self._state: ConnectionState = state
         self.recipient: Optional[User] = recipients
         self.me: ClientUser = me
-        self.id: int = int(data['channel_id'])
-        self.guild_id: int = int(data['guild_id'])
+        self.id: int = int(data['guild_id'])
+        self.channel_id: int = int(data['channel_id'])
 
     async def _get_channel(self):
-        return self
+        return self, True
 
     def __str__(self) -> str:
         if self.recipient:
@@ -940,14 +940,14 @@ class DMChannel(abc.Messageable, Hashable):
         return '与未知用户的直接消息'
 
     def __repr__(self) -> str:
-        return f'<DMChannel id={self.id} guild_id={self.guild_id} recipient={self.recipient!r}>'
+        return f'<DMChannel id={self.id} guild_id={self.channel_id} recipient={self.recipient!r}>'
 
     @classmethod
     def _from_message(cls: Type[DMC], state: ConnectionState, channel_id: int, guild_id: int) -> DMC:
         self: DMC = cls.__new__(cls)
         self._state = state
-        self.id = channel_id
-        self.guild_id = guild_id
+        self.channel_id = channel_id
+        self.id = guild_id
         self.recipient = None
         # state.user won't be None here
         self.me = state.user  # type: ignore

@@ -178,7 +178,6 @@ class Guild(Hashable):
         # but QQ just does not give all the info about guilds unless you requests it
         channels = asyncio.run(self._state.http.get_guild_channels(self.id))
         try:
-            roles = asyncio.run(self._state.http.get_roles(self.id))
             members = asyncio.run(self._state.http.get_members(self.id, 500))
             for mdata in members:
                 member = Member(data=mdata, guild=self, state=self._state)
@@ -189,11 +188,14 @@ class Guild(Hashable):
             member = Member(data=result,
                             guild=self, state=self._state)
             self._add_member(member)
-
-        if 'roles' in roles:
-            for r in roles['roles']:
-                role = Role(guild=self, data=r, state=self._state)
-                self._roles[role.id] = role
+        try:
+            roles = asyncio.run(self._state.http.get_roles(self.id))
+            if 'roles' in roles:
+                for r in roles['roles']:
+                    role = Role(guild=self, data=r, state=self._state)
+                    self._roles[role.id] = role
+        except HTTPException:
+            pass
         for c in channels:
             factory, ch_type = _guild_channel_factory(c['type'])
             if factory:
@@ -215,7 +217,7 @@ class Guild(Hashable):
     @property
     def owner(self) -> Optional[Member]:
         """Optional[:class:`Member`]: 拥有频道的成员。"""
-        return self.get_member(self.owner_id)
+        return self.get_member(int(self.owner_id))
 
     @property
     def members(self) -> List[Member]:

@@ -298,9 +298,14 @@ class ConnectionState:
         # return self._chunk_guilds and not guild.chunked and not guild.large
 
     def _get_guild_channel(self, data: MessagePayload) -> Tuple[Union[Channel], Optional[Guild]]:
+        direct = True if 'direct_message' in data else False
         channel_id = int(data['channel_id'])
-        guild = self._get_guild(int(data['guild_id']))
-        channel = guild and guild._resolve_channel(channel_id)
+        if 'direct_message' not in data:
+            guild = self._get_guild(int(data['guild_id']))
+            channel = guild and guild._resolve_channel(channel_id)
+        else:
+            channel = DMChannel._from_message(state=self, channel_id=channel_id, guild_id=int(data['guild_id']))
+            guild = None
         return channel or PartialMessageable(state=self, id=channel_id), guild
 
     def get_reaction_emoji(self, data) -> Union[PartialEmoji]:
@@ -458,9 +463,10 @@ class ConnectionState:
         self.dispatch('resumed')
 
     def parse_at_message_create(self, data) -> None:
-        channel, _ = self._get_guild_channel(data)
+        channel, guild = self._get_guild_channel(data)
+        direct = True if 'direct_message' in data else False
         # channel would be the correct type here
-        message = Message(channel=channel, data=data, state=self)  # type: ignore
+        message = Message(channel=channel, data=data, state=self, direct=direct)  # type: ignore
         self.dispatch('message', message)
         if self._messages is not None:
             self._messages.append(message)
@@ -470,6 +476,12 @@ class ConnectionState:
 
     def parse_message_create(self, data) -> None:
         self.parse_at_message_create(data)
+
+    def parse_direct_message_create(self, data) -> None:
+        self.parse_at_message_create(data)
+
+    def parse_message_audit_pass(self, data) -> None:
+        self.dispatch('audit_pass', data)
 
     def parse_channel_delete(self, data) -> None:
         guild = self._get_guild(data.get('guild_id'))
@@ -758,9 +770,9 @@ class ConnectionState:
                 return channel
 
     def create_message(
-            self, *, channel: Union[TextChannel, PartialMessageable], data: MessagePayload
+            self, *, channel: Union[TextChannel, PartialMessageable, DMChannel], data: MessagePayload, direct: bool
     ) -> Message:
-        return Message(state=self, channel=channel, data=data)
+        return Message(state=self, channel=channel, data=data, direct=direct)
 
     def _upgrade_partial_emoji(self, emoji: PartialEmoji) -> Union[PartialEmoji, str]:
         emoji_id = emoji.id

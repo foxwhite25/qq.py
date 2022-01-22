@@ -39,6 +39,7 @@ from os import PathLike
 from typing import Union, Optional, TYPE_CHECKING, ClassVar, Tuple, List, Callable, overload, Any, Type, TypeVar
 
 from . import utils
+from .object import Object
 from .error import HTTPException
 from .file import File
 from .member import Member
@@ -53,10 +54,15 @@ from .reaction import Reaction
 if TYPE_CHECKING:
     from .state import ConnectionState
     from .abc import GuildChannel, PartialMessageableChannel, MessageableChannel
-    from .channel import TextChannel
+    from .channel import TextChannel, DMChannel
     from .enum import ChannelType
-    from .types.message import Attachment as AttachmentPayload, Message as MessagePayload, \
-        MessageReference as MessageReferencePayload, Reaction as ReactionPayload
+    from .types.message import (
+        Attachment as AttachmentPayload,
+        Message as MessagePayload,
+        MessageReference as MessageReferencePayload,
+        Reaction as ReactionPayload,
+        MessageAudit as MessageAuditPayload
+    )
     from .types.embed import Embed as EmbedPayload
     from .types.user import User as UserPayload
     from .types.member import Member as MemberPayload, UserWithMember as UserWithMemberPayload
@@ -71,6 +77,10 @@ __all__ = (
     'PartialMessage',
     'MessageReference',
 )
+
+
+class MessageAudit:
+    """表示审核结果。"""
 
 
 class DeletedReferencedMessage:
@@ -409,6 +419,8 @@ class Message(Hashable):
         提供给消息的附件列表。
     guild: Optional[:class:`Guild`]
         消息所属的频道（如果适用）。
+    direct: :class:`bool`
+        是否是私聊消息
     """
     __slots__ = (
         '_state',
@@ -431,7 +443,8 @@ class Message(Hashable):
         'reference',
         'role_mentions',
         'created_at',
-        'reactions'
+        'reactions',
+        'direct'
     )
 
     if TYPE_CHECKING:
@@ -448,7 +461,9 @@ class Message(Hashable):
             state: ConnectionState,
             channel: MessageableChannel,
             data: MessagePayload,
+            direct: bool = False
     ):
+        self.direct = direct
         self._state: ConnectionState = state
         self.created_at = datetime.datetime.now()
         self.id: str = data['id']
@@ -470,6 +485,10 @@ class Message(Hashable):
             self.guild = channel.guild  # type: ignore
         except AttributeError:
             self.guild = state._get_guild(int(data.get('guild_id')))
+
+        if self.guild is None:
+            self.guild = Object(id=data.get('guild_id'))
+            self.guild.channels = [self.channel]
 
         try:
             ref = data['message_reference']
@@ -574,7 +593,8 @@ class Message(Hashable):
         except AttributeError:
             # It's a user here
             self.author = Member._from_message(message=self, data=member)
-            self.guild._add_member(self.author)
+            if isinstance(self.guild, Guild):
+                self.guild._add_member(self.author)
 
     def _handle_mentions(self, mentions: List[UserWithMemberPayload]) -> None:
         self.mentions = r = []
@@ -895,4 +915,4 @@ class PartialMessage(Hashable):
         """
 
         data = await self._state.http.get_message(self.channel.id, self.id)
-        return self._state.create_message(channel=self.channel, data=data)
+        return self._state.create_message(channel=self.channel, data=data, direct=False)

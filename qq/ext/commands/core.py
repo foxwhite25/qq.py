@@ -1864,13 +1864,13 @@ def bot_has_any_role(*items: int) -> Callable[[T], T]:
 
 def dm_only() -> Callable[[T], T]:
     """一个 :func:`.check`
-    表示这个命令只能在 DM 上下文中使用。 使用该命令时只允许私信。
+    表示这个命令只能在私信上下文中使用。 使用该命令时只允许私信。
 
     这个检查引发一个特殊的异常， :exc:`.PrivateMessageOnly`，它继承自 :exc:`.CheckFailure`。
     """
 
     def predicate(ctx: Context) -> bool:
-        if ctx.guild is not None:
+        if not ctx.message.direct:
             raise PrivateMessageOnly()
         return True
 
@@ -1884,7 +1884,7 @@ def guild_only() -> Callable[[T], T]:
     """
 
     def predicate(ctx: Context) -> bool:
-        if ctx.guild is None:
+        if ctx.message.direct:
             raise NoPrivateMessage()
         return True
 

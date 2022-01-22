@@ -777,6 +777,19 @@ ThreadChannel
     :members:
     :inherited-members:
 
+DMChannel
+~~~~~~~~~
+
+.. attributetable:: DMChannel
+
+.. autoclass:: DMChannel()
+    :members:
+    :inherited-members:
+    :exclude-members: history
+
+    .. automethod:: history
+        :async-for:
+
 .. _qq_api_data:
 
 数据类

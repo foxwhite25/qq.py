@@ -24,7 +24,8 @@ from __future__ import annotations
 import asyncio
 import copy
 from datetime import datetime
-from typing import overload, Optional, Union, List, TYPE_CHECKING, TypeVar, Dict, Any, runtime_checkable, Protocol
+from typing import overload, Optional, Union, List, TYPE_CHECKING, TypeVar, Dict, Any, runtime_checkable, Protocol, \
+    Tuple
 
 from .asset import Asset
 from .enum import ChannelType
@@ -98,7 +99,7 @@ class Messageable:
     __slots__ = ()
     _state: ConnectionState
 
-    async def _get_channel(self) -> MessageableChannel:
+    async def _get_channel(self) -> Tuple[MessageableChannel, bool]:
         raise NotImplementedError
 
     @overload
@@ -112,6 +113,7 @@ class Messageable:
             image: str = ...,
             reference: Union[Message, MessageReference, PartialMessage] = ...,
             mention_author: Member = ...,
+            direct=...,
     ) -> Message:
         ...
 
@@ -164,7 +166,7 @@ class Messageable:
             发送的消息。
         """
 
-        channel = await self._get_channel()
+        channel, direct = await self._get_channel()
         state = self._state
         content = str(content) if content is not None else None
 
@@ -184,13 +186,14 @@ class Messageable:
             ark=ark,
             message_reference=reference,
             image_url=image,
-            embed=embed
+            embed=embed,
+            direct=direct
         )
 
-        if 'code' in data:
+        if 'audit_id' in data:
             return None
 
-        ret = state.create_message(channel=channel, data=data)
+        ret = state.create_message(channel=channel, data=data, direct=direct)
         if delete_after is not None:
             await ret.delete(delay=delete_after)
         return ret
@@ -219,9 +222,9 @@ class Messageable:
             消息要求。
         """
         id = id
-        channel = await self._get_channel()
+        channel, direct = await self._get_channel()
         data = await self._state.http.get_message(channel.id, id)
-        return self._state.create_message(channel=channel, data=data)
+        return self._state.create_message(channel=channel, data=data, direct=direct)
 
     def history(
             self,

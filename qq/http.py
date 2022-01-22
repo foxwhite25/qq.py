@@ -487,7 +487,6 @@ class HTTPClient:
 
         return self.request(Route('POST', '/users/@me/dms'), json=payload)
 
-
     def send_message(
             self,
             channel_id: int,
@@ -498,8 +497,10 @@ class HTTPClient:
             *,
             tts: bool = False,
             message_reference: Optional[message.MessageReference] = None,
+            direct=False
     ) -> Response[message.Message]:
-        r = Route('POST', '/channels/{channel_id}/messages', channel_id=channel_id)
+        r = Route('POST', '/channels/{channel_id}/messages', channel_id=channel_id) if not direct else \
+            Route('POST', '/dms/{guild_id}/messages', guild_id=channel_id)
         payload = {}
 
         if content:
@@ -589,7 +590,7 @@ class HTTPClient:
         return self.request(r, reason=reason)
 
     def delete_messages(
-        self, channel_id: int, message_ids: List[str], *, reason: Optional[str] = None
+            self, channel_id: int, message_ids: List[str], *, reason: Optional[str] = None
     ) -> Response[None]:
         r = Route('POST', '/channels/{channel_id}/messages/bulk-delete', channel_id=channel_id)
         payload = {
@@ -598,12 +599,12 @@ class HTTPClient:
         return self.request(r, json=payload, reason=reason)
 
     def logs_from(
-        self,
-        channel_id: int,
-        limit: int,
-        before: Optional[datetime.datetime] = None,
-        after: Optional[datetime.datetime] = None,
-        around: Optional[datetime.datetime] = None,
+            self,
+            channel_id: int,
+            limit: int,
+            before: Optional[datetime.datetime] = None,
+            after: Optional[datetime.datetime] = None,
+            around: Optional[datetime.datetime] = None,
     ) -> Response[List[message.Message]]:
         params: Dict[str, Any] = {
             'limit': limit,
@@ -617,4 +618,3 @@ class HTTPClient:
             params['around'] = datetime.datetime.timestamp(around)
 
         return self.request(Route('GET', '/channels/{channel_id}/messages', channel_id=channel_id), params=params)
-

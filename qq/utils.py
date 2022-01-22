@@ -664,6 +664,15 @@ def resolve_annotation(
     return evaluate_annotation(annotation, globalns, locals, cache)
 
 
+async def async_all(gen, *, check=_isawaitable):
+    for elem in gen:
+        if check(elem):
+            elem = await elem
+        if not elem:
+            return False
+    return True
+
+
 class SequenceProxy(Generic[T_co], collections.abc.Sequence):
     """序列的只读代理。"""
 

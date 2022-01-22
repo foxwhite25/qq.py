@@ -24,7 +24,7 @@ from __future__ import annotations
 import inspect
 import re
 
-from typing import Any, Dict, Generic, List, Optional, TYPE_CHECKING, TypeVar, Union
+from typing import Any, Dict, Generic, List, Optional, TYPE_CHECKING, TypeVar, Union, Tuple
 
 import qq.abc
 import qq.utils
@@ -229,8 +229,8 @@ class Context(qq.abc.Messageable, Generic[BotT]):
         """:class:`bool`: 检查调用 context 是否有效以进行调用。"""
         return self.prefix is not None and self.command is not None
 
-    async def _get_channel(self) -> qq.abc.Messageable:
-        return self.channel
+    async def _get_channel(self) -> Tuple[qq.abc.Messageable, bool]:
+        return self.guild if self.message.direct else self.channel, True
 
     @property
     def clean_prefix(self) -> str:
