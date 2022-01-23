@@ -209,27 +209,27 @@ AutoShardedClient
     :param audio: 音频资料。
     :type message: :class:`AudioAction`
 
-.. function:: on_audio_start(audio)
+.. function:: on_audio_stop(audio)
 
-    音频开始播放时调用。
-
-    这需要启用 :attr:`Intents.audio`。
-
-    :param audio: 音频资料。
-    :type message: :class:`AudioAction`
-
-.. function:: on_audio_start(audio)
-
-    音频开始播放时调用。
+    音频停止播放时调用。
 
     这需要启用 :attr:`Intents.audio`。
 
     :param audio: 音频资料。
     :type message: :class:`AudioAction`
 
-.. function:: on_audio_start(audio)
+.. function:: on_mic_start(audio)
 
-    音频开始播放时调用。
+    有人上麦时时调用。
+
+    这需要启用 :attr:`Intents.audio`。
+
+    :param audio: 音频资料。
+    :type message: :class:`AudioAction`
+
+.. function:: on_mic_stop(audio)
+
+    有人下麦时时调用。
 
     这需要启用 :attr:`Intents.audio`。
 
@@ -246,10 +246,19 @@ AutoShardedClient
 
         你的机器人自己的消息通过此事件发送。
         这可能会导致“递归”的情况，具体取决于你的机器人的编程方式。
-        如果你希望机器人不回复自己，请考虑检查用户 ID。注意:class:`~ext.commands.Bot` 没有这个问题。
+        如果你希望机器人不回复自己，请考虑检查用户 ID。注意 :class:`~ext.commands.Bot` 没有这个问题。
 
     :param message: 当前消息。
     :type message: :class:`Message`
+
+.. function:: on_message_audit(audit)
+
+    在消息审核通过或拒绝时调用。
+
+    这需要启用 :attr:`Intents.audit`。
+
+    :param audit: 当前消息审核。
+    :type message: :class:`MessageAudit`
 
 .. function:: on_guild_channel_delete(channel)
               on_guild_channel_create(channel)
@@ -685,6 +694,14 @@ Message
 ~~~~~~~
 
 .. attributetable:: Message
+
+.. autoclass:: Message()
+    :members:
+
+MessageAudit
+~~~~~~~
+
+.. attributetable:: MessageAudit
 
 .. autoclass:: Message()
     :members:

@@ -230,7 +230,7 @@ class Context(qq.abc.Messageable, Generic[BotT]):
         return self.prefix is not None and self.command is not None
 
     async def _get_channel(self) -> Tuple[qq.abc.Messageable, bool]:
-        return self.guild if self.message.direct else self.channel, True
+        return self.guild if self.message.direct else self.channel, self.message.direct
 
     @property
     def clean_prefix(self) -> str:

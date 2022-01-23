@@ -923,7 +923,7 @@ class DMChannel(abc.Messageable, Hashable):
         垃圾资讯，无视即可，官方不知道在搞什么jb东西
     """
 
-    __slots__ = ('id', 'recipient', 'me', 'channel_id', '_state', '_created_time')
+    __slots__ = ('id', 'recipient', 'me', 'channel_id', '_state')
 
     def __init__(self, *, me: ClientUser, state: ConnectionState, data: DMChannelPayload, recipients: User):
         self._state: ConnectionState = state
@@ -958,11 +958,6 @@ class DMChannel(abc.Messageable, Hashable):
     def type(self) -> ChannelType:
         """:class:`ChannelType`: 频道的 QQ 类型。"""
         return ChannelType.private
-
-    @property
-    def created_at(self) -> datetime.datetime:
-        """:class:`datetime.datetime`: 以 UTC 格式返回直接消息通道的创建时间。"""
-        return utils.parse_time(self._created_time)
 
     def get_partial_message(self, message_id: int, /) -> PartialMessage:
         """从消息 ID 创建一个 :class:`PartialMessage` 。

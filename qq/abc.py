@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from .channel import CategoryChannel, TextChannel, PartialMessageable, DMChannel
     from .guild import Guild
     from .state import ConnectionState
-    from .message import Message, MessageReference, PartialMessage
+    from .message import Message, MessageReference, PartialMessage, MessageAudit
     from .types.channel import (
         Channel as ChannelPayload,
     )
@@ -114,7 +114,7 @@ class Messageable:
             reference: Union[Message, MessageReference, PartialMessage] = ...,
             mention_author: Member = ...,
             direct=...,
-    ) -> Message:
+    ) -> Union[Message, str]:
         ...
 
     async def send(
@@ -131,7 +131,8 @@ class Messageable:
         """|coro|
         使用给定的内容向目的地发送消息。
         content 必须是可以通过 ``str(content)`` 转换为字符串的类型。
-        如果是主动信息，不一定会有返回。
+        如果不填入 ``reference`` 将会被腾讯视为主动消息。
+        如果是主动信息，输出将会是 ``audit_id``。
 
         Parameters
         ------------
@@ -162,7 +163,7 @@ class Messageable:
 
         Returns
         ---------
-        :class:`~qq.Message`
+        Union[:class:`~qq.Message`, :class:`~qq.MessageAudit`]
             发送的消息。
         """
 
@@ -190,8 +191,8 @@ class Messageable:
             direct=direct
         )
 
-        if 'audit_id' in data:
-            return None
+        if reference is None:
+            return data['data']['message_audit']['audit_id']
 
         ret = state.create_message(channel=channel, data=data, direct=direct)
         if delete_after is not None:

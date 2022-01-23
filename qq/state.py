@@ -41,7 +41,7 @@ from .partial_emoji import PartialEmoji
 from .raw_models import RawReactionActionEvent, RawReactionClearEvent, RawReactionClearEmojiEvent
 from .user import User, ClientUser
 from .guild import Guild
-from .message import Message
+from .message import Message, MessageAudit
 from .member import Member
 
 if TYPE_CHECKING:
@@ -305,6 +305,7 @@ class ConnectionState:
             channel = guild and guild._resolve_channel(channel_id)
         else:
             channel = DMChannel._from_message(state=self, channel_id=channel_id, guild_id=int(data['guild_id']))
+            self._add_private_channel(channel)
             guild = None
         return channel or PartialMessageable(state=self, id=channel_id), guild
 
@@ -481,7 +482,10 @@ class ConnectionState:
         self.parse_at_message_create(data)
 
     def parse_message_audit_pass(self, data) -> None:
-        self.dispatch('audit_pass', data)
+        self.dispatch('message_audit', MessageAudit(state=self, data=data, audit_state=True))
+
+    def parse_message_audit_reject(self, data) -> None:
+        self.dispatch('message_audit', MessageAudit(state=self, data=data, audit_state=False))
 
     def parse_channel_delete(self, data) -> None:
         guild = self._get_guild(data.get('guild_id'))

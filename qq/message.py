@@ -76,11 +76,89 @@ __all__ = (
     'Message',
     'PartialMessage',
     'MessageReference',
+    'MessageAudit'
 )
 
 
 class MessageAudit:
-    """表示审核结果。"""
+    """表示消息审核情况。
+
+    .. container:: operations
+
+        .. describe:: x == y
+
+            检查两个审核是否相等。
+
+        .. describe:: x != y
+
+            检查两个审核是否不相等。
+
+    Attributes
+    -----------
+    id: :class:`str`
+        审核的 ID 。
+    message_id: Optional[:class:`str`]
+        消息 ID，只有审核通过事件才会有值。
+    audit_time: :class:`datetime.datetime`
+        消息审核时间
+    create_time: :class:`datetime.datetime`
+        消息创建时间
+    channel_id: :class:`int`
+        审核消息的子频道 ID
+    guild_id: :class:`str`
+        审核消息的频道 ID
+    """
+
+    __slots__ = (
+        '_state',
+        'id',
+        'message_id',
+        'guild_id',
+        'channel_id',
+        'audit_time',
+        'create_time',
+        '_audit_state'
+    )
+
+    def __init__(self, state: ConnectionState, data: MessageAuditPayload, audit_state):
+        self.id: str = data['audit_id']
+        self._state = state
+        self.message_id: Optional[str] = data.get('message_id')
+        self.channel_id: int = int(data['channel_id'])
+        self.guild_id: int = int(data['guild_id'])
+        self.audit_time: Optional[datetime.datetime] = utils.parse_time(data.get('audit_time'))
+        self.create_time: datetime.datetime = utils.parse_time(data['create_time'])
+        self._audit_state = audit_state
+
+    def __repr__(self) -> str:
+        name = self.__class__.__name__
+        return (
+            f'<{name} id={self.id}>'
+        )
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, MessageAudit) and self.id == other.id
+
+    def __ne__(self, other: Any) -> bool:
+        return isinstance(other, MessageAudit) and self.id != other.id
+
+    @property
+    def passed(self):
+        """:class:`bool`: 返回消息是否通过审核
+        """
+        return True is self._audit_state is True
+
+    @property
+    def rejected(self):
+        """:class:`bool`: 返回消息是否没通过审核
+        """
+        return True is self._audit_state is False
+
+    @property
+    def pending(self):
+        """:class:`bool`: 返回消息是否正在审核
+        """
+        return True is self._audit_state is None
 
 
 class DeletedReferencedMessage:

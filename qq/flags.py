@@ -312,8 +312,7 @@ class Intents(BaseFlags):
 
         这对应于以下事件：
 
-        - :func:`on_audit_pass`
-        - :func:`on_audit_reject`
+        - :func:`on_message-audit`
         """
         return 1 << 27
 

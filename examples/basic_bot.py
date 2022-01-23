@@ -45,7 +45,15 @@ async def roll(ctx, dice: str):
 @bot.command(description='当你有选择困难症')  # 注册指令 '?choose', 参数为多个choices， 例如 ?choose a b，choose会是['a', 'b']
 async def choose(ctx, *choices: str):
     """在多个选项之间进行选择。"""
-    await ctx.reply(random.choice(choices))  # 发送从 List 中随机选择一个
+    audit_id = await ctx.reply(random.choice(choices))  # 发送从 List 中随机选择一个，
+
+    # 因为用的是 send，而也没有附上 referece，所以是主动消息，因此返回的是 str 的 audit_id
+
+    def audit_message(audit: qq.MessageAudit):  # 检测 audit 事件的 id 是否和获得的 id 一致
+        return audit.id == audit_id
+
+    audit = await bot.wait_for('message_audit', check=audit_message, timeout=60)  # 等待 message_audit 事件
+    await ctx.reply("Audit passed" if audit.passed else "Audit failed")
 
 
 @bot.command()  # 注册指令 '?repeat', 参数为 time content, content 默认值为 重复...
