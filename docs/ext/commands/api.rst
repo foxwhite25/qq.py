@@ -368,9 +368,6 @@ Context
 .. autoclass:: qq.ext.commands.AppChannelConverter
     :members:
 
-.. autoclass:: qq.ext.commands.InviteConverter
-    :members:
-
 .. autoclass:: qq.ext.commands.GuildConverter
     :members:
 
@@ -378,9 +375,6 @@ Context
     :members:
 
 .. autoclass:: qq.ext.commands.ColourConverter
-    :members:
-
-.. autoclass:: qq.ext.commands.GuildStickerConverter
     :members:
 
 .. autoclass:: qq.ext.commands.clean_content
@@ -490,9 +484,6 @@ Context
 .. autoexception:: qq.ext.commands.ChannelNotReadable
     :members:
 
-.. autoexception:: qq.ext.commands.ThreadNotFound
-    :members:
-
 .. autoexception:: qq.ext.commands.BadColourArgument
     :members:
 
@@ -500,15 +491,6 @@ Context
     :members:
 
 .. autoexception:: qq.ext.commands.BadInviteArgument
-    :members:
-
-.. autoexception:: qq.ext.commands.EmojiNotFound
-    :members:
-
-.. autoexception:: qq.ext.commands.PartialEmojiConversionFailure
-    :members:
-
-.. autoexception:: qq.ext.commands.GuildStickerNotFound
     :members:
 
 .. autoexception:: qq.ext.commands.BadBoolArgument
@@ -530,9 +512,6 @@ Context
     :members:
 
 .. autoexception:: qq.ext.commands.BotMissingAnyRole
-    :members:
-
-.. autoexception:: qq.ext.commands.NSFWChannelRequired
     :members:
 
 .. autoexception:: qq.ext.commands.FlagError

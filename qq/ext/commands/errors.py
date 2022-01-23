@@ -87,6 +87,7 @@ __all__ = (
     'MissingFlagArgument',
     'TooManyFlags',
     'MissingRequiredFlag',
+    'InvalidSetupArguments'
 )
 
 

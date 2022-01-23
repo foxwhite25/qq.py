@@ -40,6 +40,7 @@ __all__ = (
     'CategoryChannel',
     'ThreadChannel',
     'PartialMessageable',
+    'DMChannel'
 )
 
 from .utils import MISSING
