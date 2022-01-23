@@ -312,7 +312,7 @@ class Intents(BaseFlags):
 
         这对应于以下事件：
 
-        - :func:`on_message-audit`
+        - :func:`on_message_audit`
         """
         return 1 << 27
 
