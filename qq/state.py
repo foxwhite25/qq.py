@@ -298,7 +298,6 @@ class ConnectionState:
         # return self._chunk_guilds and not guild.chunked and not guild.large
 
     def _get_guild_channel(self, data: MessagePayload) -> Tuple[Union[Channel], Optional[Guild]]:
-        direct = True if 'direct_message' in data else False
         channel_id = int(data['channel_id'])
         if 'direct_message' not in data:
             guild = self._get_guild(int(data['guild_id']))
