@@ -10,7 +10,7 @@
 
 这些`intents` 参数会被传递给 :class:`Client` 或其子类 (:class:`AutoShardedClient`, :class:`~.AutoShardedBot`, :class:`~.Bot`) 的构造函。
 
-如果未传递意图，则库默认启用除需要申请的 Intent 之外的每个 Intent，目前是除了 :attr:`Intents.audio` ， :attr:`Intents.direct_messages`，:attr:`Intents.messages`。
+如果未传递意图，则库默认启用除需要申请的 Intent 之外的每个 Intent 。
 
 需要什么Intents？
 --------------------------

@@ -34,7 +34,7 @@
 
     client.run('your token here')
 
-让我们命名这个文件 ``example_bot.py``.确保不要命名它为``qq.py`` ，因为那会和库冲突。
+让我们命名这个文件 ``example_bot.py`` 。确保不要命名它为 ``qq.py`` ，因为那会和库冲突。
 
 这里发生了很多事情，让我们一步一步地引导你完成。
 

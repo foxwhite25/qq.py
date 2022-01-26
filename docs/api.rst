@@ -703,7 +703,7 @@ MessageAudit
 
 .. attributetable:: MessageAudit
 
-.. autoclass:: Message()
+.. autoclass:: MessageAudit()
     :members:
 
 Guild

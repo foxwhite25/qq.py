@@ -820,7 +820,7 @@ class HelpCommand:
 class DefaultHelpCommand(HelpCommand):
     """默认帮助命令的执行。
 
-    这继承自:class:`HelpCommand`。
+    这继承自 :class:`HelpCommand` 。
 
     它使用以下属性对其进行了扩展。
 

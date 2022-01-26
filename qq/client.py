@@ -331,6 +331,35 @@ class Client:
         return self._connection.get_user(id)
 
     async def fetch_guild(self, guild_id: int) -> Optional[Guild]:
+        """|coro|
+
+        从 ID 中检索 :class:`.Guild` 。
+
+        .. note::
+
+            使用它，你将 **不会** 收到 :attr:`.Guild.channels` 、 :attr:`.Guild.members` 。
+
+        .. note::
+
+            此方法是 API 调用。对于一般用法，请考虑 :meth:`get_guild` 。
+
+        Parameters
+        -----------
+        guild_id: :class:`int`
+            要从中获取的频道 ID。
+
+        Raises
+        ------
+        :exc:`.Forbidden`
+            你无权访问频道。
+        :exc:`.HTTPException`
+            获得频道失败。
+
+        Returns
+        --------
+        :class:`.Guild`
+            来自ID的频道。
+        """
         data = await self.http.get_guild(guild_id)
         return Guild(data=data, state=self._connection)
 
@@ -733,4 +762,5 @@ class Client:
 
         data = await state.http.start_private_message(user.id, guild.id)
         return state.add_dm_channel(data, user)
+
 

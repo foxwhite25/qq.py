@@ -208,9 +208,9 @@ class HTTPClient:
                             return data
 
                         # we've received a 500, 502, or 504, unconditional retry
-                        if response.status in {500, 502, 504}:
-                            await asyncio.sleep(1 + tries * 2)
-                            continue
+                        # if response.status in {500, 502, 504}:
+                        #     await asyncio.sleep(1 + tries * 2)
+                        #     continue
 
                         # the usual error cases
                         if response.status == 403:
