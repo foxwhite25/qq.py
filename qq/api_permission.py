@@ -41,11 +41,11 @@ class Permission:
     Attributes
     ----------
     path: :class:`str`
-        API 接口名，例如 /guilds/{guild_id}/members/{user_id}
+        API 接口名，例如 ``/guilds/{guild_id}/members/{user_id}``
     method: :class:`str`
-        请求方法，例如 GET
+        请求方法，例如 ``GET``
     desc: :class:`str`
-        API 接口名称，例如 获取频道信
+        API 接口名称，例如 ``获取频道信``
     """
     __slots__ = (
         'path',
@@ -69,10 +69,12 @@ class Permission:
 
     @property
     def enabled(self):
+        """:class:`bool`: 是否已经启用。"""
         return True if self._auth_status == 1 else False
 
     @property
     def disabled(self):
+        """:class:`bool`: 是否已经禁用。"""
         return True if self._auth_status != 1 else False
 
     def demand(self, channel: TextChannel, desc=None) -> Coroutine:
