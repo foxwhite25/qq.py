@@ -180,17 +180,11 @@ class Guild(Hashable):
         # I know it's jank to put a sync requests here,
         # but QQ just does not give all the info about guilds unless you requests it
         channels = asyncio.run(self._state.http.get_guild_channels(self.id))
-        try:
-            members = asyncio.run(self._state.http.get_members(self.id, 500))
-            for mdata in members:
-                member = Member(data=mdata, guild=self, state=self._state)
-                self._add_member(member)
-        except HTTPException:
-            result = asyncio.run(self._state.http.get_member(self.id, self._state.user.id))
+        result = asyncio.run(self._state.http.get_member(self.id, self._state.user.id))
 
-            member = Member(data=result,
-                            guild=self, state=self._state)
-            self._add_member(member)
+        member = Member(data=result,
+                        guild=self, state=self._state)
+        self._add_member(member)
 
         try:
 
