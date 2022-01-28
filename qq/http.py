@@ -24,6 +24,7 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 import datetime
+import json
 import logging
 import sys
 import weakref
@@ -45,6 +46,11 @@ from .types.embed import Ark as ArkPayload, Embed as EmbedPayload
 from .utils import MISSING
 from .types.channel import Channel as ChannelPayload
 from .types.role import Role as RolePayload
+from .types.permission import (
+    Permission as PermissionPayload,
+    PermissionDemand as PermissionDemandPayload,
+    PermissionDemandIdentify as PermissionDemandIdentifyPayload
+)
 
 T = TypeVar('T')
 BE = TypeVar('BE', bound=BaseException)
@@ -214,13 +220,13 @@ class HTTPClient:
 
                         # the usual error cases
                         if response.status == 403:
-                            raise Forbidden(response, data)
+                            raise Forbidden(response, data, route=route)
                         elif response.status == 404:
-                            raise NotFound(response, data)
+                            raise NotFound(response, data, route=route)
                         elif response.status >= 500:
-                            raise QQServerError(response, data)
+                            raise QQServerError(response, data, route=route)
                         else:
-                            raise HTTPException(response, data)
+                            raise HTTPException(response, data, route=route)
 
                     # This is handling exceptions from the request
                 except OSError as e:
@@ -618,3 +624,23 @@ class HTTPClient:
             params['around'] = datetime.datetime.timestamp(around)
 
         return self.request(Route('GET', '/channels/{channel_id}/messages', channel_id=channel_id), params=params)
+
+    def get_permission(self, guild_id: int) -> Response[List[PermissionPayload]]:
+        return self.request(Route('GET', '/guilds/{guild_id}/api_permission', guild_id=guild_id))
+
+    def demand_permission(
+            self,
+            guild_id: int,
+            channel_id: int,
+            desc: str,
+            path: str,
+            method: str
+    ) -> Response[PermissionDemandPayload]:
+
+        payload: Dict[str, Any] = {
+            "channel_id": channel_id,
+            "api_identify": {"path": path, "method": method},
+            "desc": desc
+        }
+
+        return self.request(Route('POST', '/guilds/{guild_id}/api_permission/demand', guild_id=guild_id), json=payload)

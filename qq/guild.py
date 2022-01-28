@@ -36,6 +36,7 @@ from typing import (
 )
 
 from . import utils, abc
+from .api_permission import Permission
 from .role import Role
 from .member import Member
 from .error import InvalidData, HTTPException
@@ -118,6 +119,7 @@ class Guild(Hashable):
         '_roles',
         '_state',
         '_large',
+        '_permission',
         'unavailable'
     )
 
@@ -148,6 +150,7 @@ class Guild(Hashable):
         self.joined_at = guild.get('joined_at')
         self.unavailable: bool = guild.get('unavailable', False)
         self._roles: Dict[int, Role] = {}
+        self._permission: List[Permission] = []
         state = self._state  # speed up attribute access
         self._large: Optional[bool] = None if self._member_count is None else self._member_count >= 250
         for r in guild.get('roles', []):
@@ -188,6 +191,17 @@ class Guild(Hashable):
             member = Member(data=result,
                             guild=self, state=self._state)
             self._add_member(member)
+
+        try:
+
+            permissions = asyncio.run(self._state.http.get_permission(self.id))
+            for permission in permissions['apis']:
+                permission = Permission(data=permission, state=self._state, guild=self)
+                self._permission.append(permission)
+
+        except Exception as e:
+            print(e)
+
         try:
             roles = asyncio.run(self._state.http.get_roles(self.id))
             if 'roles' in roles:
@@ -200,6 +214,30 @@ class Guild(Hashable):
             factory, ch_type = _guild_channel_factory(c['type'])
             if factory:
                 self._add_channel(factory(guild=self, data=c, state=self._state))  # type: ignore
+
+    @property
+    def permissions(self) -> List[Permission]:
+        """List[:class:`qq.Permission`]: 属于该频道的权限列表。"""
+        return self._permission
+
+    def get_permission(self, path: str, method: str) -> Optional[Permission]:
+        """返回具有给定 path 和 method 的权限。
+
+        Parameters
+        -----------
+        path: :class:`str`
+            要搜索的 path。
+        method: :class:`str`
+            要搜索的 method。
+
+        Returns
+        --------
+        Optional[:class:`Permission`]
+            Role 或如果未找到，则  ``None`` 。
+        """
+        for perm in self._permission:
+            if perm.path == path and perm.method == method:
+                return perm
 
     @property
     def channels(self) -> List[GuildChannel]:

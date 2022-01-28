@@ -1,9 +1,3 @@
-__path__ = __import__('pkgutil').extend_path(__path__, __name__)
-__title__ = 'qq'
-__author__ = 'Foxwhite'
-__license__ = 'MIT'
-__version__ = '1.1.5'
-
 #  The MIT License (MIT)
 #  Copyright (c) 2021-present foxwhite25
 #
@@ -24,39 +18,25 @@ __version__ = '1.1.5'
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 #  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 #  DEALINGS IN THE SOFTWARE.
-
-import logging
-from typing import NamedTuple, Literal
-from .client import *
-from .user import *
-from .channel import *
-from .guild import *
-from .flags import *
-from .member import *
-from .message import *
-from .asset import *
-from .role import *
-from .file import *
-from .colour import *
-from .object import *
-from . import utils, abc
-from .enum import *
-from .shard import *
-from .error import *
-from .embeds import *
-from .mention import *
-from .partial_emoji import *
-from .raw_models import *
-from .permissions import *
-from .api_permission import *
+from __future__ import annotations
+from typing import TypedDict
 
 
-class VersionInfo(NamedTuple):
-    major: int
-    minor: int
-    micro: int
-    releaselevel: Literal["alpha", "beta", "candidate", "final"]
-    serial: int
+class Permission(TypedDict, total=False):
+    path: str
+    method: str
+    desc: str
+    auth_status: int
 
 
-version_info: VersionInfo = VersionInfo(major=1, minor=1, micro=5, releaselevel='beta', serial=0)
+class PermissionDemand(TypedDict, total=False):
+    guild_id: str
+    channel_id: str
+    api_identify: PermissionDemandIdentify
+    title: str
+    desc: str
+
+
+class PermissionDemandIdentify(TypedDict, total=False):
+    path: str
+    method: str

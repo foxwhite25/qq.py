@@ -714,6 +714,14 @@ Guild
 .. autoclass:: Guild()
     :members:
 
+Permission
+~~~~~~
+
+.. attributetable:: Permission
+
+.. autoclass:: Permission()
+    :members:
+
 Member
 ~~~~~~
 

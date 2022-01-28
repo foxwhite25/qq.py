@@ -23,6 +23,7 @@ from __future__ import annotations
 from typing import Dict, List, Optional, TYPE_CHECKING, Any, Tuple, Union
 
 if TYPE_CHECKING:
+    from .http import Route
     from aiohttp import ClientResponse, ClientWebSocketResponse
 
     try:
@@ -108,9 +109,17 @@ class HTTPException(QQException):
         HTTP 请求的状态码。
     code: :class:`int`
         失败的 QQ 特定错误代码。
+    route: Optional[:class:`qq.Route`]
+        HTTP 请求的路径
     """
 
-    def __init__(self, response: _ResponseType, message: Optional[Union[str, Dict[str, Any]]]):
+    def __init__(
+            self,
+            response: _ResponseType,
+            message: Optional[Union[str, Dict[str, Any]]],
+            route: Optional[Route] = None
+    ):
+        self.route = route
         self.response: _ResponseType = response
         self.status: int = response.status  # type: ignore
         self.code: int
