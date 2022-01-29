@@ -244,10 +244,14 @@ class GuildIterator(_AsyncIterator['Guild']):
 
 
 class MemberIterator(_AsyncIterator['Member']):
-    def __init__(self, guild, limit=1000):
+    def __init__(self, guild, limit=1000, after=None):
+
+        if isinstance(after, int):
+            after = Object(id=after)
 
         self.guild = guild
         self.limit = limit
+        self.after = after or 0
 
         self.state = self.guild._state
         self.get_members = self.state.http.get_members
@@ -264,8 +268,8 @@ class MemberIterator(_AsyncIterator['Member']):
 
     def _get_retrieve(self):
         l = self.limit
-        if l is None or l > 1000:
-            r = 1000
+        if l is None or l > 400:
+            r = 400
         else:
             r = l
         self.retrieve = r
@@ -273,13 +277,11 @@ class MemberIterator(_AsyncIterator['Member']):
 
     async def fill_members(self):
         if self._get_retrieve():
-            data = await self.get_members(self.guild.id, self.retrieve)
+            after = self.after.id if self.after else None
+            data = await self.get_members(self.guild.id, self.retrieve, after)
             if not data:
                 # no data, terminate
                 return
-
-            if len(data) < 1000:
-                self.limit = 0  # terminate loop
 
             self.after = Object(id=int(data[-1]['user']['id']))
 

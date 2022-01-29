@@ -729,7 +729,7 @@ class Guild(Hashable):
 
         return [convert(d) for d in data]
 
-    def fetch_members(self, *, limit: int = 1000) -> MemberIterator:
+    def fetch_members(self, *, limit: int = 1000, after: int = 0) -> MemberIterator:
         """检索一个 :class:`.AsyncIterator` 来接收频道的成员。为了使用它，必须启用:meth:`Intents.members`。
 
         .. note::
@@ -738,7 +738,9 @@ class Guild(Hashable):
         Parameters
         ----------
         limit: Optional[:class:`int`]
-            要检索的成员数。默认为 1000。传递 ``无`` 以获取所有成员。请注意，这可能很慢。
+            要检索的成员数。默认为 1000。传递 ``None`` 以获取所有成员。请注意，这可能很慢。
+        after: Optional[Union[:class:`qq.Member`, :class:`int`]]
+            检索这个成员 id 之后的成员
 
         Raises
         ------
@@ -769,7 +771,7 @@ class Guild(Hashable):
         if not self._state._intents.members:
             raise ClientException('Intents.members must be enabled to use this.')
 
-        return MemberIterator(self, limit=limit)
+        return MemberIterator(self, limit=limit, after=after)
 
     async def fetch_member(self, member_id: int, /) -> Member:
         """|coro|
