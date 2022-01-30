@@ -502,6 +502,7 @@ class HTTPClient:
             embed: Optional[Union[Embed, EmbedPayload]],
             *,
             tts: bool = False,
+            message_id: Optional[message.MessageReference],
             message_reference: Optional[message.MessageReference] = None,
             direct=False
     ) -> Response[message.Message]:
@@ -509,14 +510,17 @@ class HTTPClient:
             Route('POST', '/dms/{guild_id}/messages', guild_id=channel_id)
         payload = {}
 
+        if message_reference:
+            payload['message_reference'] = message_reference
+
         if content:
             payload['content'] = content
 
         if tts:
             payload['tts'] = True
 
-        if message_reference:
-            payload['msg_id'] = message_reference['message_id']
+        if message_id:
+            payload['msg_id'] = message_id['message_id']
 
         if image_url:
             payload['image'] = image_url

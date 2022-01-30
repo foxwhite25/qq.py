@@ -111,6 +111,7 @@ class Messageable:
             ark: Ark = ...,
             delete_after: float = ...,
             image: str = ...,
+            msg_id: Union[Message, MessageReference, PartialMessage]=...,
             reference: Union[Message, MessageReference, PartialMessage] = ...,
             mention_author: Member = ...,
             direct=...,
@@ -122,6 +123,7 @@ class Messageable:
             content=None,
             *,
             image=None,
+            msg_id=None,
             reference=None,
             mention_author=None,
             ark=None,
@@ -144,6 +146,13 @@ class Messageable:
             要发送的 Ark 类
         embed: Optional[:class:`qq.Embed`]
             要发送的 Embed 类
+        msg_id: Union[:class:`~qq.Message`, :class:`~qq.MessageReference`, :class:`~qq.PartialMessage`]
+            被动消息使用的消息
+
+            .. note::
+
+                如果不使用 ``msg_id`` ，系统将判断为主动消息，主动消息默认每天往每个频道可推送的消息数是 20 条，超过会被限制。
+
         reference: Union[:class:`~qq.Message`, :class:`~qq.MessageReference`, :class:`~qq.PartialMessage`]
             对你正在回复的 :class:`~qq.Message` 的引用，可以使用 :meth:`~qq.Message.to_reference` 创建或直接作为 :class:`~qq.Message` 传递。
         mention_author: Optional[:class:`qq.Member`]
@@ -174,18 +183,26 @@ class Messageable:
         if mention_author is not None:
             content = mention_author.mention + content
 
+        if msg_id is not None:
+            try:
+                msg_id = reference.to_message_reference_dict()
+            except AttributeError:
+                raise InvalidArgument(
+                    'msg_id 参数必须是 Message、 MessageReference 或 PartialMessage') from None
+
         if reference is not None:
             try:
                 reference = reference.to_message_reference_dict()
             except AttributeError:
                 raise InvalidArgument(
-                    '参考参数必须是 Message、 MessageReference 或 PartialMessage') from None
+                    'reference 参数必须是 Message、 MessageReference 或 PartialMessage') from None
 
         data = await state.http.send_message(
             channel.id,
             content,
             ark=ark,
             message_reference=reference,
+            message_id=msg_id,
             image_url=image,
             embed=embed,
             direct=direct

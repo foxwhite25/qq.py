@@ -229,7 +229,6 @@ class Member(Messageable, _UserTag):
         # if it isn't in the payload then it didn't change
         try:
             self.nick = data['nick']
-            print(self.nick)
         except KeyError:
             pass
 

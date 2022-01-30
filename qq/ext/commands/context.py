@@ -278,7 +278,6 @@ class Context(qq.abc.Messageable, Generic[BotT]):
         """Union[:class:`.Member`, :class:`.ClientUser`]:
         类似于 :attr:`.Guild.me` ，但是它可以在私人消息 context 中返回 :class:`.ClientUser`。
         """
-        print(self.guild.me, self.guild, self.bot.user)
         # bot.user will never be None at this point.
         return self.guild.me if self.guild is not None else self.bot.user  # type: ignore
 
