@@ -185,7 +185,7 @@ class Messageable:
 
         if msg_id is not None:
             try:
-                msg_id = reference.to_message_reference_dict()
+                msg_id = msg_id.to_message_reference_dict()
             except AttributeError:
                 raise InvalidArgument(
                     'msg_id 参数必须是 Message、 MessageReference 或 PartialMessage') from None
@@ -208,7 +208,7 @@ class Messageable:
             direct=direct
         )
 
-        if reference is None:
+        if msg_id is None:
             return data['data']['message_audit']['audit_id']
 
         ret = state.create_message(channel=channel, data=data, direct=direct)

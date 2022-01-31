@@ -380,7 +380,7 @@ class HTTPClient:
             'parent_id',
             'position',
         )
-        payload.update({k: v for k, v in options.items() if k in valid_keys and v is not None})
+        payload.update({k: str(v) for k, v in options.items() if k in valid_keys and v is not None})
 
         return self.request(Route('POST', '/guilds/{guild_id}/channels', guild_id=guild_id), json=payload,
                             reason=reason)
@@ -514,7 +514,7 @@ class HTTPClient:
             payload['message_reference'] = message_reference
 
         if content:
-            payload['content'] = content
+            payload['content'] = content.replace(".", "\ufeff.")
 
         if tts:
             payload['tts'] = True

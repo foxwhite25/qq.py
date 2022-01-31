@@ -803,7 +803,7 @@ class CategoryChannel(abc.GuildChannel, Hashable):
     def _update(self, guild: Guild, data: CategoryChannelPayload) -> None:
         self.guild: Guild = guild
         self.name: str = data['name']
-        self.category_id: Optional[int] = int(data.get('parent_id'))
+        self.category_id: Optional[int] = int(data.get('parent_id', 0))
         self.position: int = data['position']
         self.private_type: int = data.get('private_type')
 

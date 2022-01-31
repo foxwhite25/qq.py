@@ -36,6 +36,7 @@ from typing import (
 )
 
 from . import utils, abc
+from .enum import ChannelType
 from .api_permission import Permission
 from .role import Role
 from .member import Member
@@ -57,7 +58,6 @@ __all__ = (
 )
 
 if TYPE_CHECKING:
-    from .enum import ChannelType
     from .state import ConnectionState
     from .types.guild import Guild as GuildPayload
     from .channel import TextChannel, CategoryChannel, AppChannel, LiveChannel, ThreadChannel
