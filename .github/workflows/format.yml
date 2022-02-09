@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - uses: akaihola/darker@github-action-v1.4.0
+      - uses: akaihola/darker@v1.4.0
         with:
           options: "--check --verbose"
           src: "./qq"
