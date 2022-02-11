@@ -391,15 +391,26 @@ class Member(Messageable, _UserTag):
     def get_role(self, role_id: int, /) -> Optional[Role]:
         return self.guild.get_role(role_id) if self._roles.has(role_id) else None
 
+    async def unmute(
+            self,
+            *,
+            reason: Optional[str] = None,
+    ) -> None:
+        """|coro|
+        禁言这个用户，相当于 :meth:`Guild.unmute_member` 。
+        """
+        await self.guild.unmute_member(self, reason=reason)
+
     async def mute(
             self,
+            duration: Union[datetime.datetime, int] = 10,
             *,
             reason: Optional[str] = None,
     ) -> None:
         """|coro|
         禁言这个用户，相当于 :meth:`Guild.mute_member` 。
         """
-        await self.guild.mute_member(self, reason=reason)
+        await self.guild.mute_member(self, duration=duration, reason=reason)
 
     async def kick(self, *, reason: Optional[str] = None) -> None:
         """|coro|
@@ -408,14 +419,12 @@ class Member(Messageable, _UserTag):
         await self.guild.kick(self, reason=reason)
 
     async def ban(
-        self,
-        *,
-        delete_message_days: Literal[0, 1, 2, 3, 4, 5, 6, 7] = 1,
-        reason: Optional[str] = None,
+            self,
+            *,
+            delete_message_days: Literal[0, 1, 2, 3, 4, 5, 6, 7] = 1,
+            reason: Optional[str] = None,
     ) -> None:
         """|coro|
         封禁这个用户。 与 :meth:`Guild.ban` 相似。
         """
         await self.guild.ban(self, reason=reason, delete_message_days=delete_message_days)
-
-

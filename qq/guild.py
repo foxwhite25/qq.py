@@ -993,6 +993,32 @@ class Guild(Hashable):
         """
         await self._state.http.kick(user.id, self.id, add_blacklist=True, reason=reason)
 
+    async def unmute_member(
+            self,
+            user: Member,
+            *,
+            reason: Optional[str] = None,
+    ):
+        """|coro|
+        频道指定成员解除禁言。
+
+        Parameters
+        -----------
+        user: :class:`qq.Member`
+            这个频道解除禁言的用户。
+        reason: Optional[:class:`str`]
+            解除禁言的原因。
+
+        Raises
+        -------
+        Forbidden
+            你没有适当的权限。
+        HTTPException
+            解除禁言失败。
+        """
+
+        await self.mute_member(user, duration=0, reason=reason)
+
     async def mute_member(
             self,
             user: Member,
