@@ -13,4 +13,4 @@ jobs:
         with:
           options: "--check --verbose"
           src: "./qq"
-          version: "1.3.2"
+          version: "1.4.0"
