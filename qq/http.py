@@ -676,7 +676,7 @@ class HTTPClient:
 
     def channel_pin_message(self, channel_id: int, message_id: str, reason: Optional[str] = None):
         r = Route(
-            'PUT',
+            'POST',
             '/channels/{channel_id}/announces',
             channel_id=channel_id,
         )

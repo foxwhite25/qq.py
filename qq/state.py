@@ -275,6 +275,7 @@ class ConnectionState:
 
     def _get_guild(self, guild_id: Optional[int]) -> Optional[Guild]:
         # the keys of self._guilds are ints
+        guild_id = int(guild_id)
         return self._guilds.get(guild_id)  # type: ignore
 
     def _add_guild(self, guild: Guild) -> None:
@@ -498,6 +499,8 @@ class ConnectionState:
     def parse_channel_update(self, data) -> None:
         channel_id = int(data['id'])
         guild_id = data.get('guild_id')
+        if guild_id.isnumeric():
+            guild_id = int(guild_id)
         guild = self._get_guild(guild_id)
         if guild is not None:
             channel = guild.get_channel(channel_id)
