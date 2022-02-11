@@ -400,3 +400,22 @@ class Member(Messageable, _UserTag):
         禁言这个用户，相当于 :meth:`Guild.mute_member` 。
         """
         await self.guild.mute_member(self, reason=reason)
+
+    async def kick(self, *, reason: Optional[str] = None) -> None:
+        """|coro|
+        踢出这个成员。 与 :meth:`Guild.kick` 相似。
+        """
+        await self.guild.kick(self, reason=reason)
+
+    async def ban(
+        self,
+        *,
+        delete_message_days: Literal[0, 1, 2, 3, 4, 5, 6, 7] = 1,
+        reason: Optional[str] = None,
+    ) -> None:
+        """|coro|
+        封禁这个用户。 与 :meth:`Guild.ban` 相似。
+        """
+        await self.guild.ban(self, reason=reason, delete_message_days=delete_message_days)
+
+

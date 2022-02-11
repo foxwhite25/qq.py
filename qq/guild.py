@@ -259,7 +259,7 @@ class Guild(Hashable):
     @property
     def large(self) -> bool:
         """:class:`bool`: 指示频道是否是 ``大型`` 频道。
-        大型公会被定义为拥有超过 ``large_threshold`` 计数的成员，本库的最大值设置为 250。
+        大型频道被定义为拥有超过 ``large_threshold`` 计数的成员，本库的最大值设置为 250。
         """
         if self._large is None:
             try:
@@ -946,7 +946,7 @@ class Guild(Hashable):
 
     async def kick(self, user: Member, *, reason: Optional[str] = None) -> None:
         """|coro|
-        将一个用户踢出公会。
+        将一个用户踢出频道。
 
         Parameters
         -----------
@@ -962,7 +962,36 @@ class Guild(Hashable):
         HTTPException
             踢出失败。
         """
-        await self._state.http.kick(user.id, self.id, reason=reason)
+        await self._state.http.kick(user.id, self.id, add_blacklist=False, reason=reason)
+
+    async def ban(
+            self,
+            user: Member,
+            *,
+            reason: Optional[str] = None,
+            delete_message_days: Literal[0, 1, 2, 3, 4, 5, 6, 7] = 1,
+    ) -> None:
+        """|coro|
+        封禁频道用户。
+
+        Parameters
+        -----------
+        user: :class:`qq.Member`
+            要封禁的用户
+        delete_message_days: :class:`int`
+            要删除的消息的天数
+            在频道中。 最小值为 0，最大值为 7。
+        reason: Optional[:class:`str`]
+            该用户被封禁的原因
+
+        Raises
+        -------
+        Forbidden
+            你没有权限封禁用户。
+        HTTPException
+            封禁失败。
+        """
+        await self._state.http.kick(user.id, self.id, add_blacklist=True, reason=reason)
 
     async def mute_member(
             self,
@@ -973,11 +1002,10 @@ class Guild(Hashable):
     ) -> None:
         """|coro|
         频道指定成员禁言。
-        需要使用的token对应的用户(或机器人)具备管理员权限。
 
         Parameters
         -----------
-        user: :class:`qq.User`
+        user: :class:`qq.Member`
             这个频道禁言的用户。
         duration: Union[:class:`datetime.datetime`, :class:`int`]
             禁言的时间，可以是结束时间的一个 :class:`datetime.datetime` ， 也可以是持续的秒数。
@@ -1036,4 +1064,3 @@ class Guild(Hashable):
 
         .. versionadded:: 1.1.0"""
         return [m for m in self._members.values() if not m.bot]
-

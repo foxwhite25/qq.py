@@ -561,13 +561,16 @@ class HTTPClient:
         r = Route('GET', '/channels/{channel_id}', channel_id=channel_id)
         return self.request(r)
 
-    def kick(self, user_id: int, guild_id: int, reason: Optional[str] = None) -> Response[None]:
+    def kick(self, user_id: int, guild_id: int, add_blacklist: bool, reason: Optional[str] = None) -> Response[None]:
         r = Route('DELETE', '/guilds/{guild_id}/members/{user_id}', guild_id=guild_id, user_id=user_id)
+        params: Dict[str, Any] = {
+            'add_blacklist': add_blacklist,
+        }
         if reason:
             # thanks aiohttp
             r.url = f'{r.url}?reason={_uriquote(reason)}'
 
-        return self.request(r)
+        return self.request(r, json=params)
 
     def mute_member(
             self, user_id: int, guild_id: int, duration: Union[datetime.datetime, int], reason: str
