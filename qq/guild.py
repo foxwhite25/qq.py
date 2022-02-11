@@ -1064,3 +1064,23 @@ class Guild(Hashable):
 
         .. versionadded:: 1.1.0"""
         return [m for m in self._members.values() if not m.bot]
+
+    async def unpin(self, reason: Optional[str] = None):
+        """
+        删除所有此频道的全局公告。
+
+        Parameters
+        -----------
+        reason: Optional[:class:`str`]
+            删除公告的原因。
+
+        Raises
+        -------
+        Forbidden
+            你没有足够权限删除公告。.
+        NotFound
+            消息或频道无法被找到，可能被删除了.
+        HTTPException
+            删除公告失败。
+        """
+        await self._state.http.global_unpin_message(self.id, 'all', reason=reason)

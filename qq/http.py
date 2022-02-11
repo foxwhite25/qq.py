@@ -646,9 +646,51 @@ class HTTPClient:
     ) -> Response[PermissionDemandPayload]:
 
         payload: Dict[str, Any] = {
-            "channel_id": channel_id,
+            "channel_id": str(channel_id),
             "api_identify": {"path": path, "method": method},
             "desc": desc
         }
 
         return self.request(Route('POST', '/guilds/{guild_id}/api_permission/demand', guild_id=guild_id), json=payload)
+
+    def global_pin_message(self, guild_id: int, channel_id: int, message_id: str, reason: Optional[str] = None):
+        r = Route(
+            'POST',
+            '/guilds/{guild_id}/announces',
+            guild_id=guild_id,
+        )
+        payload: Dict[str, Any] = {
+            "channel_id": str(channel_id),
+            "message_id": message_id
+        }
+        return self.request(r, json=payload, reason=reason)
+
+    def global_unpin_message(self, guild_id: int, message_id: str, reason: Optional[str] = None):
+        r = Route(
+            'DELETE',
+            '/guilds/{guild_id}/announces/{message_id}',
+            guild_id=guild_id,
+            message_id=message_id
+        )
+        return self.request(r, reason=reason)
+
+    def channel_pin_message(self, channel_id: int, message_id: str, reason: Optional[str] = None):
+        r = Route(
+            'PUT',
+            '/channels/{channel_id}/announces',
+            channel_id=channel_id,
+        )
+        payload: Dict[str, Any] = {
+            "message_id": message_id
+        }
+        return self.request(r, json=payload, reason=reason)
+
+    def channel_unpin_message(self, channel_id: int, message_id: str, reason: Optional[str] = None):
+        r = Route(
+            'DELETE',
+            '/channels/{channel_id}/announces/{message_id}',
+            channel_id=channel_id,
+            message_id=message_id
+        )
+        return self.request(r, reason=reason)
+

@@ -370,6 +370,26 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
 
         return ret
 
+    async def unpin(self, reason: Optional[str] = None):
+        """
+        删除所有此子频道的公告。
+
+        Parameters
+        -----------
+        reason: Optional[:class:`str`]
+            删除公告的原因。
+
+        Raises
+        -------
+        Forbidden
+            你没有足够权限删除公告。.
+        NotFound
+            消息或频道无法被找到，可能被删除了.
+        HTTPException
+            删除公告失败。
+        """
+        await self._state.http.channel_unpin_message(self.id, 'all', reason=reason)
+
 
 class VoiceChannel(abc.GuildChannel, Hashable):
     """表示 QQ 语音子频道。

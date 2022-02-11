@@ -920,6 +920,90 @@ class Message(Hashable):
 
         return data
 
+    async def global_pin(self, *, reason: Optional[str] = None) -> None:
+        """|coro|
+        把这条消息设为全局公告。
+
+        Parameters
+        -----------
+        reason: Optional[:class:`str`]
+            设为公告的原因。
+
+        Raises
+        -------
+        Forbidden
+            你没有足够权限设置公告。
+        NotFound
+            消息或频道无法被找到，可能被删除了
+        HTTPException
+            设置公告失败.
+        """
+
+        await self._state.http.global_pin_message(self.guild.id, self.channel.id, self.id, reason=reason)
+
+    async def global_unpin(self, *, reason: Optional[str] = None) -> None:
+        """|coro|
+        删除这条消息的全局公告。
+
+        Parameters
+        -----------
+        reason: Optional[:class:`str`]
+            删除公告的原因。
+
+        Raises
+        -------
+        Forbidden
+            你没有足够权限删除公告。.
+        NotFound
+            消息或频道无法被找到，可能被删除了.
+        HTTPException
+            删除公告失败。
+        """
+
+        await self._state.http.global_unpin_message(self.guild.id, self.channel.id, self.id, reason=reason)
+
+    async def channel_pin(self, *, reason: Optional[str] = None) -> None:
+        """|coro|
+        把这条消息设为子频道公告。
+
+        Parameters
+        -----------
+        reason: Optional[:class:`str`]
+            设为公告的原因。
+
+        Raises
+        -------
+        Forbidden
+            你没有足够权限设置公告。
+        NotFound
+            消息或频道无法被找到，可能被删除了
+        HTTPException
+            设置公告失败.
+        """
+
+        await self._state.http.channel_pin_message(self.channel.id, self.id, reason=reason)
+
+    async def channel_unpin(self, *, reason: Optional[str] = None) -> None:
+        """|coro|
+        删除这条消息的子频道公告。
+
+        Parameters
+        -----------
+        reason: Optional[:class:`str`]
+            删除公告的原因。
+
+        Raises
+        -------
+        Forbidden
+            你没有足够权限删除公告。.
+        NotFound
+            消息或频道无法被找到，可能被删除了.
+        HTTPException
+            删除公告失败。
+        """
+
+        await self._state.http.channel_unpin_message(self.channel.id, self.id, reason=reason)
+
 
 class PartialMessage(Hashable):
     """当仅存在消息和通道 ID 时，只使用部分消息以帮助处理消息。
