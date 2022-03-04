@@ -21,7 +21,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, TYPE_CHECKING, Type, TypeVar, Union
+from typing import Any, Dict, Optional, TYPE_CHECKING, Type, TypeVar, Union, Tuple
 import re
 
 from .asset import AssetMixin
@@ -177,10 +177,10 @@ class PartialEmoji(_EmojiTag, AssetMixin):
         """:class:`bool`: 检查这是否是 Unicode 表情符号。"""
         return not self.custom
 
-    def _as_reaction(self) -> str:
+    def _as_reaction(self) -> Tuple[bool, int]:
         if self.id is None:
             return self.name
-        return f'{self.name}:{self.id}'
+        return self.custom, self.id
 
     async def read(self) -> bytes:
         if self.is_unicode_emoji():

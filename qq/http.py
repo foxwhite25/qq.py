@@ -697,3 +697,29 @@ class HTTPClient:
             message_id=message_id
         )
         return self.request(r, reason=reason)
+
+    def add_reaction(
+            self, channel_id: int, message_id: str, custom: bool, id: int
+    ) -> Response[None]:
+        r = Route(
+            'PUT',
+            '/channels/{channel_id}/messages/{message_id}/reactions/{type}/{id}',
+            channel_id=channel_id,
+            message_id=message_id,
+            type=1 if custom else 2,
+            id=id
+        )
+        return self.request(r)
+
+    def remove_reaction(
+            self, channel_id: int, message_id: str, custom: bool, id: int
+    ) -> Response[None]:
+        r = Route(
+            'DELETE',
+            '/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/{member_id}',
+            channel_id=channel_id,
+            message_id=message_id,
+            type=1 if custom else 2,
+            id=id
+        )
+        return self.request(r)

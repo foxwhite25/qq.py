@@ -40,7 +40,7 @@ from typing import Union, Optional, TYPE_CHECKING, ClassVar, Tuple, List, Callab
 
 from . import utils
 from .object import Object
-from .error import HTTPException
+from .error import HTTPException, InvalidArgument
 from .file import File
 from .member import Member
 from .mixins import Hashable
@@ -78,6 +78,20 @@ __all__ = (
     'MessageReference',
     'MessageAudit'
 )
+
+
+def convert_emoji_reaction(emoji):
+    if isinstance(emoji, Reaction):
+        emoji = emoji.emoji
+
+    if isinstance(emoji, PartialEmoji):
+        return emoji._as_reaction()
+    if isinstance(emoji, str):
+        # Reactions can be in :name:id format, but not <:name:id>.
+        # No existing emojis have <> in them, so this should be okay.
+        return PartialEmoji.from_str(emoji)._as_reaction()
+
+    raise InvalidArgument(f'emoji 参数必须是 str、Emoji 或 Reaction 而不是 {emoji.__class__.__name__}。')
 
 
 class MessageAudit:
@@ -713,7 +727,7 @@ class Message(Hashable):
 
         if reaction is None:
             # already removed?
-            raise ValueError('Emoji already removed?')
+            raise ValueError('表情符号已被删除？')
 
         # if reaction isn't in the list, we crash. This means discord
         # sent bad data, or we stored improperly
@@ -1003,6 +1017,56 @@ class Message(Hashable):
         """
 
         await self._state.http.channel_unpin_message(self.channel.id, self.id, reason=reason)
+
+    async def add_reaction(self, emoji: EmojiInputType) -> None:
+        """|coro|
+        向消息添加表态。
+        表情符号可能是 unicode 表情符号或自定义 :class:`PartialEmoji` 。
+
+        Parameters
+        ------------
+        emoji: Union[:class:`Reaction`, :class:`PartialEmoji`, :class:`str`]
+            要表态的 emoji。
+
+        Raises
+        --------
+        HTTPException
+            添加 emoji 失败。
+        Forbidden
+            你没有对消息做出反应的适当权限。
+        NotFound
+            找不到你指定的表情符号。
+        InvalidArgument
+            表情符号参数无效。
+        """
+
+        custom, emoji = convert_emoji_reaction(emoji)
+        await self._state.http.add_reaction(self.channel.id, self.id, custom, emoji)
+
+    async def remove_reaction(self, emoji: Union[EmojiInputType, Reaction]) -> None:
+        """|coro|
+        删除自己的表态。
+        表情符号可能是 unicode 表情符号或自定义 :class:`PartialEmoji` 。
+
+        Parameters
+        ------------
+        emoji: Union[:class:`Reaction`, :class:`PartialEmoji`, :class:`str`]
+            要删除表态的 emoji。
+
+        Raises
+        --------
+        HTTPException
+            删除 emoji 失败。
+        Forbidden
+            你没有删除消息表态的适当权限。
+        NotFound
+            找不到你指定的表情符号。
+        InvalidArgument
+            表情符号参数无效。
+        """
+
+        custom, emoji = convert_emoji_reaction(emoji)
+        await self._state.http.remove_reaction(self.channel.id, self.id, custom, emoji)
 
 
 class PartialMessage(Hashable):
