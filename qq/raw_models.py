@@ -82,8 +82,10 @@ class RawReactionActionEvent(_RawReprMixin):
 
     Attributes
     -----------
-    message_id: :class:`int`
-        得到或失去反应的消息 ID。
+    id: :class:`int`
+        得到或失去反应的 ID。
+    type: :class:`int`
+        得到或失去反应的消息类型。 0 是消息，其他均为论坛功能，
     user_id: :class:`int`
         添加反应或移除反应的用户 ID。
     channel_id: :class:`int`
@@ -101,11 +103,12 @@ class RawReactionActionEvent(_RawReprMixin):
         ``REACTION_REMOVE`` 用于反应去除。
     """
 
-    __slots__ = ('message_id', 'user_id', 'channel_id', 'guild_id', 'emoji',
+    __slots__ = ('id','type' ,'user_id', 'channel_id', 'guild_id', 'emoji',
                  'event_type', 'member')
 
     def __init__(self, data: ReactionActionEvent, emoji: PartialEmoji, event_type: str) -> None:
-        self.message_id: int = int(data['target']['id']) if data['target']['type'] == 0 else None
+        self.id: int = int(data['target']['id']) if data['target']['type'] == 0 else None
+        self.type = data['target']['type']
         self.channel_id: int = int(data['channel_id'])
         self.user_id: int = int(data['user_id'])
         self.emoji: PartialEmoji = emoji

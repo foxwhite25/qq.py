@@ -19,13 +19,15 @@
 #  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 #  DEALINGS IN THE SOFTWARE.
 
-from typing import Optional, TypedDict
+from typing import Optional, TypedDict, Literal
 from .user import User
+
+EmojiType = Literal[0, 1]
 
 
 class PartialEmoji(TypedDict):
-    id: Optional[int]
-    name: Optional[str]
+    id: Optional[str]
+    type: EmojiType
 
 
 class Emoji(PartialEmoji, total=False):

@@ -128,16 +128,20 @@ class HTTPClient:
             loop: Optional[asyncio.AbstractEventLoop] = None,
             unsync_clock: bool = True,
     ) -> None:
+        self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop() if loop is None else loop
+        self.connector = connector
+        self.__session: aiohttp.ClientSession = MISSING  # filled in static_login
         self._locks: weakref.WeakValueDictionary = weakref.WeakValueDictionary()
-        user_agent = 'QQ Bot (https://github.com/foxwhite25/qq.py {0}) Python/{1[0]}.{1[1]} aiohttp/{2}'
-        self.user_agent: str = user_agent.format(__version__, sys.version_info, aiohttp.__version__)
-        self.token: Optional[str] = None
-        self.proxy: Optional[str] = proxy
-        self.proxy_auth: Optional[aiohttp.BasicAuth] = proxy_auth
         self._global_over: asyncio.Event = asyncio.Event()
         self._global_over.set()
-        self.__session: aiohttp.ClientSession = MISSING
-        self.connector = connector
+        self.token: Optional[str] = None
+        self.bot_token: bool = False
+        self.proxy: Optional[str] = proxy
+        self.proxy_auth: Optional[aiohttp.BasicAuth] = proxy_auth
+        self.use_clock: bool = not unsync_clock
+
+        user_agent = "QQBot (https://github.com/foxwhite25/qq.py {0}) Python/{1[0]}.{1[1]} aiohttp/{2}"
+        self.user_agent: str = user_agent.format(__version__, sys.version_info, aiohttp.__version__)
 
     async def request(
             self,
@@ -693,4 +697,3 @@ class HTTPClient:
             message_id=message_id
         )
         return self.request(r, reason=reason)
-

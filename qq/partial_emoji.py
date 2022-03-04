@@ -79,29 +79,27 @@ class PartialEmoji(_EmojiTag, AssetMixin):
     -----------
     custom: :class:`bool`
         表情是否是 QQ 自定义表情。
-    id: :class:`str`
+    id: :class:`int`
         自定义表情符号的 ID（如果适用）。
     """
 
     __slots__ = ('animated', 'name', 'id', '_state', 'custom')
 
-    _CUSTOM_EMOJI_RE = re.compile(r'<?(?P<animated>a)?:?(?P<name>[A-Za-z0-9\_]+):(?P<id>[0-9]{13,20})>?')
+    _CUSTOM_EMOJI_RE = re.compile(r'<?emoji:(?P<id>[0-9]{13,20})>?')
 
     if TYPE_CHECKING:
-        id: Optional[str]
+        id: Optional[int]
 
     def __init__(self, *, custom: bool, id: str = None):
         self.custom = custom
-        self.animated = False
-        self.name = 'emoji'
-        self.id = id
+        self.id = int(id)
         self._state: Optional[ConnectionState] = None
 
     @classmethod
     def from_dict(cls: Type[PE], data: Union[PartialEmojiPayload, Dict[str, Any]]) -> PE:
         return cls(
-            id=data.get('id'),
-            custom=True if data.get('type') == 1 else 0,
+            id=int(data.get('id')),
+            custom=True if data.get('type') == 1 else False,
         )
 
     @classmethod
@@ -109,12 +107,10 @@ class PartialEmoji(_EmojiTag, AssetMixin):
         """将表情符号的 QQ 字符串表示形式转换为 :class:`PartialEmoji`。
         接受的格式是：
 
-        - ``a:name:id``
-        - ``<a:name:id>``
-        - ``name:id``
-        - ``<:name:id>``
+        - ``emoji:id``
+        - ``<emoji:id>``
 
-        如果格式不匹配，则假定它是一个 unicode 表情符号。
+        如果格式不匹配，则假定它是一个 unicode 表情符号，取第一个字符作为 emoji。
 
         Parameters
         ------------
@@ -130,8 +126,8 @@ class PartialEmoji(_EmojiTag, AssetMixin):
         if match is not None:
             groups = match.groupdict()
             emoji_id = groups['id']
-            return cls(id=emoji_id, custom=True)
-
+            return cls(id=int(emoji_id), custom=True)
+        value = ord(value[0])
         return cls(id=value, custom=False)
 
     def to_dict(self) -> Dict[str, Any]:

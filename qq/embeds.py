@@ -290,7 +290,8 @@ class Embed:
         '_timestamp',
         '_author',
         '_footer',
-        '_colour'
+        '_colour',
+        '_thumbnail'
     )
 
     Empty: Final = EmptyEmbed
