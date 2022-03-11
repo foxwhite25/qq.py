@@ -22,35 +22,33 @@
 from __future__ import annotations
 
 import asyncio
-import concurrent.futures
 import datetime
-import json
 import logging
 import sys
 import weakref
 from types import TracebackType
-from typing import ClassVar, Any, Optional, Sequence, Iterable, Dict, Union, TypeVar, Type, Coroutine, List, Tuple
+from typing import ClassVar, Any, Optional, Iterable, Dict, Union, TypeVar, Type, Coroutine, List, Tuple
 from urllib.parse import quote as _uriquote
+
 import aiohttp
 import requests
 
 from . import __version__, utils
-from .role import Role
 from .embeds import Ark, Embed
-from .types.member import MemberWithUser as MemberPayload
 from .error import HTTPException, Forbidden, NotFound, QQServerError, LoginFailure, GatewayNotFound
 from .gateway import QQClientWebSocketResponse
-from .types.message import Message
+from .role import Role
 from .types import user, guild, message, channel, member
-from .types.embed import Ark as ArkPayload, Embed as EmbedPayload
-from .utils import MISSING
 from .types.channel import Channel as ChannelPayload
-from .types.role import Role as RolePayload
+from .types.embed import Ark as ArkPayload, Embed as EmbedPayload
+from .types.member import MemberWithUser as MemberPayload
+from .types.message import Message
 from .types.permission import (
     Permission as PermissionPayload,
-    PermissionDemand as PermissionDemandPayload,
-    PermissionDemandIdentify as PermissionDemandIdentifyPayload
+    PermissionDemand as PermissionDemandPayload
 )
+from .types.role import Role as RolePayload
+from .utils import MISSING
 
 T = TypeVar('T')
 BE = TypeVar('BE', bound=BaseException)

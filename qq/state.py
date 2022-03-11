@@ -35,14 +35,14 @@ from . import utils
 from .audio import AudioAction
 from .channel import PartialMessageable, TextChannel, _channel_factory, DMChannel
 from .flags import Intents
+from .guild import Guild
+from .member import Member
 from .mention import AllowedMentions
+from .message import Message, MessageAudit
 from .object import Object
 from .partial_emoji import PartialEmoji
 from .raw_models import RawReactionActionEvent, RawReactionClearEvent, RawReactionClearEmojiEvent
 from .user import User, ClientUser
-from .guild import Guild
-from .message import Message, MessageAudit
-from .member import Member
 
 if TYPE_CHECKING:
     from .message import MessageableChannel

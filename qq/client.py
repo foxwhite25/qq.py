@@ -38,13 +38,14 @@ import aiohttp
 from . import utils
 from .backoff import ExponentialBackoff
 from .error import HTTPException, GatewayNotFound, ConnectionClosed
-from .state import ConnectionState
 from .gateway import QQWebSocket, ReconnectWebSocket
 from .guild import Guild
 from .http import HTTPClient
 from .iterators import GuildIterator
-from .user import ClientUser, User
 from .nest_asyncio import apply
+from .state import ConnectionState
+from .user import ClientUser, User
+
 if TYPE_CHECKING:
     from .channel import DMChannel
     from .abc import GuildChannel

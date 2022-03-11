@@ -954,7 +954,7 @@ class Message(Hashable):
         """
 
         await self._state.http.global_pin_message(
-            guild_id= self.guild.id, channel_id=self.channel.id, message_id= self.id, reason=reason
+            guild_id=self.guild.id, channel_id=self.channel.id, message_id=self.id, reason=reason
         )
 
     async def global_unpin(self, *, reason: Optional[str] = None) -> None:

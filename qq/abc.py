@@ -22,16 +22,14 @@
 from __future__ import annotations
 
 import asyncio
-import copy
 from datetime import datetime
-from typing import overload, Optional, Union, List, TYPE_CHECKING, TypeVar, Dict, Any, runtime_checkable, Protocol, \
-    Tuple
+from typing import (
+    overload, Optional, Union, List, TYPE_CHECKING, TypeVar, Dict, Any, runtime_checkable, Protocol, Tuple
+)
 
-from .asset import Asset
 from .enum import ChannelType
 from .error import InvalidArgument
 from .iterators import HistoryIterator
-from .mention import AllowedMentions
 from .utils import MISSING
 
 if TYPE_CHECKING:

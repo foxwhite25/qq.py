@@ -20,13 +20,14 @@
 #  DEALINGS IN THE SOFTWARE.
 
 import argparse
+import platform
 import sys
 from pathlib import Path
 
-import qq
-import pkg_resources
 import aiohttp
-import platform
+import pkg_resources
+
+import qq
 
 
 def show_version():

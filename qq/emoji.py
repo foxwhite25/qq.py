@@ -20,12 +20,13 @@
 #  DEALINGS IN THE SOFTWARE.
 
 from __future__ import annotations
+
 from typing import Any, Iterator, List, Optional, TYPE_CHECKING, Tuple
 
 from .asset import Asset, AssetMixin
-from .utils import MISSING
 from .partial_emoji import _EmojiTag, PartialEmoji
 from .user import User
+from .utils import MISSING
 
 __all__ = (
     'Emoji',

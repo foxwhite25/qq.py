@@ -32,7 +32,7 @@ from collections import namedtuple
 import aiohttp
 
 from qq import utils
-from qq.error import ConnectionClosed, InvalidArgument
+from qq.error import ConnectionClosed
 
 EventListener = namedtuple('EventListener', 'predicate event result future')
 _log = logging.getLogger(__name__)

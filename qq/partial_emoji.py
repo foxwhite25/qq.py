@@ -21,8 +21,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, TYPE_CHECKING, Type, TypeVar, Union, Tuple
 import re
+from typing import Any, Dict, Optional, TYPE_CHECKING, Type, TypeVar, Union, Tuple
 
 from .asset import AssetMixin
 from .error import InvalidArgument
@@ -33,7 +33,6 @@ __all__ = (
 
 if TYPE_CHECKING:
     from .state import ConnectionState
-    from datetime import datetime
     from .types.message import PartialEmoji as PartialEmojiPayload
 
 

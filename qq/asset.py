@@ -24,8 +24,9 @@ from __future__ import annotations
 import io
 import os
 from typing import Any, Literal, Optional, TYPE_CHECKING, Tuple, Union
-from .error import QQException
+
 from . import utils
+from .error import QQException
 
 __all__ = (
     'Asset',

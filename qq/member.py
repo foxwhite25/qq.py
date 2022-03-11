@@ -25,14 +25,13 @@ import datetime
 import inspect
 import itertools
 from operator import attrgetter
-from typing import TypeVar, TYPE_CHECKING, Optional, List, Dict, Tuple, Any, Type, Literal, Union
+from typing import TypeVar, TYPE_CHECKING, Optional, List, Tuple, Any, Type, Literal, Union
 
 from . import utils
-from .channel import DMChannel
-from .user import _UserTag, BaseUser, User
 from .abc import Messageable
 from .colour import Colour
 from .object import Object
+from .user import _UserTag, BaseUser, User
 
 if TYPE_CHECKING:
     from .guild import Guild

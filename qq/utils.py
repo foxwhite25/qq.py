@@ -28,10 +28,10 @@ import re
 import sys
 import unicodedata
 from bisect import bisect_left
+from inspect import isawaitable as _isawaitable, signature as _signature
 from operator import attrgetter
 from typing import Any, Callable, TypeVar, overload, Optional, Iterable, List, TYPE_CHECKING, Generic, Type, Dict, \
     ForwardRef, Literal, Tuple, Union, Iterator, AsyncIterator, Sequence
-from inspect import isawaitable as _isawaitable, signature as _signature
 
 T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)
@@ -302,7 +302,6 @@ class _cached_property:
 
 
 if TYPE_CHECKING:
-    from functools import cached_property as cached_property
     from typing_extensions import ParamSpec
 
     P = ParamSpec('P')

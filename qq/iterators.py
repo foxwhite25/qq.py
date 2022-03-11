@@ -26,8 +26,8 @@ import datetime
 from typing import AsyncIterator, TypeVar, Awaitable, Any, Optional, Callable, Union, List, TYPE_CHECKING
 
 from .error import NoMoreItems
-from .utils import maybe_coroutine
 from .object import Object
+from .utils import maybe_coroutine
 
 if TYPE_CHECKING:
     from .types.guild import (
@@ -36,11 +36,7 @@ if TYPE_CHECKING:
     from .types.message import (
         Message as MessagePayload,
     )
-    from .types.user import (
-        PartialUser as PartialUserPayload,
-    )
     from .member import Member
-    from .user import User
     from .message import Message
     from .guild import Guild
 

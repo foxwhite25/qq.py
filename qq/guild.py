@@ -36,20 +36,17 @@ from typing import (
 )
 
 from . import utils, abc
-from .enum import ChannelType
 from .api_permission import Permission
-from .role import Role
-from .member import Member
-from .error import InvalidData, HTTPException
-from .colour import Colour
-from .error import InvalidArgument, ClientException
 from .channel import *
 from .channel import _guild_channel_factory, _channel_factory
-from .mixins import Hashable
-from .user import User
+from .colour import Colour
+from .enum import ChannelType
+from .error import ClientException
+from .error import InvalidData, HTTPException
 from .iterators import MemberIterator
-from .asset import Asset
-from .file import File
+from .member import Member
+from .mixins import Hashable
+from .role import Role
 
 MISSING = utils.MISSING
 

@@ -21,7 +21,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Set, List
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from .types.raw_models import (

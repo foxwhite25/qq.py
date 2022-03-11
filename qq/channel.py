@@ -23,12 +23,11 @@ from __future__ import annotations
 
 import asyncio
 import datetime
-import time
 from typing import TYPE_CHECKING, Iterable, Optional, List, overload, Callable, TypeVar, Type, Tuple
 
 from . import abc, utils
-from .error import ClientException
 from .enum import ChannelType, try_enum
+from .error import ClientException
 from .mixins import Hashable
 from .object import Object
 
