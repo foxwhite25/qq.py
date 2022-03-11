@@ -681,18 +681,16 @@ class HTTPClient:
     def channel_pin_message(self, channel_id: int, message_id: str, reason: Optional[str] = None):
         r = Route(
             'POST',
-            '/channels/{channel_id}/announces',
+            '/channels/{channel_id}/pins/{message_id}',
             channel_id=channel_id,
+            message_id=message_id,
         )
-        payload: Dict[str, Any] = {
-            "message_id": message_id
-        }
-        return self.request(r, json=payload, reason=reason)
+        return self.request(r, reason=reason)
 
     def channel_unpin_message(self, channel_id: int, message_id: str, reason: Optional[str] = None):
         r = Route(
             'DELETE',
-            '/channels/{channel_id}/announces/{message_id}',
+            '/channels/{channel_id}/pins/{message_id}',
             channel_id=channel_id,
             message_id=message_id
         )
