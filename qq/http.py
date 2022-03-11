@@ -657,16 +657,36 @@ class HTTPClient:
 
         return self.request(Route('POST', '/guilds/{guild_id}/api_permission/demand', guild_id=guild_id), json=payload)
 
-    def global_pin_message(self, guild_id: int, channel_id: int, message_id: str, reason: Optional[str] = None):
+    def global_pin_message(
+            self,
+            guild_id: int,
+            channel_id: Optional[int] = None,
+            message_id: Optional[str] = None,
+            announces_type: Optional[int] = None,
+            recommend_channels: Optional[Dict[int, str]] = None,
+            reason: Optional[str] = None
+    ):
         r = Route(
             'POST',
             '/guilds/{guild_id}/announces',
             guild_id=guild_id,
         )
-        payload: Dict[str, Any] = {
-            "channel_id": str(channel_id),
-            "message_id": message_id
-        }
+        if recommend_channels:
+            recommend_channels: List[Dict[str, str]] = [
+                {
+                    'channel_id': str(m),
+                    'introduce': n
+                } for m, n in recommend_channels.items()
+            ]
+        payload: Dict[str, Any] = {}
+        if channel_id is not None:
+            payload['channel_id'] = channel_id
+        if message_id is not None:
+            payload['message_id'] = message_id
+        if announces_type is not None:
+            payload['announces_types'] = announces_type
+        if recommend_channels is not None:
+            payload['recommend_channels'] = recommend_channels
         return self.request(r, json=payload, reason=reason)
 
     def global_unpin_message(self, guild_id: int, message_id: str, reason: Optional[str] = None):

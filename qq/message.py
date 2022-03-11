@@ -953,7 +953,9 @@ class Message(Hashable):
             设置公告失败.
         """
 
-        await self._state.http.global_pin_message(self.guild.id, self.channel.id, self.id, reason=reason)
+        await self._state.http.global_pin_message(
+            guild_id= self.guild.id, channel_id=self.channel.id, message_id= self.id, reason=reason
+        )
 
     async def global_unpin(self, *, reason: Optional[str] = None) -> None:
         """|coro|
