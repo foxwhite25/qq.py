@@ -31,7 +31,7 @@ from typing import (
     Optional,
     Type,
     TypeVar,
-    Union, cast,
+    Union,
 )
 
 import aiohttp
@@ -44,9 +44,11 @@ from collections.abc import Sequence
 from qq.backoff import ExponentialBackoff
 from qq.utils import MISSING
 
+# fmt: off
 __all__ = (
     'loop',
 )
+# fmt: on
 
 T = TypeVar('T')
 _func = Callable[..., Awaitable[Any]]
@@ -85,23 +87,23 @@ class Loop(Generic[LF]):
     """
 
     def __init__(
-        self,
-        coro: LF,
-        seconds: float,
-        hours: float,
-        minutes: float,
-        time: Union[datetime.time, Sequence[datetime.time]],
-        count: Optional[int],
-        reconnect: bool,
-        loop: asyncio.AbstractEventLoop,
+            self,
+            coro: LF,
+            seconds: float,
+            hours: float,
+            minutes: float,
+            time: Union[datetime.time, Sequence[datetime.time]],
+            count: Optional[int],
+            reconnect: bool,
+            loop: asyncio.AbstractEventLoop,
     ) -> None:
         self.coro: LF = coro
         self.reconnect: bool = reconnect
         self.loop: asyncio.AbstractEventLoop = loop
         self.count: Optional[int] = count
         self._current_loop = 0
-        self._handle: SleepHandle = MISSING
-        self._task: asyncio.Task[None] = MISSING
+        self._handle: Optional[SleepHandle] = None
+        self._task: Optional[asyncio.Task[None]] = None
         self._injected = None
         self._valid_exception = (
             OSError,
@@ -152,9 +154,14 @@ class Loop(Generic[LF]):
             self._next_iteration = self._get_next_sleep_time()
         else:
             self._next_iteration = datetime.datetime.now(datetime.timezone.utc)
+            await asyncio.sleep(0)  # allows canceling in before_loop
         try:
-            await self._try_sleep_until(self._next_iteration)
+            if self._stop_next_iteration:  # allow calling stop() before first iteration
+                return
             while True:
+                # sleep before the body of the task for explicit time intervals
+                if self._time is not MISSING:
+                    await self._try_sleep_until(self._next_iteration)
                 if not self._last_iteration_failed:
                     self._last_iteration = self._next_iteration
                     self._next_iteration = self._get_next_sleep_time()
@@ -167,16 +174,12 @@ class Loop(Generic[LF]):
                         raise
                     await asyncio.sleep(backoff.delay())
                 else:
-                    await self._try_sleep_until(self._next_iteration)
-
                     if self._stop_next_iteration:
                         return
 
-                    now = datetime.datetime.now(datetime.timezone.utc)
-                    if now > self._next_iteration:
-                        self._next_iteration = now
-                        if self._time is not MISSING:
-                            self._prepare_time_index(now)
+                    # sleep after the body of the task for relative time intervals
+                    if self._time is MISSING:
+                        await self._try_sleep_until(self._next_iteration)
 
                     self._current_loop += 1
                     if self._current_loop == self.count:
@@ -191,7 +194,8 @@ class Loop(Generic[LF]):
             raise exc
         finally:
             await self._call_loop_function('after_loop')
-            self._handle.cancel()
+            if self._handle:
+                self._handle.cancel()
             self._is_being_cancelled = False
             self._current_loop = 0
             self._stop_next_iteration = False
@@ -300,7 +304,7 @@ class Loop(Generic[LF]):
             已创建的任务。
         """
 
-        if self._task is not MISSING and not self._task.done():
+        if self._task and not self._task.done():
             raise RuntimeError('任务已启动且未完成。')
 
         if self._injected is not None:
@@ -320,7 +324,7 @@ class Loop(Generic[LF]):
             如果内部函数引发了一个可以在完成之前处理的错误，那么它将重试直到成功。
             如果这是不可取的，要么在通过 :meth:`clear_exception_types` 停止之前删除错误处理，要么使用 :meth:`cancel 代替。
         """
-        if self._task is not MISSING and not self._task.done():
+        if self._task and not self._task.done():
             self._stop_next_iteration = True
 
     def _can_be_cancelled(self) -> bool:
@@ -328,7 +332,7 @@ class Loop(Generic[LF]):
 
     def cancel(self) -> None:
         """取消内部任务，如果它正在运行。"""
-        if self._can_be_cancelled():
+        if self._can_be_cancelled() and self._task:
             self._task.cancel()
 
     def restart(self, *args: Any, **kwargs: Any) -> None:
@@ -420,7 +424,7 @@ class Loop(Generic[LF]):
     def is_running(self) -> bool:
         """:class:`bool`: 检查任务当前是否正在运行。
         """
-        return not bool(self._task.done()) if self._task is not MISSING else False
+        return not bool(self._task.done()) if self._task else False
 
     async def _error(self, *args: Any) -> None:
         exception: Exception = args[-1]
@@ -512,7 +516,8 @@ class Loop(Generic[LF]):
             if next_time > datetime.datetime.now(datetime.timezone.utc).timetz():
                 return datetime.datetime.combine(datetime.datetime.now(datetime.timezone.utc), next_time)
             else:
-                return datetime.datetime.combine(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1), next_time)
+                return datetime.datetime.combine(
+                    datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1), next_time)
 
         next_date = cast(datetime.datetime, self._last_iteration)
         if next_time < next_date.timetz():
@@ -537,11 +542,11 @@ class Loop(Generic[LF]):
             self._time_index = 0
 
     def _get_time_parameter(
-        self,
-        time: Union[datetime.time, Sequence[datetime.time]],
-        *,
-        dt: Type[datetime.time] = datetime.time,
-        utc: datetime.timezone = datetime.timezone.utc,
+            self,
+            time: Union[datetime.time, Sequence[datetime.time]],
+            *,
+            dt: Type[datetime.time] = datetime.time,
+            utc: datetime.timezone = datetime.timezone.utc,
     ) -> List[datetime.time]:
         if isinstance(time, dt):
             inner = time if time.tzinfo is not None else time.replace(tzinfo=utc)
@@ -565,12 +570,12 @@ class Loop(Generic[LF]):
         return ret
 
     def change_interval(
-        self,
-        *,
-        seconds: float = 0,
-        minutes: float = 0,
-        hours: float = 0,
-        time: Union[datetime.time, Sequence[datetime.time]] = MISSING,
+            self,
+            *,
+            seconds: float = 0,
+            minutes: float = 0,
+            hours: float = 0,
+            time: Union[datetime.time, Sequence[datetime.time]] = MISSING,
     ) -> None:
         """更改时间的间隔。
 
@@ -622,20 +627,20 @@ class Loop(Generic[LF]):
                 self._prepare_time_index(now=self._last_iteration)
 
             self._next_iteration = self._get_next_sleep_time()
-            if not self._handle.done():
+            if self._handle and not self._handle.done():
                 # the loop is sleeping, recalculate based on new interval
                 self._handle.recalculate(self._next_iteration)
 
 
 def loop(
-    *,
-    seconds: float = MISSING,
-    minutes: float = MISSING,
-    hours: float = MISSING,
-    time: Union[datetime.time, Sequence[datetime.time]] = MISSING,
-    count: Optional[int] = None,
-    reconnect: bool = True,
-    loop: asyncio.AbstractEventLoop = MISSING,
+        *,
+        seconds: float = MISSING,
+        minutes: float = MISSING,
+        hours: float = MISSING,
+        time: Union[datetime.time, Sequence[datetime.time]] = MISSING,
+        count: Optional[int] = None,
+        reconnect: bool = True,
+        loop: asyncio.AbstractEventLoop = MISSING,
 ) -> Callable[[LF], Loop[LF]]:
     """使用可选的重新连接逻辑在后台为你安排任务的装饰器。装饰器返回一个 :class:`Loop`。
 
