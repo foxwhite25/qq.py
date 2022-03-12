@@ -21,6 +21,10 @@
 
 from __future__ import annotations
 
+import asyncio
+import datetime
+import functools
+import inspect
 from typing import (
     Any,
     Callable,
@@ -38,19 +42,14 @@ from typing import (
     TYPE_CHECKING,
     overload,
 )
-import asyncio
-import functools
-import inspect
-import datetime
 
 import qq
-
-from .errors import *
-from .cooldowns import Cooldown, BucketType, CooldownMapping, MaxConcurrency, DynamicCooldownMapping
-from .converter import run_converters, get_converter, Greedy
 from ._types import _BaseCommand
 from .cog import Cog
 from .context import Context
+from .converter import run_converters, get_converter, Greedy
+from .cooldowns import Cooldown, BucketType, CooldownMapping, MaxConcurrency, DynamicCooldownMapping
+from .errors import *
 
 if TYPE_CHECKING:
     from typing_extensions import Concatenate, ParamSpec, TypeGuard
@@ -398,7 +397,6 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 self.after_invoke(inherited_after_invoke)
 
         self.checks.extend(self.parent.checks)  # type: ignore
-
 
     @property
     def callback(self) -> Union[

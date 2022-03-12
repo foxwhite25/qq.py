@@ -71,12 +71,12 @@ class AllowedMentions:
     __slots__ = ('everyone', 'users', 'roles', 'replied_user')
 
     def __init__(
-        self,
-        *,
-        everyone: bool = default,
-        users: Union[bool, List[Member]] = default,
-        roles: Union[bool, List[Role]] = default,
-        replied_user: bool = default,
+            self,
+            *,
+            everyone: bool = default,
+            users: Union[bool, List[Member]] = default,
+            roles: Union[bool, List[Role]] = default,
+            replied_user: bool = default,
     ):
         self.everyone = everyone
         self.users = users

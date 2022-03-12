@@ -21,8 +21,8 @@
 
 from __future__ import annotations
 
-import re
 import inspect
+import re
 from typing import (
     Any,
     Dict,
@@ -202,7 +202,8 @@ class MemberConverter(IDConverter[qq.Member]):
         else:
             user_id = int(match.group(1))
             if guild:
-                result = guild.get_member(user_id) or await guild.fetch_member(user_id) or _utils_get(ctx.message.mentions, id=user_id)
+                result = guild.get_member(user_id) or await guild.fetch_member(user_id) or _utils_get(
+                    ctx.message.mentions, id=user_id)
             else:
                 result = _get_from_guilds(bot, 'get_member', user_id)
 

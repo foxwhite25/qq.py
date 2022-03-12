@@ -24,21 +24,20 @@ from __future__ import annotations
 import asyncio
 import collections
 import collections.abc
-import inspect
 import importlib.util
+import inspect
 import sys
 import traceback
 import types
 from typing import Any, Callable, Mapping, List, Dict, TYPE_CHECKING, Optional, TypeVar, Type, Union
 
 import qq
-
-from .core import GroupMixin
-from .view import StringView
-from .context import Context
 from . import errors
-from .help import HelpCommand, DefaultHelpCommand
 from .cog import Cog
+from .context import Context
+from .core import GroupMixin
+from .help import HelpCommand, DefaultHelpCommand
+from .view import StringView
 
 if TYPE_CHECKING:
     import importlib.machinery

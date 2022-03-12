@@ -41,8 +41,7 @@ from .channel import *
 from .channel import _guild_channel_factory, _channel_factory
 from .colour import Colour
 from .enum import ChannelType
-from .error import ClientException
-from .error import InvalidData, HTTPException
+from .error import ClientException, InvalidData, HTTPException
 from .iterators import MemberIterator
 from .member import Member
 from .mixins import Hashable

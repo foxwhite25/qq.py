@@ -46,6 +46,7 @@ def _patch_asyncio():
     Patch asyncio module to use pure Python tasks and futures,
     use module level _current_tasks, all_tasks and patch run method.
     """
+
     def run(main, *, debug=False):
         loop = events._get_running_loop()
         if not loop:
@@ -228,12 +229,12 @@ def _patch_task():
 
 
 def _patch_tornado():
-        """
-        If tornado is imported before nest_asyncio, make tornado aware of
-        the pure-Python asyncio Future.
-        """
-        if 'tornado' in sys.modules:
-            import tornado.concurrent as tc
-            tc.Future = asyncio.Future
-            if asyncio.Future not in tc.FUTURES:
-                tc.FUTURES += (asyncio.Future,)
+    """
+    If tornado is imported before nest_asyncio, make tornado aware of
+    the pure-Python asyncio Future.
+    """
+    if 'tornado' in sys.modules:
+        import tornado.concurrent as tc
+        tc.Future = asyncio.Future
+        if asyncio.Future not in tc.FUTURES:
+            tc.FUTURES += (asyncio.Future,)

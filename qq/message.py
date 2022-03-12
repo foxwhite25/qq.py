@@ -36,25 +36,25 @@ import datetime
 import io
 import re
 from os import PathLike
-from typing import Union, Optional, TYPE_CHECKING, ClassVar, Tuple, List, Callable, overload, Any, Type, TypeVar
+from typing import Union, Optional, TYPE_CHECKING, ClassVar, Tuple, List, Callable, Any, Type, TypeVar
 
 from . import utils
-from .object import Object
+from .embeds import Embed
 from .error import HTTPException, InvalidArgument
 from .file import File
+from .guild import Guild
 from .member import Member
 from .mixins import Hashable
+from .object import Object
+from .partial_emoji import PartialEmoji
+from .reaction import Reaction
 from .role import Role
 from .utils import escape_mentions
-from .guild import Guild
-from .partial_emoji import PartialEmoji
-from .embeds import Embed
-from .reaction import Reaction
 
 if TYPE_CHECKING:
     from .state import ConnectionState
     from .abc import GuildChannel, PartialMessageableChannel, MessageableChannel
-    from .channel import TextChannel, DMChannel
+    from .channel import TextChannel
     from .enum import ChannelType
     from .types.message import (
         Attachment as AttachmentPayload,

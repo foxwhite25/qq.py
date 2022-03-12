@@ -21,7 +21,7 @@
 
 from __future__ import annotations
 
-from typing import List, Literal, Optional, TypedDict, Union
+from typing import List, Literal, Optional, TypedDict
 
 from .embed import Embed
 from .emoji import PartialEmoji

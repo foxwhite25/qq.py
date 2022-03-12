@@ -349,8 +349,9 @@ class HistoryIterator(_AsyncIterator['Message']):
 
             self._retrieve_messages = self._retrieve_messages_around_strategy  # type: ignore
             if self.before and self.after:
-                self._filter = lambda m:\
-                    self.timestamp(self.after) < self.timestamp(m['timestamp']) < self.timestamp(self.before)  # type: ignore
+                self._filter = lambda m: \
+                    self.timestamp(self.after) < self.timestamp(m['timestamp']) < self.timestamp(
+                        self.before)  # type: ignore
             elif self.before:
                 self._filter = lambda m: self.timestamp(m['timestamp']) < self.timestamp(self.before)  # type: ignore
             elif self.after:
@@ -359,7 +360,8 @@ class HistoryIterator(_AsyncIterator['Message']):
             if self.reverse:
                 self._retrieve_messages = self._retrieve_messages_after_strategy  # type: ignore
                 if self.before:
-                    self._filter = lambda m: self.timestamp(m['timestamp']) < self.timestamp(self.before)  # type: ignore
+                    self._filter = lambda m: self.timestamp(m['timestamp']) < self.timestamp(
+                        self.before)  # type: ignore
             else:
                 self._retrieve_messages = self._retrieve_messages_before_strategy  # type: ignore
                 if self.after and self.after != 0:

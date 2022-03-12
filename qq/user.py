@@ -298,4 +298,3 @@ class User(BaseUser, Messageable):
         state = self._state
         data: DMChannelPayload = await state.http.start_private_message(self.id, guild.id)
         return state.add_dm_channel(data, recipients=self)
-

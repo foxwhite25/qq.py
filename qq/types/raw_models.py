@@ -20,8 +20,9 @@
 #  DEALINGS IN THE SOFTWARE.
 
 from typing import TypedDict, List
-from .member import Member
+
 from .emoji import PartialEmoji
+from .member import Member
 
 
 class _MessageEventOptional(TypedDict, total=False):

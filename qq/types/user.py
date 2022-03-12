@@ -19,7 +19,7 @@
 #  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 #  DEALINGS IN THE SOFTWARE.
 
-from typing import Literal, Optional, TypedDict
+from typing import Optional, TypedDict
 
 
 class PartialUser(TypedDict):

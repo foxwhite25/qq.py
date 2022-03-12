@@ -21,12 +21,12 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Deque, Dict, Optional, Type, TypeVar, TYPE_CHECKING
-from qq.enum import Enum
-import time
 import asyncio
+import time
 from collections import deque
+from typing import Any, Callable, Deque, Dict, Optional, Type, TypeVar, TYPE_CHECKING
 
+from qq.enum import Enum
 from .errors import MaxConcurrencyReached
 
 if TYPE_CHECKING:

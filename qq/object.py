@@ -64,6 +64,7 @@ class Object(Hashable):
     id: :class:`int`
         对象的 ID。
     """
+
     def __init__(self, id: SupportsIntCast):
         try:
             id = int(id)

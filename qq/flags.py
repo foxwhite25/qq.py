@@ -27,7 +27,6 @@ __all__ = (
     'Intents',
 )
 
-
 FV = TypeVar('FV', bound='flag_value')
 BF = TypeVar('BF', bound='BaseFlags')
 

@@ -24,7 +24,6 @@ __all__ = (
     'Client',
 )
 
-
 import asyncio
 import logging
 import signal
@@ -763,5 +762,3 @@ class Client:
 
         data = await state.http.start_private_message(user.id, guild.id)
         return state.add_dm_channel(data, user)
-
-

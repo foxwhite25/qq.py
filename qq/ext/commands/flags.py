@@ -21,19 +21,9 @@
 
 from __future__ import annotations
 
-from .errors import (
-    BadFlagArgument,
-    CommandError,
-    MissingFlagArgument,
-    TooManyFlags,
-    MissingRequiredFlag,
-)
-
-from qq.utils import resolve_annotation
-from .view import StringView
-from .converter import run_converters
-
-from qq.utils import maybe_coroutine, MISSING
+import inspect
+import re
+import sys
 from dataclasses import dataclass, field
 from typing import (
     Dict,
@@ -51,9 +41,16 @@ from typing import (
     Union,
 )
 
-import inspect
-import sys
-import re
+from qq.utils import resolve_annotation, maybe_coroutine, MISSING
+from .converter import run_converters
+from .errors import (
+    BadFlagArgument,
+    CommandError,
+    MissingFlagArgument,
+    TooManyFlags,
+    MissingRequiredFlag,
+)
+from .view import StringView
 
 __all__ = (
     'Flag',

@@ -23,12 +23,10 @@ from __future__ import annotations
 
 import inspect
 import re
-
 from typing import Any, Dict, Generic, List, Optional, TYPE_CHECKING, TypeVar, Union, Tuple
 
 import qq.abc
 import qq.utils
-
 from qq.message import Message
 
 if TYPE_CHECKING:
@@ -40,10 +38,8 @@ if TYPE_CHECKING:
     from qq.state import ConnectionState
     from qq.user import ClientUser, User
 
-    from .bot import Bot, AutoShardedBot
     from .cog import Cog
     from .core import Command
-    from .help import HelpCommand
     from .view import StringView
 
 __all__ = (

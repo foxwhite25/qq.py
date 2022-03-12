@@ -22,6 +22,10 @@ from __future__ import annotations
 
 import asyncio
 import datetime
+import inspect
+import sys
+import traceback
+from collections.abc import Sequence
 from typing import (
     Any,
     Awaitable,
@@ -35,12 +39,8 @@ from typing import (
 )
 
 import aiohttp
-import qq
-import inspect
-import sys
-import traceback
 
-from collections.abc import Sequence
+import qq
 from qq.backoff import ExponentialBackoff
 from qq.utils import MISSING
 

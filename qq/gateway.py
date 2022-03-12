@@ -334,7 +334,7 @@ class QQWebSocket:
             'd': {
                 'seq': self.sequence,
                 'session_id': self.session_id,
-                'token': 'Bot '+self.token
+                'token': 'Bot ' + self.token
             }
         }
 

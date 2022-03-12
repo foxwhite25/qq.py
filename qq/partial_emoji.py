@@ -186,3 +186,7 @@ class PartialEmoji(_EmojiTag, AssetMixin):
             raise InvalidArgument('PartialEmoji 不是自定义表情符号')
 
         return await super().read()
+
+    @property
+    def to_string(self):
+        return f'<emoji:{self.id}>' if self.custom else chr(self.id)

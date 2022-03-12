@@ -20,7 +20,6 @@
 #  DEALINGS IN THE SOFTWARE.
 
 from typing import Optional, TypedDict, Literal
-from .user import User
 
 EmojiType = Literal[0, 1]
 

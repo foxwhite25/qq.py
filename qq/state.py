@@ -388,7 +388,6 @@ class ConnectionState:
             if recipient is not None:
                 self._private_channels_by_user.pop(recipient.id, None)
 
-
     async def _delay_ready(self) -> None:
         try:
             states = []

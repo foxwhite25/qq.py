@@ -21,11 +21,9 @@
 
 from __future__ import annotations
 
-import base64
-from typing import Optional, TYPE_CHECKING, Union
-
-import os
 import io
+import os
+from typing import Optional, TYPE_CHECKING, Union
 
 __all__ = (
     'File',
@@ -64,9 +62,9 @@ class File:
         filename: Optional[str]
 
     def __init__(
-        self,
-        fp: Union[str, bytes, os.PathLike, io.BufferedIOBase],
-        filename: Optional[str] = None,
+            self,
+            fp: Union[str, bytes, os.PathLike, io.BufferedIOBase],
+            filename: Optional[str] = None,
     ):
         if isinstance(fp, io.IOBase):
             if not (fp.seekable() and fp.readable()):

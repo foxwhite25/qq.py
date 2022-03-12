@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from .channel import CategoryChannel, TextChannel, PartialMessageable, DMChannel
     from .guild import Guild
     from .state import ConnectionState
-    from .message import Message, MessageReference, PartialMessage, MessageAudit
+    from .message import Message, MessageReference, PartialMessage
     from .types.channel import (
         Channel as ChannelPayload,
     )
@@ -109,7 +109,7 @@ class Messageable:
             ark: Ark = ...,
             delete_after: float = ...,
             image: str = ...,
-            msg_id: Union[Message, MessageReference, PartialMessage]=...,
+            msg_id: Union[Message, MessageReference, PartialMessage] = ...,
             reference: Union[Message, MessageReference, PartialMessage] = ...,
             mention_author: Member = ...,
             direct=...,

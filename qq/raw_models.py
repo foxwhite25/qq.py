@@ -103,7 +103,7 @@ class RawReactionActionEvent(_RawReprMixin):
         ``REACTION_REMOVE`` 用于反应去除。
     """
 
-    __slots__ = ('id','type' ,'user_id', 'channel_id', 'guild_id', 'emoji',
+    __slots__ = ('id', 'type', 'user_id', 'channel_id', 'guild_id', 'emoji',
                  'event_type', 'member')
 
     def __init__(self, data: ReactionActionEvent, emoji: PartialEmoji, event_type: str) -> None:
