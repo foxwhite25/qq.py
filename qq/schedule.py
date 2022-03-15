@@ -103,6 +103,16 @@ class Schedule:
         self.channel = channel
         self.guild = guild
 
+    @classmethod
+    def from_id(cls, channel: GuildChannel, schedule_id: int):
+        """
+        创建一个不完全的 :class:`Schedule` ，主要用语 :meth:`Schedule.delete`
+        """
+        self = cls.__new__(cls)
+        self.channel = channel
+        self.id = schedule_id
+        return self
+
     async def delete(self, reason: Optional[str] = None):
         """|coro|
         删除这个日历。
