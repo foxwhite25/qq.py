@@ -21,13 +21,17 @@
 
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import TypedDict, Optional
+
+from .member import MemberWithUser
 
 
-class Role(TypedDict, total=False):
+class Schedule(TypedDict, total=False):
     id: str
     name: str
-    color: int
-    hoist: bool
-    number: int
-    member_limit: int
+    description: Optional[str]
+    start_timestamp: str
+    end_timestamp: str
+    creator: MemberWithUser
+    jump_channel_id: str
+    remind_type: str

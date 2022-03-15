@@ -48,6 +48,7 @@ from .types.permission import (
     PermissionDemand as PermissionDemandPayload
 )
 from .types.role import Role as RolePayload
+from .types.schedule import Schedule as SchedulePayload
 from .utils import MISSING
 
 T = TypeVar('T')
@@ -565,38 +566,76 @@ class HTTPClient:
 
     def kick(self, user_id: int, guild_id: int, add_blacklist: bool, reason: Optional[str] = None) -> Response[None]:
         r = Route('DELETE', '/guilds/{guild_id}/members/{user_id}', guild_id=guild_id, user_id=user_id)
-        params: Dict[str, Any] = {
+        payload: Dict[str, Any] = {
             'add_blacklist': add_blacklist,
         }
         if reason:
             # thanks aiohttp
             r.url = f'{r.url}?reason={_uriquote(reason)}'
 
-        return self.request(r, json=params)
+        return self.request(r, json=payload)
+
+    def create_schedule(
+            self,
+            channel_id: int,
+            name: str,
+            start_timestamp: Union[datetime.datetime, float],
+            end_timestamp: Union[datetime.datetime, float],
+            jump_channel_id: int,
+            remind_type: str,
+            description: Optional[str],
+            reason: Optional[str] = None
+    ) -> Response[SchedulePayload]:
+        payload: Dict[str, Any] = {
+            "schedule": {
+                "name": name,
+                "start_timestamp": int(start_timestamp * 1000) if isinstance(start_timestamp, float)
+                else int(start_timestamp.timestamp() * 1000),
+                "end_timestamp": int(end_timestamp * 1000) if isinstance(end_timestamp, float)
+                else int(end_timestamp.timestamp() * 1000),
+                "jump_channel_id": str(jump_channel_id),
+                "remind_type": remind_type
+            }
+        }
+
+        if description is not None:
+            payload["schedule"]["description"] = description
+
+        r = Route('POST', '/channels/{channel_id}/schedules', channel_id=channel_id)
+        return self.request(r, json=payload, reason=reason)
+
+    def remove_schedule(self, channel_id: int, schedule_id: int, reason: Optional[str] = None) -> Response[None]:
+        r = Route(
+            'POST', '/channels/{channel_id}/schedules/{schedule_id}',
+            channel_id=channel_id,
+            schedule_id=schedule_id
+        )
+
+        return self.request(r, reason=reason)
 
     def mute_member(
-            self, user_id: int, guild_id: int, duration: Union[datetime.datetime, int], reason: str
+            self, user_id: int, guild_id: int, duration: Union[datetime.datetime, int], reason: Optional[str] = None
     ) -> Response[None]:
-        params: Dict[str, Any] = {}
+        payload: Dict[str, Any] = {}
         if isinstance(duration, datetime.datetime):
-            params['mute_end_timestamp'] = str(int(duration.timestamp() * 1000))
+            payload['mute_end_timestamp'] = str(int(duration.timestamp() * 1000))
         else:
-            params['mute_seconds'] = str(duration)
+            payload['mute_seconds'] = str(duration)
 
         r = Route('PATCH', '/guilds/{guild_id}/members/{user_id}/mute', guild_id=guild_id, user_id=user_id)
-        return self.request(r, json=params, reason=reason)
+        return self.request(r, json=payload, reason=reason)
 
     def mute_guild(
-            self, guild_id: int, duration: Union[datetime.datetime, int], reason: str
+            self, guild_id: int, duration: Union[datetime.datetime, int], reason: Optional[str] = None
     ) -> Response[None]:
-        params: Dict[str, Any] = {}
+        payload: Dict[str, Any] = {}
         if isinstance(duration, datetime.datetime):
-            params['mute_end_timestamp'] = str(int(duration.timestamp() * 1000))
+            payload['mute_end_timestamp'] = str(int(duration.timestamp() * 1000))
         else:
-            params['mute_seconds'] = str(duration)
+            payload['mute_seconds'] = str(duration)
 
         r = Route('PATCH', '/guilds/{guild_id}/mute', guild_id=guild_id)
-        return self.request(r, json=params, reason=reason)
+        return self.request(r, json=payload, reason=reason)
 
     def delete_message(
             self, channel_id: int, message_id: str, *, reason: Optional[str] = None

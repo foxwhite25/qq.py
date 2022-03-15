@@ -23,13 +23,14 @@ from __future__ import annotations
 
 import asyncio
 import datetime
-from typing import TYPE_CHECKING, Iterable, Optional, List, overload, Callable, TypeVar, Type, Tuple
+from typing import TYPE_CHECKING, Iterable, Optional, List, overload, Callable, TypeVar, Type, Tuple, Union
 
 from . import abc, utils
 from .enum import ChannelType, try_enum
 from .error import ClientException
 from .mixins import Hashable
 from .object import Object
+from .schedule import Schedule
 
 __all__ = (
     'TextChannel',
@@ -682,6 +683,59 @@ class AppChannel(abc.GuildChannel, Hashable):
         ]
         joined = ' '.join('%s=%r' % t for t in attrs)
         return f'<{self.__class__.__name__} {joined}>'
+
+    async def create_schedule(
+            self,
+            name: str,
+            start: Union[datetime.datetime, float],
+            end: Union[datetime.datetime, float],
+            jump_channel: GuildChannelType,
+            remind_type: str,
+            description: Optional[str] = None,
+    ) -> Schedule:
+        """返回具有给定 path 和 method 的权限。
+
+        Parameters
+        -----------
+        name: :class:`str`
+            成员所属的频道。
+        description: Optional[:class:`str`]
+        start: Union[:class:`datetime.datetime`, :class:`float`]
+            日程开始的时间。
+        end: Union[:class:`datetime.datetime`, :class:`float`]
+            日程开始的时间。
+        jump_channel: :class:`GuildChannel`
+            日程开始的时间。
+        remind_type: :class:`str`
+            日程提醒类型。
+            +-----------+--------------+
+            | 提醒类型 id	  | 描述           |
+            +===========+==============+
+            | 0         | 不提醒          |
+            | 1         | 开始时提醒        |
+            | 2         | 开始前 5 分钟提醒   |
+            | 3         | 开始前 15 分钟提醒  |
+            | 4         | 开始前 30 分钟提醒  |
+            | 5         | 开始前 60 分钟提醒  |
+            +-----------+--------------+
+
+
+        Returns
+        --------
+        Optional[:class:`Schedule`]
+            Role 或如果未找到，则  ``None`` 。
+        """
+        schedule = await self._state.http.create_schedule(
+            channel_id=self.id,
+            name=name,
+            start_timestamp=start,
+            end_timestamp=end,
+            jump_channel_id=jump_channel.id,
+            remind_type=remind_type,
+            description=description
+        )
+
+        return Schedule(data=schedule, state=self._state, guild=self.guild, channel=self)
 
 
 class ThreadChannel(abc.GuildChannel, Hashable):

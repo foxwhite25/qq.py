@@ -89,7 +89,10 @@ Coroutines
 我如何私聊？
 ~~~~~~~~~~~~~~~~~~~
 
-目前官方还没有支持私聊
+获取 User 或 Member 对象并调用 :meth:`abc.Messageable.send` 。 例如：::
+
+     user = message.author
+     await user.send('Hi', reference = message)
 
 如何获取已发送消息的 ID？
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -100,50 +103,30 @@ Coroutines
      message = await channel.send('嗯...')
      message_id = message.id
 
-如何上传图片？
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-要将某些内容上传到 QQ，你必须使用 :class:`File` 对象。
-
-A :class:`File` 接受两个参数，类文件对象（或文件路径）和上传时传递给 QQ 的文件名。
-
-如果你想上传一张图片，它很简单： ::
-
-    await channel.send(file=qq.File('my_file.png'))
-
-如果你有一个类似文件的对象，你可以执行以下操作： ::
-
-    with open('my_file.png', 'rb') as fp:
-        await channel.send(file=qq.File(fp, 'new_filename.png'))
-
-要上传多个文件，你可以使用 ``files`` 关键字参数代替 ``file``\： ::
-
-    my_files = [
-        qq.File('result.zip'),
-        qq.File('teaser_graph.png'),
-    ]
-    await channel.send(files=my_files)
-
-如果你想从一个 URL 上传一些东西，你必须使用 :doc:`aiohttp <aio:index>` 来使用 HTTP 请求
-然后像这样传递一个 :class:`io.BytesIO` 实例给 :class:`File`：
-
-.. code-block:: python3
-
-    import io
-    import aiohttp
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(my_url) as resp:
-            if resp.status != 200:
-                return await channel.send('无法下载文件...')
-            data = io.BytesIO(await resp.read())
-            await channel.send(file=qq.File(data, 'cool_image.png'))
-
 
 如何向消息添加表情？
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-目前官方还没有支持
+你需要使用 :meth:`Message.add_reaction` 方法。
+
+如果要使用 unicode 表情符号，则必须在字符串中传递有效的 unicode 代码点。 在你的代码中，你可以用几种不同的方式编写它：
+- ``'👍'``
+- ``'\U0001F44D'``
+- ``'\N{THUMBS UP SIGN}'``
+
+示例：::
+
+    emoji = '\N{THUMBS UP SIGN}'
+    # or '\U0001f44d' or '👍'
+    await message.add_reaction(emoji)
+
+对于自定义表情符号，你应该传递一个 PartialEmoji 实例。 你也可以传递一个``'emoji:id'`` 字符串，但是如果你
+可以使用上述表情符号，你应该可以使用:meth:`PartialEmoji.from_str` 通过ID获取表情符号。
+表情符号 ID 可以通过消息获取，或者在官方文档获取。
+
+示例：::
+
+    await message.add_reaction('emoji:10')
 
 我如何在后台运行一些东西？
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
