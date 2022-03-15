@@ -302,7 +302,8 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
 
         Examples
         ---------
-        删除机器人的消息 ::
+        删除机器人的消息: ::
+
             def is_me(m):
                 return m.author == client.user
             deleted = await channel.purge(limit=100, check=is_me)
@@ -314,9 +315,9 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
             要搜索的消息数。这不是将被删除的消息数，尽管可以是。
         check: Callable[[:class:`Message`], :class:`bool`]
             用于检查是否应删除消息的功能。它必须将 Message 作为其唯一参数。
-        before: Optional[Union[:class:`abc.Snowflake`, :class:`datetime.datetime`]]
+        before: Optional[:class:`datetime.datetime`]
             与 :meth:`history` 中的 ``before`` 相同。
-        after: Optional[Union[:class:`abc.Snowflake`, :class:`datetime.datetime`]]
+        after: Optional[:class:`datetime.datetime`]
             与 :meth:`history` 中的 ``after`` 相同。
         around: Optional[Union[:class:`abc.Snowflake`, :class:`datetime.datetime`]]
             与 :meth:`history`中的 ``around`` 相同。
