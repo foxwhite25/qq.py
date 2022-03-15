@@ -589,10 +589,10 @@ class HTTPClient:
         payload: Dict[str, Any] = {
             "schedule": {
                 "name": name,
-                "start_timestamp": int(start_timestamp * 1000) if isinstance(start_timestamp, float)
-                else int(start_timestamp.timestamp() * 1000),
-                "end_timestamp": int(end_timestamp * 1000) if isinstance(end_timestamp, float)
-                else int(end_timestamp.timestamp() * 1000),
+                "start_timestamp": str(int(start_timestamp * 1000)) if isinstance(start_timestamp, float)
+                else str(int(start_timestamp.timestamp() * 1000)),
+                "end_timestamp": str(int(end_timestamp * 1000)) if isinstance(end_timestamp, float)
+                else str(int(end_timestamp.timestamp() * 1000)),
                 "jump_channel_id": str(jump_channel_id),
                 "remind_type": remind_type
             }
@@ -606,7 +606,7 @@ class HTTPClient:
 
     def remove_schedule(self, channel_id: int, schedule_id: int, reason: Optional[str] = None) -> Response[None]:
         r = Route(
-            'POST', '/channels/{channel_id}/schedules/{schedule_id}',
+            'DELEtE', '/channels/{channel_id}/schedules/{schedule_id}',
             channel_id=channel_id,
             schedule_id=schedule_id
         )

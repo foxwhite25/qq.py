@@ -815,6 +815,15 @@ DMChannel
     .. automethod:: history
         :async-for:
 
+Schedule
+~~~~~~~~
+.. attributetable:: Schedule
+
+.. autoclass:: Schedule()
+    :members:
+    :inherited-members:
+
+
 .. _qq_api_data:
 
 数据类
