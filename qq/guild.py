@@ -310,6 +310,14 @@ class Guild(Hashable):
         return r
 
     @property
+    def app_channels(self) -> List[AppChannel]:
+        """List[:class:`AppChannel`]: 属于该频道的应用频道列表。这是按位置排序的，从上到下按 UI 顺序排列。
+        """
+        r = [ch for ch in self._channels.values() if isinstance(ch, AppChannel)]
+        r.sort(key=lambda c: (c.position, c.id))
+        return r
+
+    @property
     def categories(self) -> List[CategoryChannel]:
         """List[:class:`CategoryChannel`]: 属于该频道的类别列表。这是按位置排序的，从上到下按 UI 顺序排列。
         """
