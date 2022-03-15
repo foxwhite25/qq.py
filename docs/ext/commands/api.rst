@@ -490,9 +490,6 @@ Context
 .. autoexception:: qq.ext.commands.RoleNotFound
     :members:
 
-.. autoexception:: qq.ext.commands.BadInviteArgument
-    :members:
-
 .. autoexception:: qq.ext.commands.BadBoolArgument
     :members:
 

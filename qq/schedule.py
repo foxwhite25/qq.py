@@ -26,6 +26,8 @@ from typing import TYPE_CHECKING, Optional
 from .member import Member
 from .types.schedule import Schedule as SchedulePayload
 
+__all__ = ('Schedule',)
+
 if TYPE_CHECKING:
     from .abc import GuildChannel
     from .state import ConnectionState
