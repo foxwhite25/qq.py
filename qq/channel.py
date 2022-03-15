@@ -709,6 +709,7 @@ class AppChannel(abc.GuildChannel, Hashable):
             日程开始的时间。
         remind_type: :class:`str`
             日程提醒类型。
+
             +-----------+--------------+
             | 提醒类型 id	  | 描述           |
             +===========+==============+
