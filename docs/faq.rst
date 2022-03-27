@@ -169,7 +169,7 @@ Coroutines
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 要发出请求，你应该使用非阻塞库。
-这个库已经使用并需要一个 第三方库来发出请求，:doc:`aiohttp <aio:index>`。
+这个库已经使用并需要一个 第三方库来发出请求，:doc:`aiohttp <aio:index>` 。
 
 快速示例: ::
 
@@ -188,7 +188,7 @@ Coroutines
 为什么定义 ``on_message`` 之后我的命令用不了了？
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-覆盖默认提供的 ``on_message`` 禁止运行任何额外的命令。 要解决此问题，请在 “on_message” 末尾添加 “bot.process_commands(message)” 行。 例如： ::
+覆盖默认提供的 ``on_message`` 禁止运行任何额外的命令。 要解决此问题，请在 ``on_message`` 末尾添加 ``bot.process_commands(message)`` 行。 例如： ::
 
     @bot.event
     async def on_message(message):
@@ -196,7 +196,7 @@ Coroutines
 
         await bot.process_commands(message)
 
-或者，你可以将 ``on_message`` 逻辑放入 **listener**。 在此设置中，你不应该手动调用 “bot.process_commands()” 。 这也允许你异步地做多项响应到一条消息。 例子::
+或者，你可以将 ``on_message`` 逻辑放入 **listener**。 在此设置中，你不应该手动调用 ``bot.process_commands()`` 。 这也允许你异步地做多项响应到一条消息。 例子::
 
     @bot.listen('on_message')
     async def whatever_you_want_to_call_it(message):
@@ -220,10 +220,10 @@ Coroutines
 
 这将允许你使用 ``?echo a b c`` 而不需要引号。
 
-我如何获得原始的 “Message” \？
+我如何获得原始的 ``Message`` \？
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:class:`~ext.commands.Context` 包含该属性，使用:attr:`~.Context.message` 获取原始信息。
+:class:`~ext.commands.Context` 包含该属性，使用 :attr:`~.Context.message` 获取原始信息。
 
 例子: ::
 

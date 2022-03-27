@@ -285,7 +285,7 @@ class ConnectionState:
         self._guilds.pop(guild.id, None)
         del guild
 
-    def _get_message(self, msg_id: Optional[int]) -> Optional[Message]:
+    def _get_message(self, msg_id: Optional[str]) -> Optional[Message]:
         return utils.find(lambda m: m.id == msg_id, reversed(self._messages)) if self._messages else None
 
     def _add_guild_from_data(self, data: GuildPayload) -> Guild:
@@ -710,7 +710,7 @@ class ConnectionState:
         self.dispatch('raw_reaction_add', raw)
 
         # rich interface here
-        message = self._get_message(raw.message_id)
+        message = self._get_message(raw.id)
         if message is not None:
             emoji = self._upgrade_partial_emoji(emoji)
             reaction = message._add_reaction(data, emoji, raw.user_id)
@@ -723,7 +723,7 @@ class ConnectionState:
         raw = RawReactionClearEvent(data)
         self.dispatch('raw_reaction_clear', raw)
 
-        message = self._get_message(raw.message_id)
+        message = self._get_message(raw.id)
         if message is not None:
             old_reactions = message.reactions.copy()
             message.reactions.clear()
@@ -736,7 +736,7 @@ class ConnectionState:
         raw = RawReactionActionEvent(data, emoji, 'REACTION_REMOVE')
         self.dispatch('raw_reaction_remove', raw)
 
-        message = self._get_message(raw.message_id)
+        message = self._get_message(raw.id)
         if message is not None:
             emoji = self._upgrade_partial_emoji(emoji)
             try:
@@ -755,7 +755,7 @@ class ConnectionState:
         raw = RawReactionClearEmojiEvent(data, emoji)
         self.dispatch('raw_reaction_clear_emoji', raw)
 
-        message = self._get_message(raw.message_id)
+        message = self._get_message(raw.id)
         if message is not None:
             try:
                 reaction = message._clear_emoji(emoji)
