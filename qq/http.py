@@ -218,7 +218,7 @@ class HTTPClient:
                             return data
 
                         # we've received a 500, 502, or 504, unconditional retry
-                        # if response.status in {500, 502, 504}:
+                        # if response.status in {500}:
                         #     await asyncio.sleep(1 + tries * 2)
                         #     continue
 
@@ -239,6 +239,11 @@ class HTTPClient:
                         await asyncio.sleep(1 + tries * 2)
                         continue
                     raise
+                except QQServerError as e:
+                    if e.code in (620006, ):
+                        await asyncio.sleep(1 + tries * 2)
+                        continue
+                    raise e
 
                 if response is not None:
                     # We've run out of retries, raise.

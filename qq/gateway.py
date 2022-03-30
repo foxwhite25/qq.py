@@ -280,7 +280,7 @@ class QQWebSocket:
         return ws
 
     def wait_for(self, event, predicate, result=None):
-        """等待满足谓词的 DISPATCH 事件。
+        """等待满足检查函数的 DISPATCH 事件。
 
         Parameters
         -----------

@@ -46,6 +46,7 @@ from .object import *
 from .partial_emoji import *
 from .permissions import *
 from .raw_models import *
+from .reaction import *
 from .role import *
 from .schedule import *
 from .shard import *

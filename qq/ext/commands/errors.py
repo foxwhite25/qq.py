@@ -177,7 +177,7 @@ class BadArgument(UserInputError):
 
 
 class CheckFailure(CommandError):
-    """当 :attr:`.Command.checks` 中的谓词失败时引发异常。
+    """当 :attr:`.Command.checks` 中的检查函数失败时引发异常。
 
     这继承自 :exc:`CommandError`
     """
@@ -185,7 +185,7 @@ class CheckFailure(CommandError):
 
 
 class CheckAnyFailure(CheckFailure):
-    """当 :func:`check_any` 中的所有谓词都失败时引发异常。
+    """当 :func:`check_any` 中的所有检查函数都失败时引发异常。
 
     这继承自 :exc:`CheckFailure`。
 
@@ -194,7 +194,7 @@ class CheckAnyFailure(CheckFailure):
     errors: List[:class:`CheckFailure`]
         执行期间捕获的错误列表。
     checks: List[Callable[[:class:`Context`], :class:`bool`]]
-        失败的检查谓词列表。
+        失败的检查检查函数列表。
     """
 
     def __init__(self, checks: List[CheckFailure], errors: List[Callable[[Context], bool]]) -> None:

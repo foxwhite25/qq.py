@@ -678,7 +678,7 @@ class Client:
         event: :class:`str`
             事件名称，类似于 :ref:`事件指南 <qq-api-events>`，但没有 ``on_`` 前缀，用于等待。
         check: Optional[Callable[..., :class:`bool`]]
-            检查等待什么的谓词。 参数必须满足正在等待的事件的参数。
+            检查等待什么的检查函数。 参数必须满足正在等待的事件的参数。
         timeout: Optional[:class:`float`]
             在超时和引发 :exc:`asyncio.TimeoutError` 之前等待的秒数。
 

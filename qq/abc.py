@@ -173,7 +173,7 @@ class Messageable:
         Union[:class:`~qq.Message`, :class:`~qq.MessageAudit`]
             发送的消息。
         """
-
+        from .channel import TextChannel
         channel, direct = await self._get_channel()
         state = self._state
         content = str(content) if content is not None else None
@@ -210,8 +210,12 @@ class Messageable:
             return data['data']['message_audit']['audit_id']
 
         ret = state.create_message(channel=channel, data=data, direct=direct)
+        state.dispatch('message', ret)
+        state._messages.append(ret)
+        if channel and channel.__class__ in (TextChannel,):
+            channel.last_message_id = ret.id
         if delete_after is not None:
-            await ret.delete(delay=delete_after)
+            await ret.delete(delay=delete_after)  # type: ignore
         return ret
 
     async def fetch_message(self, id: int, /) -> Message:

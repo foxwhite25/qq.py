@@ -224,7 +224,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
     cog: Optional[:class:`Cog`]
         该命令所属的齿轮。 ``None`` 如果没有的话。
     checks: List[Callable[[:class:`.Context`], :class:`bool`]]
-        一个谓词列表，用于验证是否可以使用给定的 :class:`.Context` 作为唯一参数来执行命令。
+        一个检查函数列表，用于验证是否可以使用给定的 :class:`.Context` 作为唯一参数来执行命令。
          如果必须抛出异常以表示失败，则应使用继承自 :exc:`.CommandError` 的异常。
          请注意，如果检查失败，则 :exc:`.CheckFailure` 异常将引发到 :func:`.on_command_error` 事件。
     description: :class:`str`
@@ -1063,7 +1063,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
     async def can_run(self, ctx: Context) -> bool:
         """|coro|
 
-        通过检查 :attr:`~Command.checks` 属性中的所有谓词来检查命令是否可以执行。 这还会检查命令是否被禁用。
+        通过检查 :attr:`~Command.checks` 属性中的所有检查函数来检查命令是否可以执行。 这还会检查命令是否被禁用。
 
         Parameters
         -----------
@@ -1597,13 +1597,13 @@ def group(
 def check(predicate: Check) -> Callable[[T], T]:
     r"""向 :class:`.Command` 或其子类添加检查的装饰器。 这些检查可以通过 :attr:`.Command.checks` 访问。
 
-    这些检查应该是接受单个参数的谓词，参数为 :class:`.Context`。
+    这些检查应该是接受单个参数的检查函数，参数为 :class:`.Context`。
     如果检查返回类似 ``False``\ 的值，则在调用期间会引发 :exc:`.CheckFailure` 异常并将其发送到 :func:`.on_command_error` 事件。
 
-    如果谓词中应该抛出异常，那么它应该是 :exc:`.CommandError` 的子类。
+    如果检查函数中应该抛出异常，那么它应该是 :exc:`.CommandError` 的子类。
     任何不是从它子类化的异常都将被传播，而那些子类将被发送到 :func:`.on_command_error`。
 
-    名为 ``predicate`` 的特殊属性绑定到此装饰器返回的值，以检索传递给装饰器的谓词。 这允许完成以下内省和链接：
+    名为 ``predicate`` 的特殊属性绑定到此装饰器返回的值，以检索传递给装饰器的检查函数。 这允许完成以下内省和链接：
 
     .. code-block:: python3
 
@@ -1651,7 +1651,7 @@ def check(predicate: Check) -> Callable[[T], T]:
     Parameters
     -----------
     predicate: Callable[[:class:`Context`], :class:`bool`]
-        检查是否应调用命令的谓词。
+        检查是否应调用命令的检查函数。
     """
 
     def decorator(func: Union[Command, CoroFunc]) -> Union[Command, CoroFunc]:

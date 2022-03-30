@@ -93,6 +93,8 @@ class PartialEmoji(_EmojiTag, AssetMixin):
         self.custom = custom
         self.id = int(id)
         self._state: Optional[ConnectionState] = None
+        if not custom:
+            self.name = chr(self.id)
 
     @classmethod
     def from_dict(cls: Type[PE], data: Union[PartialEmojiPayload, Dict[str, Any]]) -> PE:
@@ -156,7 +158,7 @@ class PartialEmoji(_EmojiTag, AssetMixin):
 
     def __eq__(self, other: Any) -> bool:
         if self.is_unicode_emoji():
-            return isinstance(other, PartialEmoji) and self.name == other.name
+            return isinstance(other, PartialEmoji) and self.id == other.id
 
         if isinstance(other, _EmojiTag):
             return self.id == other.id

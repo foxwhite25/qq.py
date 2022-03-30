@@ -297,7 +297,7 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
             bulk: bool = True,
     ) -> List[Message]:
         """|coro|
-        清除符合谓词 ``check`` 给定标准的消息列表。
+        清除符合检查函数 ``check`` 给定标准的消息列表。
         如果未提供 ``check`` ，则所有消息都将被删除，一视同仁。
 
         Examples

@@ -556,10 +556,10 @@ API 为某些类型的字符串提供了一些枚举，以避免 API 被字符�
 
         类似于 :func:`utils.find`，除了运行异步迭代器。
 
-        不像:func:`utils.find`，提供的谓词可以是 |coroutine_link|_ 。
+        不像:func:`utils.find`，提供的检查函数可以是 |coroutine_link|_ 。
 
-        :param predicate: 要使用的谓词。 可能是 |coroutine_link|_ 。
-        :return: 为谓词返回“True”或“None”的第一个元素。
+        :param predicate: 要使用的检查函数。 可能是 |coroutine_link|_ 。
+        :return: 为检查函数返回“True”或“None”的第一个元素。
 
     .. method:: flatten()
         :async:
@@ -600,7 +600,7 @@ API 为某些类型的字符串提供了一些枚举，以避免 API 被字符�
     .. method:: filter(predicate)
 
         这类似于内置的 :func:`filter <py:filter>` 函数。 返回另一个 :class:`AsyncIterator` 过滤原始异步迭代器。
-        该谓词可以是常规函数或 |coroutine_link|_ 。
+        该检查函数可以是常规函数或 |coroutine_link|_ 。
         获取非名为 'Test' 的频道： ::
 
             def predicate(guild):
@@ -609,7 +609,7 @@ API 为某些类型的字符串提供了一些枚举，以避免 API 被字符�
             async for elem in await client.fetch_guilds().filter(predicate):
                 ...
 
-        :param predicate: 调用每个元素的谓词。 可能是 |coroutine_link|_。
+        :param predicate: 调用每个元素的检查函数。 可能是 |coroutine_link|_。
         :rtype: :class:`AsyncIterator`
 
 抽象基类
