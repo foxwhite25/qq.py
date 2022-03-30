@@ -31,7 +31,6 @@ from typing import ClassVar, Any, Optional, Iterable, Dict, Union, TypeVar, Type
 from urllib.parse import quote as _uriquote
 
 import aiohttp
-import requests
 
 from . import __version__, utils
 from .embeds import Ark, Embed
@@ -39,15 +38,12 @@ from .error import HTTPException, Forbidden, NotFound, QQServerError, LoginFailu
 from .gateway import QQClientWebSocketResponse
 from .role import Role
 from .types import user, guild, message, channel, member
-from .types.channel import Channel as ChannelPayload
 from .types.embed import Ark as ArkPayload, Embed as EmbedPayload
-from .types.member import MemberWithUser as MemberPayload
 from .types.message import Message
 from .types.permission import (
     Permission as PermissionPayload,
     PermissionDemand as PermissionDemandPayload
 )
-from .types.role import Role as RolePayload
 from .types.schedule import Schedule as SchedulePayload
 from .utils import MISSING
 
@@ -286,36 +282,6 @@ class HTTPClient:
             params['after'] = after
 
         return self.request(Route('GET', '/users/@me/guilds'), params=params)
-
-    def sync_get_bot_member(self, guild_id: int, user_id: int) -> MemberPayload:
-        headers: Dict[str, str] = {
-            'User-Agent': self.user_agent,
-        }
-        if self.token is not None:
-            headers['Authorization'] = 'Bot ' + self.token
-        rsp = requests.get(f'https://api.sgroup.qq.com/guilds/{guild_id}/members/{user_id}', headers=headers)
-        _log.debug('GET %s 与 %s 已返回 %s', f'https://api.sgroup.qq.com/guilds/{guild_id}/members/{user_id}', rsp.json(),
-                   rsp.status_code)
-        if rsp.status_code == 200:
-            return rsp.json()
-
-    def sync_guild_channels_roles(self, guild_id: int) -> Tuple[
-        List[ChannelPayload], List[RolePayload], List[MemberPayload]]:
-        headers: Dict[str, str] = {
-            'User-Agent': self.user_agent,
-        }
-        if self.token is not None:
-            headers['Authorization'] = 'Bot ' + self.token
-        result = []
-        for n in ['channels', 'roles', 'members']:
-            rsp = requests.get(f'https://api.sgroup.qq.com/guilds/{guild_id}/{n}', headers=headers)
-            _log.debug('GET %s 与 %s 已返回 %s', f'https://api.sgroup.qq.com/guilds/{guild_id}/{n}', rsp.json(),
-                       rsp.status_code)
-            if rsp.status_code == 200:
-                result.append(rsp.json())
-            else:
-                result.append([])
-        return tuple(result)
 
     def get_guild(self, guild_id: int) -> Response[guild.Guild]:
         return self.request(Route('GET', '/guilds/{guild_id}', guild_id=guild_id))
