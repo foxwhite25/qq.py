@@ -236,7 +236,7 @@ class HTTPClient:
                         continue
                     raise
                 except QQServerError as e:
-                    if e.code in (620006, ):
+                    if tries < 4 and e.code in (620006, ):
                         await asyncio.sleep(1 + tries * 2)
                         continue
                     raise e
@@ -609,11 +609,12 @@ class HTTPClient:
         return self.request(r, json=payload, reason=reason)
 
     def delete_message(
-            self, channel_id: int, message_id: str, *, reason: Optional[str] = None
+            self, channel_id: int, message_id: str, hidetip: bool, *, reason: Optional[str] = None,
     ) -> Response[None]:
         r = Route('DELETE', '/channels/{channel_id}/messages/{message_id}', channel_id=channel_id,
                   message_id=message_id)
-        return self.request(r, reason=reason)
+        params = {'hidetip': 'true' if hidetip else 'false'}
+        return self.request(r, reason=reason, params=params)
 
     def delete_messages(
             self, channel_id: int, message_ids: List[str], *, reason: Optional[str] = None

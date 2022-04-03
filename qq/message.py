@@ -850,7 +850,7 @@ class Message(Hashable):
         it = filter(None, map(self.guild.get_channel, self.raw_channel_mentions))
         return utils._unique(it)
 
-    async def delete(self, *, delay: Optional[float] = None) -> None:
+    async def delete(self, *, delay: Optional[float] = None, hidetip: bool = False) -> None:
         """|coro|
         撤回消息。
 
@@ -858,6 +858,8 @@ class Message(Hashable):
         -----------
         delay: Optional[:class:`float`]
             如果提供，则在删除消息之前在后台等待的秒数。如果删除失败，则它会被静默忽略。
+        hidetip: bool
+            如果为 ``True`` ，将隐藏撤回灰条，默认为 ``False``
 
         Raises
         ------
@@ -879,7 +881,7 @@ class Message(Hashable):
 
             asyncio.create_task(delete(delay))
         else:
-            await self._state.http.delete_message(self.channel.id, self.id)
+            await self._state.http.delete_message(self.channel.id, self.id, hidetip)
 
     @property
     def edited_at(self) -> Optional[datetime.datetime]:
