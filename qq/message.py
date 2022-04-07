@@ -212,7 +212,7 @@ class MessageReference:
     -----------
     message_id: Optional[:class:`int`]
         引用的消息的 ID。
-    channel_id: :class:`int`
+    channel_id: Optional[:class:`int`]
         引用的消息的子频道 ID。
     guild_id: Optional[:class:`int`]
         所引用消息的频道 ID。
