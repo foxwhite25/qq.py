@@ -41,7 +41,6 @@ from .gateway import QQWebSocket, ReconnectWebSocket
 from .guild import Guild
 from .http import HTTPClient
 from .iterators import GuildIterator
-from .nest_asyncio import apply
 from .state import ConnectionState
 from .user import ClientUser, User
 
@@ -137,7 +136,6 @@ class Client:
     ):
         self.ws: QQWebSocket = None  # type: ignore
         self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop() if loop is None else loop
-        apply(self.loop)
         self._listeners: Dict[str, List[Tuple[asyncio.Future, Callable[..., bool]]]] = {}
         self.token = ""
         self.shard_id: Optional[int] = options.get('shard_id')

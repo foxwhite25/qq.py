@@ -259,8 +259,6 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
             在此定义的任何 ``pre_invoke`` 或 ``after_invoke`` 都将覆盖父项。
 
-        .. versionadded:: 1.1.0
-
     """
     __original_kwargs__: Dict[str, Any]
 
@@ -281,8 +279,8 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         return self
 
     def __init__(self, func: Union[
-        Callable[Concatenate[CogT, ContextT, P], Coro[T]],
-        Callable[Concatenate[ContextT, P], Coro[T]],
+        Callable[[Concatenate[CogT, ContextT, P]], Coro[T]],
+        Callable[[Concatenate[ContextT, P]], Coro[T]],
     ], **kwargs: Any):
         if not asyncio.iscoroutinefunction(func):
             raise TypeError('回调必须是协程。')
@@ -400,15 +398,15 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
     @property
     def callback(self) -> Union[
-        Callable[Concatenate[CogT, Context, P], Coro[T]],
-        Callable[Concatenate[Context, P], Coro[T]],
+        Callable[[Concatenate[CogT, Context, P]], Coro[T]],
+        Callable[[Concatenate[Context, P]], Coro[T]],
     ]:
         return self._callback
 
     @callback.setter
     def callback(self, function: Union[
-        Callable[Concatenate[CogT, Context, P], Coro[T]],
-        Callable[Concatenate[Context, P], Coro[T]],
+        Callable[[Concatenate[CogT, Context, P]], Coro[T]],
+        Callable[[Concatenate[Context, P]], Coro[T]],
     ]) -> None:
         self._callback = function
         unwrap = unwrap_function(function)
@@ -1267,8 +1265,8 @@ class GroupMixin(Generic[CogT]):
     ) -> Callable[
         [
             Union[
-                Callable[Concatenate[CogT, ContextT, P], Coro[T]],
-                Callable[Concatenate[ContextT, P], Coro[T]],
+                Callable[[Concatenate[CogT, ContextT, P]], Coro[T]],
+                Callable[[Concatenate[ContextT, P]], Coro[T]],
             ]
         ], Command[CogT, P, T]]:
         ...
@@ -1280,7 +1278,7 @@ class GroupMixin(Generic[CogT]):
             cls: Type[CommandT] = ...,
             *args: Any,
             **kwargs: Any,
-    ) -> Callable[[Callable[Concatenate[ContextT, P], Coro[Any]]], CommandT]:
+    ) -> Callable[[Callable[[Concatenate[ContextT, P]], Coro[Any]]], CommandT]:
         ...
 
     def command(
@@ -1289,7 +1287,7 @@ class GroupMixin(Generic[CogT]):
             cls: Type[CommandT] = MISSING,
             *args: Any,
             **kwargs: Any,
-    ) -> Callable[[Callable[Concatenate[ContextT, P], Coro[Any]]], CommandT]:
+    ) -> Callable[[Callable[[Concatenate[ContextT, P]], Coro[Any]]], CommandT]:
         """调用 :func:`.command` 并通过 :meth:`~.GroupMixin.add_command` 将其添加到内部命令列表的快捷方式装饰器。
 
         Returns
@@ -1298,7 +1296,7 @@ class GroupMixin(Generic[CogT]):
             将提供的方法转换为命令的装饰器，将其添加到机器人，然后返回它。
         """
 
-        def decorator(func: Callable[Concatenate[ContextT, P], Coro[Any]]) -> CommandT:
+        def decorator(func: Callable[[Concatenate[ContextT, P]], Coro[Any]]) -> CommandT:
             kwargs.setdefault('parent', self)
             result = command(name=name, cls=cls, *args, **kwargs)(func)
             self.add_command(result)
@@ -1315,8 +1313,8 @@ class GroupMixin(Generic[CogT]):
             **kwargs: Any,
     ) -> Callable[[
                       Union[
-                          Callable[Concatenate[CogT, ContextT, P], Coro[T]],
-                          Callable[Concatenate[ContextT, P], Coro[T]]
+                          Callable[[Concatenate[CogT, ContextT, P]], Coro[T]],
+                          Callable[[Concatenate[ContextT, P]], Coro[T]]
                       ]
                   ], Group[CogT, P, T]]:
         ...
@@ -1328,7 +1326,7 @@ class GroupMixin(Generic[CogT]):
             cls: Type[GroupT] = ...,
             *args: Any,
             **kwargs: Any,
-    ) -> Callable[[Callable[Concatenate[ContextT, P], Coro[Any]]], GroupT]:
+    ) -> Callable[[Callable[[Concatenate[ContextT, P]], Coro[Any]]], GroupT]:
         ...
 
     def group(
@@ -1337,7 +1335,7 @@ class GroupMixin(Generic[CogT]):
             cls: Type[GroupT] = MISSING,
             *args: Any,
             **kwargs: Any,
-    ) -> Callable[[Callable[Concatenate[ContextT, P], Coro[Any]]], GroupT]:
+    ) -> Callable[[Callable[[Concatenate[ContextT, P]], Coro[Any]]], GroupT]:
         """调用 :func:`.group` 并通过 :meth:`~.GroupMixin.add_command` 将其添加到内部命令列表的快捷方式装饰器。
 
         Returns
@@ -1346,7 +1344,7 @@ class GroupMixin(Generic[CogT]):
             将提供的方法转换为 Group 的装饰器，将其添加到机器人，然后返回它。
         """
 
-        def decorator(func: Callable[Concatenate[ContextT, P], Coro[Any]]) -> GroupT:
+        def decorator(func: Callable[[Concatenate[ContextT, P]], Coro[Any]]) -> GroupT:
             kwargs.setdefault('parent', self)
             result = group(name=name, cls=cls, *args, **kwargs)(func)
             self.add_command(result)
@@ -1470,8 +1468,8 @@ def command(
 ) -> Callable[
     [
         Union[
-            Callable[Concatenate[CogT, ContextT, P], Coro[T]],
-            Callable[Concatenate[ContextT, P], Coro[T]],
+            Callable[[Concatenate[CogT, ContextT, P]], Coro[T]],
+            Callable[[Concatenate[ContextT, P]], Coro[T]],
         ]
     ]
     , Command[CogT, P, T]]:
@@ -1486,8 +1484,8 @@ def command(
 ) -> Callable[
     [
         Union[
-            Callable[Concatenate[CogT, ContextT, P], Coro[Any]],
-            Callable[Concatenate[ContextT, P], Coro[Any]],
+            Callable[[Concatenate[CogT, ContextT, P]], Coro[Any]],
+            Callable[[Concatenate[ContextT, P]], Coro[Any]],
         ]
     ]
     , CommandT]:
@@ -1501,8 +1499,8 @@ def command(
 ) -> Callable[
     [
         Union[
-            Callable[Concatenate[ContextT, P], Coro[Any]],
-            Callable[Concatenate[CogT, ContextT, P], Coro[T]],
+            Callable[[Concatenate[ContextT, P]], Coro[Any]],
+            Callable[[Concatenate[CogT, ContextT, P]], Coro[T]],
         ]
     ]
     , Union[Command[CogT, P, T], CommandT]]:
@@ -1531,8 +1529,8 @@ def command(
         cls = Command  # type: ignore
 
     def decorator(func: Union[
-        Callable[Concatenate[ContextT, P], Coro[Any]],
-        Callable[Concatenate[CogT, ContextT, P], Coro[Any]],
+        Callable[[Concatenate[ContextT, P]], Coro[Any]],
+        Callable[[Concatenate[CogT, ContextT, P]], Coro[Any]],
     ]) -> CommandT:
         if isinstance(func, Command):
             raise TypeError('Callback is already a command.')
@@ -1549,8 +1547,8 @@ def group(
 ) -> Callable[
     [
         Union[
-            Callable[Concatenate[CogT, ContextT, P], Coro[T]],
-            Callable[Concatenate[ContextT, P], Coro[T]],
+            Callable[[Concatenate[CogT, ContextT, P]], Coro[T]],
+            Callable[[Concatenate[ContextT, P]], Coro[T]],
         ]
     ]
     , Group[CogT, P, T]]:
@@ -1565,8 +1563,8 @@ def group(
 ) -> Callable[
     [
         Union[
-            Callable[Concatenate[CogT, ContextT, P], Coro[Any]],
-            Callable[Concatenate[ContextT, P], Coro[Any]],
+            Callable[[Concatenate[CogT, ContextT, P]], Coro[Any]],
+            Callable[[Concatenate[ContextT, P]], Coro[Any]],
         ]
     ]
     , GroupT]:
@@ -1580,8 +1578,8 @@ def group(
 ) -> Callable[
     [
         Union[
-            Callable[Concatenate[ContextT, P], Coro[Any]],
-            Callable[Concatenate[CogT, ContextT, P], Coro[T]],
+            Callable[[Concatenate[ContextT, P]], Coro[Any]],
+            Callable[[Concatenate[CogT, ContextT, P]], Coro[T]],
         ]
     ]
     , Union[Group[CogT, P, T], GroupT]]:
@@ -1905,8 +1903,11 @@ def is_owner() -> Callable[[T], T]:
     return check(predicate)
 
 
-def cooldown(rate: int, per: float, type: Union[BucketType, Callable[[Message], Any]] = BucketType.default) -> Callable[
-    [T], T]:
+def cooldown(
+        rate: int,
+        per: float,
+        type: Union[BucketType, Callable[[Message], Any]] = BucketType.default
+) -> Callable[[T], T]:
     """为 :class:`.Command` 添加冷却时间的装饰器
 
     冷却时间允许命令在特定时间范围内仅使用特定次数。
@@ -1924,7 +1925,7 @@ def cooldown(rate: int, per: float, type: Union[BucketType, Callable[[Message], 
     per: :class:`float`
         触发时等待冷却的秒数。
     type: Union[:class:`.BucketType`, Callable[[:class:`.Message`], Any]]
-        冷却时间的类型。如果可调用，则应返回映射的键。
+        冷却时间的类型。
     """
 
     def decorator(func: Union[Command, CoroFunc]) -> Union[Command, CoroFunc]:
@@ -1937,8 +1938,10 @@ def cooldown(rate: int, per: float, type: Union[BucketType, Callable[[Message], 
     return decorator  # type: ignore
 
 
-def dynamic_cooldown(cooldown: Union[BucketType, Callable[[Message], Any]], type: BucketType = BucketType.default) -> \
-        Callable[[T], T]:
+def dynamic_cooldown(
+        cooldown: Union[BucketType, Callable[[Message], Any]],
+        type: BucketType = BucketType.default
+) -> Callable[[T], T]:
     """为 :class:`.Command` 添加动态冷却时间的装饰器
 
     这与 :func:`.cooldown` 的不同之处在于
@@ -1961,7 +1964,7 @@ def dynamic_cooldown(cooldown: Union[BucketType, Callable[[Message], Any]], type
         冷却时间的类型。
     """
     if not callable(cooldown):
-        raise TypeError("必须提供可调用")
+        raise TypeError("必须提供 Callable")
 
     def decorator(func: Union[Command, CoroFunc]) -> Union[Command, CoroFunc]:
         if isinstance(func, Command):

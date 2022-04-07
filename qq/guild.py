@@ -21,7 +21,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import datetime
 from typing import (
     Dict,
@@ -152,7 +151,6 @@ class Guild(Hashable):
         for r in guild.get('roles', []):
             role = Role(guild=self, data=r, state=state)
             self._roles[role.id] = role
-        self._sync()
 
     def _add_channel(self, channel: GuildChannel, /) -> None:
         self._channels[channel.id] = channel
@@ -172,11 +170,9 @@ class Guild(Hashable):
         inner = ' '.join('%s=%r' % t for t in attrs)
         return f'<Guild {inner}>'
 
-    def _sync(self) -> None:
-        # I know it's jank to put a sync requests here,
-        # but QQ just does not give all the info about guilds unless you requests it
-        channels = asyncio.run(self._state.http.get_guild_channels(self.id))
-        result = asyncio.run(self._state.http.get_member(self.id, self._state.user.id))
+    async def fill_in(self):
+        channels = await self._state.http.get_guild_channels(self.id)
+        result = await self._state.http.get_member(self.id, self._state.user.id)
 
         member = Member(data=result,
                         guild=self, state=self._state)
@@ -184,7 +180,7 @@ class Guild(Hashable):
 
         try:
 
-            permissions = asyncio.run(self._state.http.get_permission(self.id))
+            permissions = await self._state.http.get_permission(self.id)
             for permission in permissions['apis']:
                 permission = Permission(data=permission, state=self._state, guild=self)
                 self._permission.append(permission)
@@ -193,7 +189,7 @@ class Guild(Hashable):
             print(e)
 
         try:
-            roles = asyncio.run(self._state.http.get_roles(self.id))
+            roles = await self._state.http.get_roles(self.id)
             if 'roles' in roles:
                 for r in roles['roles']:
                     role = Role(guild=self, data=r, state=self._state)

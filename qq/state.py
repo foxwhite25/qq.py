@@ -434,7 +434,7 @@ class ConnectionState:
         finally:
             self._ready_task = None
 
-    def parse_ready(self, data) -> None:
+    async def parse_ready(self, data) -> None:
         if self._ready_task is not None:
             self._ready_task.cancel()
 
@@ -451,10 +451,11 @@ class ConnectionState:
             else:
                 self.application_id = application.get('id')
 
-        result = asyncio.run(self.http.get_guilds())
+        result = await self.http.get_guilds()
 
         for guild_data in result:
-            self._add_guild_from_data(guild_data)
+            guild = self._add_guild_from_data(guild_data)
+            await guild.fill_in()
 
         self.dispatch('connect')
         self._ready_task = asyncio.create_task(self._delay_ready())
@@ -891,7 +892,7 @@ class AutoShardedConnectionState(ConnectionState):
         self.call_handlers('ready')
         self.dispatch('ready')
 
-    def parse_ready(self, data) -> None:
+    async def parse_ready(self, data) -> None:
         if not hasattr(self, '_ready_state'):
             self._ready_state = asyncio.Queue()
 
@@ -907,10 +908,11 @@ class AutoShardedConnectionState(ConnectionState):
             else:
                 self.application_id = application.get('id')
 
-        result = self.pool.submit(asyncio.run, self.http.get_guilds()).result()
+        result = await self.http.get_guilds()
 
         for guild_data in result:
-            self._add_guild_from_data(guild_data)
+            guild = self._add_guild_from_data(guild_data)
+            await guild.fill_in()
 
         if self._messages:
             self._update_message_references()

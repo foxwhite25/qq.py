@@ -432,7 +432,10 @@ class QQWebSocket:
         except KeyError:
             _log.debug('未知事件 %s.', event)
         else:
-            func(data)
+            if event == 'READY':
+                await func(data)
+            else:
+                func(data)
 
         # remove the dispatched listeners
         removed = []

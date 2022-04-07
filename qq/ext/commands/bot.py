@@ -140,9 +140,6 @@ class BotBase(GroupMixin):
         if self.owner_id and self.owner_ids:
             raise TypeError('owner_id 和 owner_ids 都被设置。')
 
-        if not self.owner_id and not self.owner_ids:
-            raise TypeError('owner_id 和 owner_ids 必须设置其中一个。')
-
         if self.owner_ids and not isinstance(self.owner_ids, collections.abc.Collection):
             raise TypeError(f'owner_ids 必须是一个集合，而不是 {self.owner_ids.__class__!r}')
 
