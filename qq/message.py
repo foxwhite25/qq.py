@@ -239,9 +239,6 @@ class MessageReference:
     def with_state(cls: Type[MR], state: ConnectionState, data: MessageReferencePayload) -> MR:
         self = cls.__new__(cls)
         self.message_id = data.get('message_id')
-        self.channel_id = int(data.pop('channel_id'))
-        self.guild_id = data.get('guild_id')
-        self.fail_if_not_exists = data.get('fail_if_not_exists', True)
         self._state = state
         self.resolved = None
         return self
@@ -283,9 +280,6 @@ class MessageReference:
 
     def to_dict(self) -> MessageReferencePayload:
         result: MessageReferencePayload = {'message_id': self.message_id} if self.message_id is not None else {}
-        result['channel_id'] = self.channel_id
-        if self.guild_id is not None:
-            result['guild_id'] = self.guild_id
         if self.fail_if_not_exists is not None:
             result['fail_if_not_exists'] = self.fail_if_not_exists
         return result
