@@ -489,7 +489,7 @@ class HTTPClient:
             payload['message_reference'] = message_reference
 
         if content:
-            payload['content'] = content.replace(".", "\ufeff.")
+            payload['content'] = content.replace(".", "\ufeff.", 1)
 
         if tts:
             payload['tts'] = True
@@ -523,9 +523,6 @@ class HTTPClient:
 
         r = Route('GET', '/guilds/{guild_id}/members', guild_id=guild_id)
         return self.request(r, params=params)
-
-    def get_all_guild_channels(self, guild_id: int) -> Response[List[guild.GuildChannel]]:
-        return self.request(Route('GET', '/guilds/{guild_id}/channels', guild_id=guild_id))
 
     def get_member(self, guild_id: int, member_id: int) -> Response[member.MemberWithUser]:
         return self.request(

@@ -25,6 +25,9 @@ import io
 import os
 from typing import Any, Literal, Optional, TYPE_CHECKING, Tuple, Union
 
+import yarl
+from typing_extensions import Self
+
 from . import utils
 from .error import QQException
 
@@ -139,10 +142,11 @@ class Asset(AssetMixin):
         '_key',
     )
 
-    def __init__(self, state, *, url: str, key: str):
+    def __init__(self, state, *, url: str, key: str, animated: bool = False):
         self._state = state
         self._url = url
         self._key = key
+        self._animated = animated
 
     @classmethod
     def _from_avatar(cls, state, avatar: str) -> Asset:
@@ -167,8 +171,7 @@ class Asset(AssetMixin):
         return len(self._url)
 
     def __repr__(self):
-        shorten = self._url.replace(self.BASE, '')
-        return f'<Asset url={shorten!r}>'
+        return f'<Asset url={self._url!r}>'
 
     def __eq__(self, other):
         return isinstance(other, Asset) and self._url == other._url
@@ -185,3 +188,144 @@ class Asset(AssetMixin):
     def key(self) -> str:
         """:class:`str`: 返回素材的识别键。"""
         return self._key
+
+    def is_animated(self) -> bool:
+        """:class:`bool`: Returns whether the asset is animated."""
+        return self._animated
+
+    def replace(
+            self,
+            *,
+            size: int = MISSING,
+            format: ValidAssetFormatTypes = MISSING,
+            static_format: ValidStaticFormatTypes = MISSING,
+    ) -> Self:
+        """Returns a new asset with the passed components replaced.
+
+        Parameters
+        -----------
+        size: :class:`int`
+            The new size of the asset.
+        format: :class:`str`
+            The new format to change it to. Must be either
+            'webp', 'jpeg', 'jpg', 'png', or 'gif' if it's animated.
+        static_format: :class:`str`
+            The new format to change it to if the asset isn't animated.
+            Must be either 'webp', 'jpeg', 'jpg', or 'png'.
+
+        Raises
+        -------
+        ValueError
+            An invalid size or format was passed.
+
+        Returns
+        --------
+        :class:`Asset`
+            The newly updated asset.
+        """
+        url = yarl.URL(self._url)
+        path, _ = os.path.splitext(url.path)
+
+        if format is not MISSING:
+            if self._animated:
+                if format not in VALID_ASSET_FORMATS:
+                    raise ValueError(f'format must be one of {VALID_ASSET_FORMATS}')
+            else:
+                if format not in VALID_STATIC_FORMATS:
+                    raise ValueError(f'format must be one of {VALID_STATIC_FORMATS}')
+            url = url.with_path(f'{path}.{format}')
+
+        if static_format is not MISSING and not self._animated:
+            if static_format not in VALID_STATIC_FORMATS:
+                raise ValueError(f'static_format must be one of {VALID_STATIC_FORMATS}')
+            url = url.with_path(f'{path}.{static_format}')
+
+        if size is not MISSING:
+            if not utils.valid_icon_size(size):
+                raise ValueError('size must be a power of 2 between 16 and 4096')
+            url = url.with_query(size=size)
+        else:
+            url = url.with_query(url.raw_query_string)
+
+        url = str(url)
+        return Asset(state=self._state, url=url, key=self._key, animated=self._animated)
+
+    def with_size(self, size: int, /) -> Self:
+        """Returns a new asset with the specified size.
+
+        Parameters
+        ------------
+        size: :class:`int`
+            The new size of the asset.
+
+        Raises
+        -------
+        ValueError
+            The asset had an invalid size.
+
+        Returns
+        --------
+        :class:`Asset`
+            The new updated asset.
+        """
+        if not utils.valid_icon_size(size):
+            raise ValueError('size must be a power of 2 between 16 and 4096')
+
+        url = str(yarl.URL(self._url).with_query(size=size))
+        return Asset(state=self._state, url=url, key=self._key, animated=self._animated)
+
+    def with_format(self, format: ValidAssetFormatTypes, /) -> Self:
+        """Returns a new asset with the specified format.
+
+        Parameters
+        ------------
+        format: :class:`str`
+            The new format of the asset.
+
+        Raises
+        -------
+        ValueError
+            The asset had an invalid format.
+
+        Returns
+        --------
+        :class:`Asset`
+            The new updated asset.
+        """
+
+        if self._animated:
+            if format not in VALID_ASSET_FORMATS:
+                raise ValueError(f'format must be one of {VALID_ASSET_FORMATS}')
+        else:
+            if format not in VALID_STATIC_FORMATS:
+                raise ValueError(f'format must be one of {VALID_STATIC_FORMATS}')
+
+        url = yarl.URL(self._url)
+        path, _ = os.path.splitext(url.path)
+        url = str(url.with_path(f'{path}.{format}').with_query(url.raw_query_string))
+        return Asset(state=self._state, url=url, key=self._key, animated=self._animated)
+
+    def with_static_format(self, format: ValidStaticFormatTypes, /) -> Self:
+        """Returns a new asset with the specified static format.
+        This only changes the format if the underlying asset is
+        not animated. Otherwise, the asset is not changed.
+
+        Parameters
+        ------------
+        format: :class:`str`
+            The new static format of the asset.
+
+        Raises
+        -------
+        ValueError
+            The asset had an invalid format.
+
+        Returns
+        --------
+        :class:`Asset`
+            The new updated asset.
+        """
+
+        if self._animated:
+            return self
+        return self.with_format(format)

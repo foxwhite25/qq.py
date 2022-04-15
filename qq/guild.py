@@ -717,7 +717,7 @@ class Guild(Hashable):
         Sequence[:class:`abc.GuildChannel`]
             频道内的所有频道。
         """
-        data = await self._state.http.get_all_guild_channels(self.id)
+        data = await self._state.http.get_guild_channels(self.id)
 
         def convert(d):
             factory, ch_type = _guild_channel_factory(d['type'])

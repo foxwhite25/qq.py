@@ -870,7 +870,7 @@ class DefaultHelpCommand(HelpCommand):
         """:class:`str`: 返回帮助命令的结束注释。这主要用于覆盖 i18n 目的。"""
         command_name = self.invoked_with
         return (
-            f"输入 {self.context.clean_prefix}{command_name} 命令以获取有关命令的更多信息。\n"
+            f"输入 {self.context.clean_prefix}{command_name} 命令 以获取有关命令的更多信息。\n"
             f"你还可以输入 {self.context.clean_prefix}{command_name} 类别 以获取有关类别的更多信息。"
         )
 

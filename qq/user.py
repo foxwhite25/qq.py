@@ -62,11 +62,11 @@ class BaseUser(_UserTag):
         id: int
         bot: bool
         _state: ConnectionState
-        _avatar: Optional[str]
+        _avatar: Optional[Asset]
 
     def __init__(self, *, state: ConnectionState, data: UserPayload) -> None:
         self._state = state
-        self._avatar = None
+        self._avatar = Asset._from_avatar(state=self._state, avatar=data.get('avatar', ''))
         self._update(data)
 
     def __repr__(self) -> str:
