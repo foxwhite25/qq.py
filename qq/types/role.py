@@ -24,6 +24,11 @@ from __future__ import annotations
 from typing import TypedDict
 
 
+class WrappedRole(TypedDict, total=False):
+    role_id: str
+    role: Role
+
+
 class Role(TypedDict, total=False):
     id: str
     name: str

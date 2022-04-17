@@ -931,7 +931,7 @@ class Guild(Hashable):
             fields['color'] = actual_colour.value
 
         if hoist is not MISSING:
-            fields['hoist'] = hoist
+            fields['hoist'] = 1 if hoist else 0
 
         if mentionable is not MISSING:
             fields['mentionable'] = mentionable
@@ -940,7 +940,7 @@ class Guild(Hashable):
             fields['name'] = name
 
         data = await self._state.http.create_role(self.id, reason=reason, **fields)
-        role = Role(guild=self, data=data, state=self._state)
+        role = Role(guild=self, data=data['role'], state=self._state)
 
         return role
 

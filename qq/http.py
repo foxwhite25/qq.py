@@ -36,13 +36,16 @@ from . import __version__, utils
 from .embeds import Ark, Embed
 from .error import HTTPException, Forbidden, NotFound, QQServerError, LoginFailure, GatewayNotFound
 from .gateway import QQClientWebSocketResponse
-from .role import Role
 from .types import user, guild, message, channel, member
 from .types.embed import Ark as ArkPayload, Embed as EmbedPayload
 from .types.message import Message
 from .types.permission import (
     Permission as PermissionPayload,
     PermissionDemand as PermissionDemandPayload
+)
+from .types.role import (
+    WrappedRole as WrappedRolePayload,
+    Role as RolePayload
 )
 from .types.schedule import Schedule as SchedulePayload
 from .utils import MISSING
@@ -295,12 +298,12 @@ class HTTPClient:
 
     # 身份组管理
 
-    def get_roles(self, guild_id: int) -> Response[List[Role]]:
+    def get_roles(self, guild_id: int) -> Response[List[RolePayload]]:
         return self.request(Route('GET', '/guilds/{guild_id}/roles', guild_id=guild_id))
 
     def edit_role(
             self, guild_id: int, role_id: int, *, reason: Optional[str] = None, **fields: Any
-    ) -> Response[Role]:
+    ) -> Response[RolePayload]:
         r = Route('PATCH', '/guilds/{guild_id}/roles/{role_id}', guild_id=guild_id, role_id=role_id)
         valid_keys = ('name', 'color', 'hoist')
         payload = {"info": {k: v for k, v in fields.items() if k in valid_keys}}
@@ -310,7 +313,7 @@ class HTTPClient:
         r = Route('DELETE', '/guilds/{guild_id}/roles/{role_id}', guild_id=guild_id, role_id=role_id)
         return self.request(r, reason=reason)
 
-    def create_role(self, guild_id: int, *, reason: Optional[str] = None, **fields: Any) -> Response[Role]:
+    def create_role(self, guild_id: int, *, reason: Optional[str] = None, **fields: Any) -> Response[WrappedRolePayload]:
         r = Route('POST', '/guilds/{guild_id}/roles', guild_id=guild_id)
         return self.request(r, json=fields, reason=reason)
 
@@ -489,7 +492,7 @@ class HTTPClient:
             payload['message_reference'] = message_reference
 
         if content:
-            payload['content'] = content.replace(".", "\ufeff.", 1)
+            payload['content'] = content.replace(".", "\ufeff.")
 
         if tts:
             payload['tts'] = True
