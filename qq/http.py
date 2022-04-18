@@ -213,7 +213,8 @@ class HTTPClient:
 
                         # the request was successful so just return the text/json
                         if 300 > response.status >= 200:
-                            _log.debug('%s %s 已收到 %s', method, url, data)
+                            if response.status != 204:
+                                _log.debug('%s %s 已收到 %s', method, url, data)
                             return data
 
                         # we've received a 500, 502, or 504, unconditional retry
