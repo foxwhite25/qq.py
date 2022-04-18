@@ -239,7 +239,7 @@ class HTTPClient:
                         continue
                     raise
                 except QQServerError as e:
-                    if tries < 4 and e.code in (620006, ):
+                    if tries < 4 and e.code in (620006,):
                         await asyncio.sleep(1 + tries * 2)
                         continue
                     raise e
@@ -313,12 +313,13 @@ class HTTPClient:
         r = Route('DELETE', '/guilds/{guild_id}/roles/{role_id}', guild_id=guild_id, role_id=role_id)
         return self.request(r, reason=reason)
 
-    def create_role(self, guild_id: int, *, reason: Optional[str] = None, **fields: Any) -> Response[WrappedRolePayload]:
+    def create_role(self, guild_id: int, *, reason: Optional[str] = None, **fields: Any) -> Response[
+        WrappedRolePayload]:
         r = Route('POST', '/guilds/{guild_id}/roles', guild_id=guild_id)
         return self.request(r, json=fields, reason=reason)
 
     def add_role(
-            self, guild_id: int, user_id: int, role_id: int, *, reason: Optional[str] = None
+            self, guild_id: int, user_id: int, role_id: int, channel_id: Optional[int], *, reason: Optional[str] = None
     ) -> Response[None]:
         r = Route(
             'PUT',
@@ -327,10 +328,13 @@ class HTTPClient:
             user_id=user_id,
             role_id=role_id,
         )
+        if channel_id:
+            payload = {'channel': {'id': str(channel_id)}}
+            return self.request(r, json=payload, reason=reason)
         return self.request(r, reason=reason)
 
     def remove_role(
-            self, guild_id: int, user_id: int, role_id: int, *, reason: Optional[str] = None
+            self, guild_id: int, user_id: int, role_id: int, channel_id: Optional[int], *, reason: Optional[str] = None
     ) -> Response[None]:
         r = Route(
             'DELETE',
@@ -339,6 +343,9 @@ class HTTPClient:
             user_id=user_id,
             role_id=role_id,
         )
+        if channel_id:
+            payload = {'channel': {'id': str(channel_id)}}
+            return self.request(r, json=payload, reason=reason)
         return self.request(r, reason=reason)
 
     def create_channel(

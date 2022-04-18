@@ -31,9 +31,10 @@ from . import utils
 from .abc import Messageable
 from .colour import Colour
 from .object import Object
-from .user import _UserTag, BaseUser, User
+from .user import _UserTag, BaseUser
 
 if TYPE_CHECKING:
+    from .abc import GuildChannel
     from .guild import Guild
     from .asset import Asset
     from .message import Message
@@ -319,7 +320,12 @@ class Member(Messageable, _UserTag):
 
         return any(self._roles.has(role.id) for role in message.role_mentions)
 
-    async def add_roles(self, *roles: Role, reason: Optional[str] = None, atomic: bool = True) -> None:
+    async def add_roles(
+            self, *roles: Role,
+            reason: Optional[str] = None,
+            atomic: bool = True,
+            channel: GuildChannel = None
+    ) -> None:
         r"""|coro|
         给成员一些 :class:`Role` 。
 
@@ -331,6 +337,8 @@ class Member(Messageable, _UserTag):
             添加这些身份组的原因。
         atomic: :class:`bool`
             是否以 atomic 方式添加身份组。这将确保无论缓存的当前状态如何，都将始终应用多个操作。
+        channel: Optional[:class: `abc.GuildChannel`]
+            仅在添加身份组为 5 (子频道管理员) 的时候需要
 
         Raises
         -------
@@ -348,9 +356,14 @@ class Member(Messageable, _UserTag):
             guild_id = self.guild.id
             user_id = self.id
             for role in roles:
-                await req(guild_id, user_id, role.id, reason=reason)
+                await req(guild_id, user_id, role.id, channel.id, reason=reason)
 
-    async def remove_roles(self, *roles: Role, reason: Optional[str] = None, atomic: bool = True) -> None:
+    async def remove_roles(
+            self, *roles: Role,
+            channel: Optional[GuildChannel] = None,
+            reason: Optional[str] = None,
+            atomic: bool = True
+    ) -> None:
         r"""|coro|
         从此成员中删除一些 :class:`Role` 。
 
@@ -362,6 +375,8 @@ class Member(Messageable, _UserTag):
             删除这些身份组的原因。 
         atomic: :class:`bool`
             是否以 atomic 方式删除身份组。这将确保无论缓存的当前状态如何，都将始终应用多个操作。
+        channel: Optional[:class: `abc.GuildChannel`]
+            仅在添加身份组为 5 (子频道管理员) 的时候需要
 
         Raises
         -------
@@ -385,7 +400,7 @@ class Member(Messageable, _UserTag):
             guild_id = self.guild.id
             user_id = self.id
             for role in roles:
-                await req(guild_id, user_id, role.id, reason=reason)
+                await req(guild_id, user_id, role.id, channel.id, reason=reason)
 
     def get_role(self, role_id: int, /) -> Optional[Role]:
         return self.guild.get_role(role_id) if self._roles.has(role_id) else None
