@@ -218,13 +218,13 @@ class Messageable:
             await ret.delete(delay=delete_after)  # type: ignore
         return ret
 
-    async def fetch_message(self, id: int, /) -> Message:
+    async def fetch_message(self, id: str, /) -> Message:
         """|coro|
         从目的地检索单个 :class:`~qq.Message`。
 
         Parameters
         ------------
-        id: :class:`int`
+        id: :class:`str`
             要查找的消息 ID。
 
         Raises
@@ -244,7 +244,7 @@ class Messageable:
         id = id
         channel, direct = await self._get_channel()
         data = await self._state.http.get_message(channel.id, id)
-        return self._state.create_message(channel=channel, data=data, direct=direct)
+        return self._state.create_message(channel=channel, data=data['message'], direct=direct)
 
     def history(
             self,

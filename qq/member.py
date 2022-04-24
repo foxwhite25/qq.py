@@ -31,7 +31,7 @@ from . import utils
 from .abc import Messageable
 from .colour import Colour
 from .object import Object
-from .user import _UserTag, BaseUser
+from .user import _UserTag, BaseUser, User
 
 if TYPE_CHECKING:
     from .abc import GuildChannel
@@ -39,7 +39,6 @@ if TYPE_CHECKING:
     from .asset import Asset
     from .message import Message
     from .state import ConnectionState
-    from .user import *
     from .types.member import (
         MemberWithUser as MemberWithUserPayload,
         Member as MemberPayload,
