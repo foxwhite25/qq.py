@@ -144,7 +144,7 @@ class Shard:
                 return
 
         retry = self._backoff.delay()
-        _log.error('Attempting a reconnect for shard ID %s in %.2fs', self.id, retry, exc_info=e)
+        _log.error('正在 %.2fs 后尝试重新连接分片ID %s',retry , self.id, exc_info=e)
         await asyncio.sleep(retry)
         self._queue_put(EventItem(EventType.reconnect, self, e))
 
@@ -169,7 +169,7 @@ class Shard:
         self._cancel_task()
         self._dispatch('disconnect')
         self._dispatch('shard_disconnect', self.id)
-        _log.info('Got a request to %s the websocket at Shard ID %s.', exc.op, self.id)
+        _log.info('Shard ID %s 收到对 %s websocket 的请求。', exc.op, self.id)
         try:
             coro = QQWebSocket.from_client(
                 self._client,

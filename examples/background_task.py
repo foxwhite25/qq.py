@@ -1,6 +1,5 @@
-from qq.ext import tasks
-from datetime import datetime
 import qq
+from qq.ext import tasks
 
 
 class MyClient(qq.Client):
@@ -17,7 +16,7 @@ class MyClient(qq.Client):
         print(f'以 {self.user} 身份登录（ID：{self.user.id}）')
         print('------')
 
-    @tasks.loop(time=datetime.today(), seconds=60)  # 任务每 60 秒运行一次
+    @tasks.loop(seconds=60)  # 任务每 60 秒运行一次
     async def my_background_task(self):
         channel = self.get_channel(15362237234473237517)  # 子频道 ID 放在这里
         self.counter += 1

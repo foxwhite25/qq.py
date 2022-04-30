@@ -88,7 +88,7 @@ class KeepAliveHandler(threading.Thread):
     def run(self):
         while not self._stop_ev.wait(self.interval):
             if self._last_recv + self.heartbeat_timeout < time.perf_counter():
-                _log.warning("分片 ID %s 已停止响应网关。关闭并重新启动。",
+                _log.warning("分片 ID %s 已停止响应 websocket 。关闭并重新启动。",
                              self.shard_id)
                 coro = self.ws.close(4000)
                 f = asyncio.run_coroutine_threadsafe(coro, loop=self.ws.loop)
@@ -96,7 +96,7 @@ class KeepAliveHandler(threading.Thread):
                 try:
                     f.result()
                 except Exception:
-                    _log.exception('停止网关时发生错误。无视。')
+                    _log.exception('停止 websocket 时发生错误。无视。')
                 finally:
                     self.stop()
                     return
@@ -415,7 +415,7 @@ class QQWebSocket:
             self.session_id = data['session_id']
             # pass back shard ID to ready handler
             data['__shard_id__'] = self.shard_id
-            _log.info('分片 ID %s 已连接到网关：%s（会话 ID：%s）。',
+            _log.info('分片 ID %s 已连接到 websocket ：%s（会话 ID：%s）。',
                       self.shard_id, ', '.join(trace), self.session_id)
 
         elif event == 'RESUMED':
@@ -473,7 +473,7 @@ class QQWebSocket:
         return code not in (1000, 4004, 4010, 4011, 4012, 4013, 4014, 4801)
 
     async def poll_event(self):
-        """轮询 DISPATCH 事件并处理一般网关循环。\
+        """轮询 DISPATCH 事件并处理一般 websocket 循环。\
 
         Raises
         ------

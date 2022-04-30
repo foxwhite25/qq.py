@@ -1019,6 +1019,32 @@ class Guild(Hashable):
 
         await self.mute_member(user, duration=0, reason=reason)
 
+    async def unmute_members(
+            self,
+            user: List[Member],
+            *,
+            reason: Optional[str] = None,
+    ):
+        """|coro|
+        频道多个成员解除禁言。
+
+        Parameters
+        -----------
+        user: List[:class:`qq.Member`]
+            这个频道解除禁言的用户列表。
+        reason: Optional[:class:`str`]
+            解除禁言的原因。
+
+        Raises
+        -------
+        Forbidden
+            你没有适当的权限。
+        HTTPException
+            解除禁言失败。
+        """
+
+        await self.mute_members(user, duration=0, reason=reason)
+
     async def mute_member(
             self,
             user: Member,
@@ -1046,6 +1072,37 @@ class Guild(Hashable):
             禁言失败。
         """
         await self._state.http.mute_member(user.id, self.id, duration, reason=reason)
+
+    async def mute_members(
+            self,
+            user: List[Member],
+            *,
+            duration: Union[datetime.datetime, int] = 10,
+            reason: Optional[str] = None,
+    ) -> None:
+        """|coro|
+        频道多个成员禁言。
+
+        Parameters
+        -----------
+        user: List[:class:`qq.Member`]
+            这个频道禁言的用户的列表。
+        duration: Union[:class:`datetime.datetime`, :class:`int`]
+            禁言的时间，可以是结束时间的一个 :class:`datetime.datetime` ， 也可以是持续的秒数。
+        reason: Optional[:class:`str`]
+            禁言的原因。
+
+        Raises
+        -------
+        Forbidden
+            你没有适当的权限。
+        HTTPException
+            禁言失败。
+        """
+        if len(user) == 1:
+            await self._state.http.mute_member(user[0].id, self.id, duration, reason=reason)
+            return
+        await self._state.http.mute_members([u.id for u in user], self.id, duration, reason=reason)
 
     async def mute_guild(
             self,

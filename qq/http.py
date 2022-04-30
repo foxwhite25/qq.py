@@ -604,6 +604,22 @@ class HTTPClient:
         r = Route('PATCH', '/guilds/{guild_id}/members/{user_id}/mute', guild_id=guild_id, user_id=user_id)
         return self.request(r, json=payload, reason=reason)
 
+    def mute_members(
+            self, user_id: List[int],
+            guild_id: int,
+            duration: Union[datetime.datetime, int],
+            reason: Optional[str] = None
+    ) -> Response[None]:
+        payload: Dict[str, Any] = {'user_ids': user_id}
+
+        if isinstance(duration, datetime.datetime):
+            payload['mute_end_timestamp'] = str(int(duration.timestamp() * 1000))
+        else:
+            payload['mute_seconds'] = str(duration)
+
+        r = Route('PATCH', '/guilds/{guild_id}/mute', guild_id=guild_id)
+        return self.request(r, json=payload, reason=reason)
+
     def mute_guild(
             self, guild_id: int, duration: Union[datetime.datetime, int], reason: Optional[str] = None
     ) -> Response[None]:
