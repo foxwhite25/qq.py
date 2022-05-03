@@ -1,76 +1,59 @@
-name: 错误报告
-description: 报告破损或不正确的行为
-labels: [unconfirmed bug]
+name: 🐞 Bug
+description: File a bug/issue
+title: "[BUG] <title>"
+labels: [Bug, Needs Triage]
 body:
-  - type: markdown
-    attributes:
-      value: >
-        谢谢你花时间来填写一个错误。
+- type: checkboxes
+  attributes:
+    label: Is there an existing issue for this?
+    description: Please search to see if an issue already exists for the bug you encountered.
+    options:
+    - label: I have searched the existing issues
+      required: true
+- type: textarea
+  attributes:
+    label: Current Behavior
+    description: A concise description of what you're experiencing.
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Expected Behavior
+    description: A concise description of what you expected to happen.
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Steps To Reproduce
+    description: Steps to reproduce the behavior.
+    placeholder: |
+      1. In this environment...
+      2. With this config...
+      3. Run '...'
+      4. See error...
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Environment
+    description: |
+      examples:
+        - **OS**: Ubuntu 20.04
+        - **Node**: 13.14.0
+        - **npm**: 7.6.3
+    value: |
+        - OS:
+        - Node:
+        - npm:
+    render: markdown
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Anything else?
+    description: |
+      Links? References? Anything that will give us more context about the issue you are encountering!
 
-        请注意，这个表格只适用于错误报告!
-  - type: input
-    attributes:
-      label: 摘要
-      description: 你的错误报告的简单摘要
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: 复现步骤
-      description: >
-         你做了什么来发现这个错误。
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: 最小的复现代码
-      description: >
-        一个展示了这个错误的代码片段。
-      render: python
-  - type: textarea
-    attributes:
-      label: 预期结果
-      description: >
-        你预计会发生什么？
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: 实际结果
-      description: >
-        实际上发生了什么？
-    validations:
-      required: true
-  - type: input
-    attributes:
-      label: Intents
-      description: >
-        你的机器人使用的是什么 Intents ？
-        这是你传递给 client/bot 的 `qq.Intents` 类。
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: 系统信息
-      description: >
-        运行 `python -m qq -v` 并将这些信息粘贴在下面。
-
-        如果这时出错，那么写一些涉及你的系统的基本信息，如操作系统和Python版本。
-    validations:
-      required: true
-  - type: checkboxes
-    attributes:
-      label: 核对清单
-      description: >
-        让我们确保在报告这个问题时，你已经适当地做了调查!
-      options:
-        - label: 我已经搜索了开放的问题，寻找重复的问题。
-          required: true
-        - label: 如果可能的话，我已经显示了整个 traceback 。
-          required: true
-        - label: 如果可见的话我已将我的 token 从代码中移除。
-          required: true
-  - type: textarea
-    attributes:
-      label: 额外背景
-      description: 如果还有什么要说的，请在这里说。
+      Tip: You can attach images or log files by clicking this area to highlight it and then dragging files in.
+  validations:
+    required: false
