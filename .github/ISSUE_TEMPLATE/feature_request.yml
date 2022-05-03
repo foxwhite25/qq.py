@@ -1,56 +1,49 @@
-name: 功能要求
-title: "[功能要求]: "
-description: 为这个库推荐一个功能
+name: 功能需求
+description: 为这个库建议一个功能
 labels: [feature request]
 body:
   - type: input
-    id: intro
     attributes:
-      label: 概要
-      description: |
-        你的功能请求的简短摘要。
+      label: 摘要
+      description: >
+        简要说明你的功能请求是什么。
     validations:
       required: true
   - type: dropdown
-    id: types
     attributes:
       multiple: false
-      label: 什么是功能请求？
+      label: 该功能请求是关于什么？
       options:
-        - 核心库
+        - 主核心库
         - qq.ext.commands
         - qq.ext.tasks
         - 文档
     validations:
       required: true
   - type: textarea
-    id: problem
     attributes:
-      label: 问题
-      description: |
-        你的功能试图解决什么问题？
-        实施此功能后，什么变得更容易或可能？
+      label: 问题所在
+      description: >
+        你的功能想要解决什么问题？
+        这个功能实现后，什么会变得更容易或可能？
     validations:
       required: true
   - type: textarea
-    id: solution
     attributes:
       label: 理想的解决方案
-      description: |
-        你对问题的理想解决方案是什么？
-        你希望此功能做什么？
+      description: >
+        你对这个问题的理想解决方案是什么？
+        你希望这个功能能做什么？
     validations:
       required: true
   - type: textarea
-    id: current
     attributes:
-      label: 当前的解决方案
-      description: |
-        问题的当前解决方案是什么（如果有）？
+      label: 目前的解决方案
+      description: >
+        如果有的话，目前对该问题的解决方案是什么？
     validations:
       required: false
   - type: textarea
-    id: extra
     attributes:
-      label: 其他资料
+      label: 额外背景
       description: 如果还有什么要说的，请在这里说。
