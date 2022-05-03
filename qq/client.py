@@ -45,8 +45,8 @@ from .state import ConnectionState
 from .user import ClientUser, User
 
 if TYPE_CHECKING:
+    from .guild import GuildChannel
     from .channel import DMChannel
-    from .abc import GuildChannel
     from .member import Member
     from .message import Message
 

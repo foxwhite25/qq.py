@@ -901,7 +901,11 @@ class Message(Hashable):
         :class:`.Message`
             发送的消息。
         """
-        return await self.channel.send(content, msg_id=self, **kwargs)
+        return await self.channel.send(
+            content,
+            # msg_id=self,
+            **kwargs
+        )
 
     def to_reference(self, *, fail_if_not_exists: bool = True) -> MessageReference:
         """从当前消息创建一个 :class:`~qq.MessageReference`。

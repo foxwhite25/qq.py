@@ -5,12 +5,12 @@
 命令
 ==========
 
-命令扩展最吸引人的方面之一是定义命令是多么容易，以及你如何可以任意嵌套组和命令以拥有丰富的子命令系统。
+命令扩展最吸引人的方面之一是定义命令是多么容易，以及你可以任意的嵌套命令组和命令来制作丰富的子命令系统。
 
-命令是通过将其附加到常规 Python 函数来定义的。
-然后用户使用与 Python 函数类似的函数调用该命令。
+命令是通过 `@bot.command()` 装饰器附加到常规 Python 函数来定义的。
+然后用户使用与 Python 函数名和参数调用命令。
 
-例如，在给定的命令定义中：
+例如，定义以下指令：
 
 .. code-block:: python3
 
@@ -24,11 +24,11 @@
 
     $foo abc
 
-命令必须始终至少有一个参数 ``ctx`` ，即 :class:`.Context` 作为第一个参数。
+命令第一个参数必须为 ``ctx`` ，即 :class:`.Context` 上下文作为第一个参数。
 
 有两种注册命令的方法。 第一个是使用 :meth:`.Bot.command` 装饰器，如上例所示。
 第二种是在实例上使用 :func:`~ext.commands.command` 装饰器，
-然后是 :meth:`.Bot.add_command`。
+然后在使用 :meth:`.Bot.add_command` 把指令加到 :class:`.Bot` 示例当中。
 
 本质上，这两个是等价的： ::
 
@@ -50,7 +50,7 @@
 
 由于 :meth:`.Bot.command` 装饰器更短且更容易理解，因此它将是整个文档中使用的范例。
 
-任何被 :class:`.Command` 构造函数接受的参数都可以传递给装饰器。 例如，将名称更改为函数以外的其他名称就像这样做一样简单：
+任何被 :class:`.Command` 构造函数接受的参数都可以传递给装饰器。 例如，如果你想要将触发词更改为函数名以外的，只需要传入 `name` ：
 
 .. code-block:: python3
 
@@ -62,8 +62,6 @@
 ------------
 
 由于我们通过创建 Python 函数来定义命令，因此我们还通过函数参数定义了参数传递行为。
-
-某些参数类型在用户端做不同的事情，并且支持大多数形式的参数类型。
 
 位置参数
 ++++++++++++
@@ -85,7 +83,7 @@
 
 .. image:: /images/commands/positional2.png
 
-作为警告的说明，如果你省略引号，你将只会得到第一个单词：
+如果你省略引号，你将只会得到第一个单词：
 
 .. image:: /images/commands/positional3.png
 
@@ -97,10 +95,10 @@
     async def test(ctx, arg1, arg2):
         await ctx.send(f'你传入了 {arg1} 和 {arg2}')
 
-变量
+变量列表
 ++++++++++
 
-有时你希望用户传入不确定数量的参数。 该库支持这类似于在 Python 中做到变量列表参数的方式:
+有时你希望用户传入不确定数量的参数，因此我们支持这类似于在 Python 中使用变量列表参数的方式:
 
 .. code-block:: python3
 
@@ -119,11 +117,11 @@
 
 .. image:: /images/commands/variable2.png
 
-请注意，与 Python 函数行为类似，用户在技术上可以根本不传递任何参数：
+请注意，与 Python 函数行为类似，用户理论上可以不传递任何参数：
 
 .. image:: /images/commands/variable3.png
 
-由于 ``args`` 变量是一个 :class:`py:tuple`，你可以做任何你通常可以做的事情。
+由于 ``args`` 变量是一个 :class:`py:tuple` ，你可以做任何你通常用元组可以做的事情。
 
 仅关键字参数
 ++++++++++++++++++++++++
@@ -143,15 +141,15 @@
 
     由于解析歧义，你只能有一个仅限关键字的参数。
 
-在机器人那边，我们不需要用空格引用输入：
+在机器人那边，我们不需要用引用含有空格的输入：
 
 .. image:: /images/commands/keyword1.png
 
-请记住，将它用引号括起来会保持原样：
+请记住，如果用户仍然使用引号括起来会保留引号：
 
 .. image:: /images/commands/keyword2.png
 
-默认情况下，仅关键字参数被去除空格以使其更易于使用。
+默认情况下，仅关键字参数将被去除空格以使其更易于使用。
 这种行为可以通过装饰器中的 :attr:`.Command.rest_is_raw` 参数来切换。
 
 .. _ext_commands_context:
@@ -161,27 +159,27 @@
 
 如前所述，每个命令必须至少接受一个参数，称为 :class:`~ext.commands.Context`。
 
-此参数使你可以访问称为 ``调用context`` 的内容。 基本上你需要知道命令是如何执行的所有信息。 这包含很多有用的信息：
+此参数使你可以访问称为 ``调用上下文`` 的内容。 基本上你需要命令执行的所有信息都在里面，包括：
 
 - :attr:`.Context.guild` 获取命令的 :class:`Guild`，如果有的话。
-- :attr:`.Context.message` 获取命令的 :class:`Message`。
-- :attr:`.Context.author` 获取调用命令的 :class:`Member` 或 :class:`User`。
-- :meth:`.Context.send` 向使用该命令的通道发送消息。
+- :attr:`.Context.message` 获取命令的 :class:`Message` 。
+- :attr:`.Context.author` 获取调用命令的 :class:`Member` 或 :class:`User` 。
+- :meth:`.Context.send` 向该上下文的子频道发送消息。
 
-context 实现了 :class:`abc.Messageable` 接口，
-所以你可以在 :class:`abc.Messageable` 上做的任何事情都可以在 :class:`~ext.commands.Context` 上做。
+上下文实现了 :class:`abc.Messageable` 接口，
+所以你在 :class:`abc.Messageable` 上可以做的任何事情都可以在 :class:`~ext.commands.Context` 上做。
 
 转换器
 ------------
 
 添加带有函数参数的机器人参数只是定义机器人命令界面的第一步。 为了实际使用参数，我们通常希望将数据转换为目标类型。
-我们称这些为 :ref:`ext_commands_api_converters`。
+我们称这些为 :ref:`ext_commands_api_converters` 。
 
 转换器有几种：
 
 - 将参数作为唯一参数并返回不同类型的常规可调用对象。
 
-    - 这些范围从你自己的函数到类似 :class:`bool` 或 :class:`int` 的东西。
+    - 这些范围从你自己的函数到类似 :class:`bool` 或 :class:`int` 的内置类型。
 
 - 从 :class:`~ext.commands.Converter` 继承的自定义类。
 
@@ -190,7 +188,7 @@ context 实现了 :class:`abc.Messageable` 接口，
 基本转换器
 ++++++++++++++++++
 
-从本质上讲，基本转换器是一个可调用对象，它接收一个参数并将其转换为其他内容。
+基本转换器是一个可调用对象，它接收一个参数并将其转换为其他内容。
 
 例如，如果我们想将两个数字相加，我们可以通过指定转换器来请求将它们转换为整数：
 
@@ -216,9 +214,8 @@ context 实现了 :class:`abc.Messageable` 接口，
 bool
 ^^^^^^
 
-与其他基本转换器不同，:class:`bool` 转换器的处理方式略有不同。
-不是直接转换为 :class:`bool` 类型，这将导致任何非空参数返回 ``True`` ，
-而是根据参数将参数评估为 ``True`` 或 ``False`` 给定内容：
+与其他基本转换器不同的是，:class:`bool` 转换器不是输入字符串直接转换为 :class:`bool` 类型，
+这将导致任何非空参数返回 ``True`` ，而是根据参数将参数评估为 ``True`` 或 ``False`` ：
 
 .. code-block:: python3
 
@@ -234,8 +231,8 @@ bool
 
 有时，基本转换器没有我们需要的足够信息。 例如，有时我们想从调用命令的 Message 中获取一些信息，或者我们想做一些异步处理。
 
-为此，库提供了 :class:`~ext.commands.Converter` 接口。 这允许你访问 :class:`.Context` 并使可调用对象变成异步的。
-使用这个接口定义一个自定义转换器需要覆盖一个方法，:meth:`.Converter.convert`。
+为此，我们提供了 :class:`~ext.commands.Converter` 接口。 这允许你访问 :class:`.Context` 并使可调用对象变成异步的。
+要使用这个接口定义一个自定义转换器你只需要需要覆盖一个方法， :meth:`.Converter.convert` 。
 
 一个示例转换器：
 
@@ -252,7 +249,7 @@ bool
     async def slap(ctx, *, reason: Slapper):
         await ctx.send(reason)
 
-提供的转换器可以构建也可以不构建。 本质上这两个是等价的：
+提供的转换器可以是示例也可以是类本身。 本质上这两个是等价的：
 
 .. code-block:: python3
 
@@ -268,8 +265,8 @@ bool
 
     # 是相同的...
 
-构建转换器的可能性允许你在转换器的 ``__init__`` 中设置一些状态以微调转换器。
-这方面的一个例子实际上在库中，:class:`~ext.commands.clean_content` 。
+构建转换器示例允许你在转换器的 ``__init__`` 中设置一些状态来调整转换器。
+这方面的一个例子实际上库里面已经由一个了， :class:`~ext.commands.clean_content` 。
 
 .. code-block:: python3
 
@@ -284,13 +281,13 @@ bool
         await ctx.send(content)
 
 
-如果转换器无法将参数转换为其指定的目标类型，则必须引发 :exc:`.BadArgument` 异常。
+如果转换器无法将参数转换为其指定的目标类型，则必然触发 :exc:`.BadArgument` 异常。
 
 内联高级转换器
 +++++++++++++++++++++++++++++
 
-如果我们不想继承 :class:`~ext.commands.Converter`，我们仍然可以提供一个转换器，它具有高级转换器的高级功能，并且无需指定两种类型。
-例如，一个常见的习惯用法是为该类创建一个类和一个转换器：
+如果我们不想继承 :class:`~ext.commands.Converter` ，但仍然想要一个转换器，具有高级转换器的高级功能，并且无需指定两种类型。
+例如，一个常见的用法是为该类创建一个目标类和一个转换器：
 
 .. code-block:: python3
 
@@ -326,7 +323,7 @@ bool
             return f"{self.id}{self.name}"
 
         @classmethod
-        async def convert(cls, ctx, argument):
+        async def convert(self, ctx, argument):
             member = await commands.MemberConverter().convert(ctx, argument)
             return IDNName(member.id, member.name)
 
@@ -335,10 +332,10 @@ bool
         await ctx.send(member.result)
 
 
-QQ转换器
+QQ 模型转换器
 ++++++++++++++++++++
 
-在定义命令时，使用 :ref:`qq_api_models` 是一件相当常见的事情，因此该库使使用它们变得容易。
+在定义命令时，使用 :ref:`qq_api_models` 是一件相当常见的事情，因此我们内置了这些模型的转换器。
 
 例如，要接收 :class:`Member` 你可以将其作为转换器传递：
 
@@ -349,8 +346,8 @@ QQ转换器
         await ctx.send(f'{member} have a id of {member.id}')
 
 执行此命令时，它会尝试将给定的字符串转换为一个 :class:`Member`，然后将其作为函数的参数传递。
-这是通过检查字符串是提及、ID、昵称、用户名来工作的。
-已将默认转换器集编写为尽可能易于使用。
+这是通过检查字符串是否是提及、ID、昵称、用户名来实现的。
+这些默认转换器集已经写的尽可能易于使用。
 
 很多qq模型都作为参数输出：
 
@@ -408,7 +405,7 @@ QQ转换器
 | :class:`Colour`          | :class:`~ext.commands.ColourConverter`          |
 +--------------------------+-------------------------------------------------+
 
-通过提供的转换器，我们可以将它们用作另一个转换器的构建块：
+通过提供的转换器，我们可以将它们用作另一个转换器的父类：
 
 .. code-block:: python3
 
@@ -427,7 +424,7 @@ QQ转换器
 特殊转换器
 ++++++++++++++++++++
 
-命令扩展还支持某些转换器，以允许超出通用线性解析的更高级和复杂的用例。
+命令扩展还支持某些转换器，来允许超出通用线性解析的更高级和复杂的用例。
 这些转换器允许你以易于使用的方式向你的命令引入一些更轻松和动态的语法。
 
 typing.Union
@@ -455,7 +452,7 @@ typing.Union
 typing.Optional
 ^^^^^^^^^^^^^^^^^
 
-:data:`typing.Optional` 是一种特殊的类型提示，允许 “反向引用” 的行为。
+:data:`typing.Optional` 是一种特殊的类型提示，允许跳过当前参数的行为。
 如果转换器无法解析为指定的类型，解析器将跳过该参数，然后将 ``None`` 或指定的默认值传递给参数。然后解析器将继续处理下一个参数和转换器（如果有）。
 
 考虑以下示例：
@@ -471,16 +468,16 @@ typing.Optional
 
 .. image:: /images/commands/optional1.png
 
-在这个例子中，由于参数不能被转换为一个 ``int``，默认的 ``99`` 被传递并且解析器继续处理，在这种情况下将把它传递到 ``liquid`` 参数。
+在这个例子中，由于参数不能被转换为一个 ``int`` ，默认的 ``99`` 被传递并且解析器继续处理，然后再传递 ``liquid`` 参数。
 
 .. note::
 
-    此转换器仅适用于常规位置参数，不适用于可变参数或仅关键字参数。
+    此转换器仅适用于常规位置参数，不适用于变量列表参数或仅关键字参数。
 
 typing.Literal
 ^^^^^^^^^^^^^^^^
 
-A :data:`typing.Literal` 是一种特殊的类型提示，它要求传递的参数在转换为相同类型后等于列出的值之一。
+:data:`typing.Literal` 是一种特殊的类型提示，它要求传递的参数在转换为相同类型后等于列出的值之一。
 例如，给定以下内容：
 
 .. code-block:: python3
@@ -496,7 +493,7 @@ A :data:`typing.Literal` 是一种特殊的类型提示，它要求传递的参�
 如果 ``buy_sell`` 或 ``amount`` 不匹配任何值，则会引发一个特殊错误，:exc:`~.ext.commands.BadLiteralArgument`。
 任何文字值都可以在同一个 :data:`typing.Literal` 转换器中混合和匹配。
 
-注意 ``typing.Literal[True]`` 和 ``typing.Literal[False]`` 仍然遵循:class:`bool` 转换器规则。
+注意 ``typing.Literal[True]`` 和 ``typing.Literal[False]`` 仍然遵循 :class:`bool` 转换器规则。
 
 Greedy
 ^^^^^^^^
@@ -520,8 +517,8 @@ Greedy
 使用此转换器时传递的类型取决于它所附加的参数类型：
 
 - 位置参数类型将接收默认参数或转换值的列表。
-- 变量参数类型将像往常一样是 :class:`tuple` 。
-- 仅关键字参数类型将与 :class:`~ext.commands.Greedy` 完全没有传递一样。
+- 变量列表参数类型将像往常一样是 :class:`tuple` 。
+- 仅关键字参数类型将表现得像 :class:`~ext.commands.Greedy` 完全没有传递一样。
 
 :class:`~ext.commands.Greedy` 参数也可以通过指定一个可选值来成为可选的。
 
@@ -534,7 +531,7 @@ Greedy
     @bot.command()
     async def kick(ctx, members: commands.Greedy[qq.Member],
                        reason: typing.Optional[str]):
-        """使用可选的 delete_days 参数大规模剔除成员"""
+        """使用可选的参数大规模踢成员"""
         for member in members:
             await member.kick(reason=reason)
 
@@ -549,14 +546,14 @@ Greedy
 
 .. warning::
 
-    :class:`~ext.commands.Greedy` 和 :data:`typing.Optional` 的使用功能强大且有用，
+    :class:`~ext.commands.Greedy` 和 :data:`typing.Optional` 的功能强大且有用，
     但要付出代价，它们会使你面临一些解析上的歧义，这可能会让某些人感到惊讶。
 
     例如，期望 :data:`typing.Optional` 的 :class:`qq.Member` 后跟 :class:`int` 的会捕获到本来期望传到 :class:`int` 的参数，
     却因为 :class:`~ext.commands.MemberConverter` 支持使用 ID 而获取到了 :class:`qq.Member`。
-    你应该注意不要在代码中引入意外的解析歧义。一种技术是通过自定义转换器限制允许的预期语法或重新排序参数以最大程度地减少冲突。
+    你应该注意不要在代码中引入意外的解析歧义。一种技巧是通过自定义转换器限制允许的预期语法或重新排序参数以最大程度地减少冲突。
 
-    为了帮助解决一些解析歧义，:class:`str`、`None`、:data:`typing.Optional` 和 :class:`~ext.commands.Greedy`
+    为了帮助解决一些解析歧义， :class:`str` 、 `None` 、 :data:`typing.Optional` 和 :class:`~ext.commands.Greedy`
     被禁止作为 :class:`~ext.commands.Greedy` 转换器的参数。
 
 .. _ext_commands_error_handler:
@@ -569,7 +566,7 @@ Greedy
 为了处理我们的错误，我们必须使用称为错误处理程序的东西。有一个全局错误处理程序，称为 :func:`.on_command_error`，
 它的工作方式与 :ref:`qq-api-events` 中的任何其他事件一样。每个到达的错误都会调用这个全局错误处理程序。
 
-然而，大多数时候，我们想要处理命令本身的本地错误。幸运的是，命令带有本地错误处理程序，允许我们这样做。
+然而，大多数时候，我们想要处理命令本身的本地错误。幸运的是，每个命令都带有本地错误处理程序，允许我们这样做。
 首先我们用 :meth:`.Command.error` 装饰一个错误处理函数：
 
 .. code-block:: python3
@@ -585,17 +582,17 @@ Greedy
         if isinstance(error, commands.BadArgument):
             await ctx.send('我找不到那个成员...')
 
-错误处理程序的第一个参数是 :class:`.Context`，而第二个参数是派生自 :exc:`~ext.commands.CommandError` 的异常。
+错误处理程序的第一个参数是 :class:`.Context` ，而第二个参数是派生自 :exc:`~ext.commands.CommandError` 的异常。
 在文档的 :ref:`ext_commands_api_errors` 页面中可以找到错误列表。
 
 检查
 -------
 
 在某些情况下，我们不希望用户使用我们的命令。
-他们没有这样做的权限，或者我们之前阻止了他们使用我们的机器人。
+他们没有这样做的权限，或者我们之前禁止他们使用我们的机器人。
 命令扩展在一个称为 :ref:`ext_commands_api_checks` 的概念中完全支持这些东西。
 
-检查是一个基本检查函数，可以将 :class:`.Context` 作为其唯一参数。在其中，你有以下选项：
+检查是一个基本函数，将 :class:`.Context` 作为其唯一参数。构造函数时你有以下选项：
 
 - 返回 ``True`` 表示此人可以运行该命令。
 - 返回 ``False`` 表示此人无法运行该命令。
@@ -603,7 +600,7 @@ Greedy
 
     - 这允许你在 :ref:`错误处理程序 <ext_commands_error_handler>` 中处理自定义错误消息。
 
-要注册一个命令的检查，我们有两种方法可以这样做。第一种是使用 :meth:`~ext.commands.check` 装饰器。例如：
+我们有两种方法注册一个命令的检查。第一种是使用 :meth:`~ext.commands.check` 装饰器。例如：
 
 .. code-block:: python3
 
@@ -634,7 +631,7 @@ Greedy
         await ctx.send(eval(code))
 
 
-由于所有者检查如此普遍，库为你提供了它（:func:`~ext.commands.is_owner`）：
+由于所有者检查如此普遍，我们为你提供了它（ :func:`~ext.commands.is_owner` ）：
 
 .. code-block:: python3
 
@@ -662,7 +659,7 @@ Greedy
 
 如果以上示例中的任何检查失败，则不会运行该命令。
 
-当错误发生时，错误会传播到 :ref:`错误处理程序 <ext_commands_error_handler>`。
+当错误发生时，错误会传播到 :ref:`错误处理程序 <ext_commands_error_handler>` 。
 如果你不引发自定义 :exc:`~ext.commands.CommandError` 派生异常，那么它将被包装为 :exc:`~ext.commands.CheckFailure` 异常，如下所示：
 
 .. code-block:: python3
@@ -704,14 +701,14 @@ Greedy
 
 .. note::
 
-    由于 ``guild_only`` 装饰器很常见，它通过 :func:`~ext.commands.guild_only` 内置。
+    由于 ``不允许私聊`` 的装饰器很常见，我们内置了 :func:`~ext.commands.guild_only` 。
 
 全局检查
 ++++++++++++++
 
-有时我们想对每个命令进行检查，而不仅仅是某些命令。该库也使用全局检查概念支持这一点。
+有时我们想对每个命令进行检查，而不仅仅是某些命令。我们能够使用全局检查这个概念支持这一点。
 
-全局检查的工作方式与常规检查类似，只是它们是使用 :meth:`.Bot.check` 装饰器注册的。
+全局检查的工作方式与常规检查类似，但是它们是使用 :meth:`.Bot.check` 装饰器注册的。
 
 例如，要阻止所有私聊，我们可以执行以下操作：
 

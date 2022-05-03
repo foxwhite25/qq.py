@@ -5,23 +5,23 @@
 齿轮
 ======
 
-在你开发机器人的过程中，你可能会想要将命令、监听器、或者某些状态包装到一个类里面，齿轮 （Cog）就可以让你做到这一点。
+在你开发机器人的过程中，你可能会想要将命令、监听器、或者某些状态包装到一个类里面，齿轮（Cog）就可以让你做到这一点。
 
 大概原理：
 
-- 每个齿轮都是一个 Python 类，它是 :class:`.commands.Cog` 的子类。
+- 每个齿轮都是一个 Python 类，是 :class:`.commands.Cog` 的子类。
 - 每个命令都标有 :func:`.commands.command` 装饰器。
 - 每个侦听器都标有 :meth:`.commands.Cog.listener` 装饰器。
-- 然后使用 :meth:`.Bot.add_cog` 调用注册齿轮。
-- 随后通过 :meth:`.Bot.remove_cog` 调用移除齿轮。
+- 然后使用调用 :meth:`.Bot.add_cog` 注册齿轮。
+- 随后通过调用 :meth:`.Bot.remove_cog` 移除齿轮。
 
-应该注意的是，齿轮通常与 :ref:`ext_commands_extensions` 一起使用。
+齿轮一般会与 :ref:`ext_commands_extensions` 一起使用。
 
 快速示例
 ---------------
 
 这个示例 cog 为你的命令定义了一个 ``Greetings`` 类别，带有一个名为 ``hello`` 的 :ref:`命令 <ext_commands_commands>`
-以及一个监听 :ref:`事件 <qq-api-events>`。
+以及一个监听 :ref:`事件 <qq-api-events>` 。
 
 .. code-block:: python3
 
@@ -47,9 +47,9 @@
 
 需要考虑的几个技术说明：
 
-- 所有监听器都必须通过装饰器显式标记，:meth:`~.commands.Cog.listener`。
-- 齿轮的名称自动从类名派生，但可以覆盖。 参见 :ref:`ext_commands_cogs_meta_options` 。
-- 所有命令都必须采用 ``self`` 参数以允许使用可用于 ``state`` 属性。
+- 所有监听器都必须通过 :meth:`~.commands.Cog.listener` 装饰器显式标记。
+- 齿轮的名称默认为类名，但和命令一样可以覆盖。 参见 :ref:`ext_commands_cogs_meta_options` 。
+- 所有命令都必须采用 ``self`` 参数。
 
 齿轮注册
 -------------------

@@ -218,9 +218,9 @@ class HTTPClient:
                             return data
 
                         # we've received a 500, 502, or 504, unconditional retry
-                        # if response.status in {500}:
-                        #     await asyncio.sleep(1 + tries * 2)
-                        #     continue
+                        if response.status in (500, 502, 504):
+                            await asyncio.sleep(1 + tries * 2)
+                            continue
 
                         # the usual error cases
                         if response.status in [403, 401]:
@@ -488,7 +488,7 @@ class HTTPClient:
             embed: Optional[Union[Embed, EmbedPayload]],
             *,
             tts: bool = False,
-            message_id: Optional[message.MessageReference],
+            message_id: str,
             message_reference: Optional[message.MessageReference] = None,
             direct=False
     ) -> Response[message.Message]:
@@ -506,7 +506,7 @@ class HTTPClient:
             payload['tts'] = True
 
         if message_id:
-            payload['msg_id'] = message_id['message_id']
+            payload['msg_id'] = message_id
 
         if image_url:
             payload['image'] = image_url

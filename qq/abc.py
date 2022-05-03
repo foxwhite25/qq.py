@@ -109,10 +109,9 @@ class Messageable:
             ark: Ark = ...,
             delete_after: float = ...,
             image: str = ...,
-            msg_id: Union[Message, MessageReference, PartialMessage] = ...,
+            msg_id: Union[Message, MessageReference, PartialMessage, str] = ...,
             reference: Union[Message, MessageReference, PartialMessage] = ...,
             mention_author: Member = ...,
-            direct=...,
     ) -> Union[Message, str]:
         ...
 
@@ -121,7 +120,7 @@ class Messageable:
             content=None,
             *,
             image=None,
-            msg_id=None,
+            msg_id='MESSAGE_CREATE',
             reference=None,
             mention_author=None,
             ark=None,
@@ -150,6 +149,10 @@ class Messageable:
             .. note::
 
                 如果不使用 ``msg_id`` ，系统将判断为主动消息，主动消息默认每天往每个频道可推送的消息数是 20 条，超过会被限制。
+
+            .. note::
+
+                目前官方放宽了被动消息，无视即可。
 
         reference: Union[:class:`~qq.Message`, :class:`~qq.MessageReference`, :class:`~qq.PartialMessage`]
             对你正在回复的 :class:`~qq.Message` 的引用，可以使用 :meth:`~qq.Message.to_reference` 创建或直接作为 :class:`~qq.Message` 传递。
@@ -181,12 +184,12 @@ class Messageable:
         if mention_author is not None:
             content = mention_author.mention + content
 
-        if msg_id is not None:
-            try:
-                msg_id = msg_id.to_message_reference_dict()
-            except AttributeError:
-                raise InvalidArgument(
-                    'msg_id 参数必须是 Message、 MessageReference 或 PartialMessage') from None
+        # if msg_id is not None:
+        #     try:
+        #         msg_id = msg_id.to_message_reference_dict()
+        #     except AttributeError:
+        #         raise InvalidArgument(
+        #             'msg_id 参数必须是 Message、 MessageReference 或 PartialMessage') from None
 
         if reference is not None:
             try:
@@ -206,8 +209,8 @@ class Messageable:
             direct=direct
         )
 
-        if msg_id is None:
-            return data['data']['message_audit']['audit_id']
+        # if msg_id is None:
+        #     return data['data']['message_audit']['audit_id']
 
         ret = state.create_message(channel=channel, data=data, direct=direct)
         state.dispatch('message', ret)
