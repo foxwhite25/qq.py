@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: 问一个问题
-    about: 提出问题并与库的其他用户讨论。
+    about: 提出问题并与其他用户讨论。
     url: https://github.com/foxwhite25/qq.py/discussions
   - name: QQ 群
-    about: 也可以使用我们的官方 QQ 群寻求帮助和提问。
+    about: 也可以使用 QQ 群寻求帮助。
     url: https://qm.qq.com/cgi-bin/qm/qr?k=5BuK-ZVjbNxVmfdobpeLyeo_xPbsQcKz&jump_from=webapi
