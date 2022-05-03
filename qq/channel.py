@@ -383,13 +383,31 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
         Raises
         -------
         Forbidden
-            你没有足够权限删除公告。.
+            你没有足够权限删除公告。
         NotFound
             消息或频道无法被找到，可能被删除了.
         HTTPException
             删除公告失败。
         """
         await self._state.http.channel_unpin_message(self.id, 'all', reason=reason)
+
+    async def send_guide(self, content: str):
+        """
+        发送主动消息引导信息。
+
+        Parameters
+        -----------
+        content: :class:`str`
+            要发送的内容。
+
+        Raises
+        -------
+        Forbidden
+            你没有足够权限发送。
+        HTTPException
+            发送失败。
+        """
+        await self._state.http.send_guide(self.id, content)
 
 
 class VoiceChannel(abc.GuildChannel, Hashable):

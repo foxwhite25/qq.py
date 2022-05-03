@@ -774,3 +774,16 @@ class HTTPClient:
             id=id
         )
         return self.request(r)
+
+    def send_guide(
+            self,
+            channel_id: int,
+            content: str,
+    ):
+        r = Route(
+            'POST',
+            '/channels/{channel_id}/settingguide',
+            channel_id=channel_id
+        )
+        payload = {'content': content}
+        return self.request(r, json=payload)
