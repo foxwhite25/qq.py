@@ -3,6 +3,7 @@ description: 为这个库建议一个功能
 labels: [feature request]
 body:
   - type: input
+    id: intro
     attributes:
       label: 摘要
       description: >
@@ -10,6 +11,7 @@ body:
     validations:
       required: true
   - type: dropdown
+    id: which_suggestion
     attributes:
       multiple: false
       label: 该功能请求是关于什么？
@@ -21,6 +23,7 @@ body:
     validations:
       required: true
   - type: textarea
+    id: problem
     attributes:
       label: 问题所在
       description: >
@@ -29,6 +32,7 @@ body:
     validations:
       required: true
   - type: textarea
+    id: best_solution
     attributes:
       label: 理想的解决方案
       description: >
@@ -37,6 +41,7 @@ body:
     validations:
       required: true
   - type: textarea
+    id: current_solution
     attributes:
       label: 目前的解决方案
       description: >
@@ -44,6 +49,7 @@ body:
     validations:
       required: false
   - type: textarea
+    id: context
     attributes:
       label: 额外背景
       description: 如果还有什么要说的，请在这里说。
