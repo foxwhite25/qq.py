@@ -118,7 +118,7 @@ class Colour:
 
     def to_rgb(self) -> Tuple[int, int, int]:
         """Tuple[:class:`int`, :class:`int`, :class:`int`]: 返回表示颜色的 (r, g, b) 元组。"""
-        return (self.r, self.g, self.b)
+        return self.r, self.g, self.b
 
     @classmethod
     def from_rgb(cls: Type[CT], r: int, g: int, b: int) -> CT:

@@ -469,13 +469,13 @@ class Guild(Hashable):
         Parameters
         -----------
         name: :class:`str`
-            频道的名称。
+            子频道的名称。
         category: Optional[:class:`CategoryChannel`]
-            将新创建的子频道置于其下的类别。
+            新子频道的分组。
         position: :class:`int`
             在子频道列表中的位置。这是一个从 0 开始的数字。例如顶部子频道是位置 0。
         reason: Optional[:class:`str`]
-            创建此频道的原因。
+            创建此子频道的原因。
 
         Raises
         -------

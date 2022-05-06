@@ -6,7 +6,7 @@
 [![PyPI - Status](https://img.shields.io/pypi/status/qq.py?style=for-the-badge)](https://pypi.org/project/qq.py/)
 [![PyPI](https://img.shields.io/pypi/v/qq.py?style=for-the-badge)](https://pypi.org/project/qq.py/)
 [![Documentation Status](https://readthedocs.org/projects/qqpy/badge/?version=latest&style=for-the-badge)](https://qqpy.readthedocs.io/zh_CN/latest/?badge=latest)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/qq.py?style=for-the-badge)](https://pypi.org/project/qq.py/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/qq.py?style=for-the-badge)](https://pypi.org/project/qq.py/)
 
 _✨ 用 Python 编写的用于 QQ频道机器人 的现代化、易于使用、功能丰富且异步的 API。 ✨_
 

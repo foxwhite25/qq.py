@@ -218,9 +218,9 @@ class HTTPClient:
                             return data
 
                         # we've received a 500, 502, or 504, unconditional retry
-                        if response.status in (500, 502, 504):
-                            await asyncio.sleep(1 + tries * 2)
-                            continue
+                        # if response.status in (500, 502, 504):
+                        #     await asyncio.sleep(1 + tries * 2)
+                        #     continue
 
                         # the usual error cases
                         if response.status in [403, 401]:
@@ -314,8 +314,9 @@ class HTTPClient:
         r = Route('DELETE', '/guilds/{guild_id}/roles/{role_id}', guild_id=guild_id, role_id=role_id)
         return self.request(r, reason=reason)
 
-    def create_role(self, guild_id: int, *, reason: Optional[str] = None, **fields: Any) -> Response[
-        WrappedRolePayload]:
+    def create_role(
+            self, guild_id: int, *, reason: Optional[str] = None, **fields: Any
+    ) -> Response[WrappedRolePayload]:
         r = Route('POST', '/guilds/{guild_id}/roles', guild_id=guild_id)
         return self.request(r, json=fields, reason=reason)
 
