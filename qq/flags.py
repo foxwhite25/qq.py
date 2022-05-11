@@ -319,7 +319,7 @@ class Intents(BaseFlags):
     def thread(self):
         """:class:`bool`: 论坛相关事件是否开启。
 
-        这对应于以下事件：
+        这将对应于以下事件：
 
         - :func:`on_thread_create`
         - :func:`on_thread_update`
@@ -328,6 +328,10 @@ class Intents(BaseFlags):
         - :func:`on_post_delete`
         - :func:`on_reply_create`
         - :func:`on_reply_delete`
+
+        .. note::
+
+            现在没人有需要用这个事件，以上事件咕了。有需要欢迎找我。
         """
         return 1 << 28
 

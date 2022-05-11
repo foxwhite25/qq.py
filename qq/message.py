@@ -482,6 +482,8 @@ class Message(Hashable):
         发送消息的 :class:`TextChannel`。
     mention_everyone: :class:`bool`
         指定消息是否提及所有人。
+    reactions: List[:class:`Reaction`]
+        消息的回应/反应列表
 
         .. note::
 

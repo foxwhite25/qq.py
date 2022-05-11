@@ -458,8 +458,6 @@ AutoShardedClient
 
 .. autofunction:: qq.utils.format_dt
 
-.. autofunction:: qq.utils.as_chunks
-
 .. _qq-api-enums:
 
 枚举
