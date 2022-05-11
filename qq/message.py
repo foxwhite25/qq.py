@@ -609,10 +609,7 @@ class Message(Hashable):
                 continue
 
     def __repr__(self) -> str:
-        name = self.__class__.__name__
-        return (
-            f'<{name} id={self.id} channel={self.channel!r} author={self.author!r}>'
-        )
+        return f'<{self.__class__.__name__} id={self.id} channel={self.channel!r} author={self.author!r}>'
 
     def _try_patch(self, data, key, transform=None) -> None:
         try:

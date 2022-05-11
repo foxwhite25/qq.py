@@ -446,10 +446,12 @@ class Guild(Hashable):
     async def create_text_channel(
             self,
             name: str,
+            position: int,
+            category: Optional[CategoryChannel] = MISSING,
+            private_type: int = MISSING,
+            private_members: List[Member] = MISSING,
             *,
             reason: Optional[str] = None,
-            category: Optional[CategoryChannel] = None,
-            position: int = MISSING,
     ) -> TextChannel:
         """|coro|
         为频道创建一个 :class:`TextChannel` 。
@@ -470,10 +472,14 @@ class Guild(Hashable):
         -----------
         name: :class:`str`
             子频道的名称。
-        category: Optional[:class:`CategoryChannel`]
-            新子频道的分组。
         position: :class:`int`
             在子频道列表中的位置。这是一个从 0 开始的数字。例如顶部子频道是位置 0。
+        category: Optional[:class:`CategoryChannel`]
+            新子频道的分组。
+        private_type: Optional[:class:`int`]
+            子频道的私密类型，0 公开频道, 1 群主管理员可见, 2 群主管理员+指定成员
+        private_members: Optional[List[:class:`qq.Member`]]
+            如果 `private_type` 为 2 ，则代表指定成员列表
         reason: Optional[:class:`str`]
             创建此子频道的原因。
 
@@ -492,6 +498,10 @@ class Guild(Hashable):
         options = {}
         if position is not MISSING:
             options['position'] = position
+        if private_type is not MISSING:
+            options['private_type'] = private_type
+        if private_type == 2 and private_members is not MISSING:
+            options['private_user_ids'] = [n.id for n in private_members]
 
         data = await self._create_channel(
             name, channel_type=ChannelType.text, category=category, reason=reason, **options
