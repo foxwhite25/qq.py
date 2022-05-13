@@ -336,7 +336,7 @@ class Member(Messageable, _UserTag):
             添加这些身份组的原因。
         atomic: :class:`bool`
             是否以 atomic 方式添加身份组。这将确保无论缓存的当前状态如何，都将始终应用多个操作。
-        channel: Optional[:class: `abc.GuildChannel`]
+        channel: Optional[:class:`abc.GuildChannel`]
             仅在添加身份组为 5 (子频道管理员) 的时候需要
 
         Raises
@@ -355,7 +355,7 @@ class Member(Messageable, _UserTag):
             guild_id = self.guild.id
             user_id = self.id
             for role in roles:
-                await req(guild_id, user_id, role.id, channel.id, reason=reason)
+                await req(guild_id, user_id, role.id, channel.id if channel else None, reason=reason)
 
     async def remove_roles(
             self, *roles: Role,
@@ -374,7 +374,7 @@ class Member(Messageable, _UserTag):
             删除这些身份组的原因。 
         atomic: :class:`bool`
             是否以 atomic 方式删除身份组。这将确保无论缓存的当前状态如何，都将始终应用多个操作。
-        channel: Optional[:class: `abc.GuildChannel`]
+        channel: Optional[:class:`abc.GuildChannel`]
             仅在添加身份组为 5 (子频道管理员) 的时候需要
 
         Raises
@@ -399,7 +399,7 @@ class Member(Messageable, _UserTag):
             guild_id = self.guild.id
             user_id = self.id
             for role in roles:
-                await req(guild_id, user_id, role.id, channel.id, reason=reason)
+                await req(guild_id, user_id, role.id, channel.id if channel else None, reason=reason)
 
     def get_role(self, role_id: int, /) -> Optional[Role]:
         return self.guild.get_role(role_id) if self._roles.has(role_id) else None
