@@ -37,10 +37,6 @@ class File:
 
         文件对象是一次性的，不能在多个 :meth:`abc.Messageable.send` 中重复使用。
 
-    .. warning::
-
-        本功能尚未被官方实现，实现为 Discord 的实现
-
     Attributes
     -----------
     fp: Union[:class:`os.PathLike`, :class:`io.BufferedIOBase`]

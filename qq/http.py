@@ -27,17 +27,20 @@ import logging
 import sys
 import weakref
 from types import TracebackType
-from typing import ClassVar, Any, Optional, Iterable, Dict, Union, TypeVar, Type, Coroutine, List, Tuple
+from typing import (
+    ClassVar, Any, Optional, Dict, Union, TypeVar, Type,
+    Coroutine, List, Tuple, TYPE_CHECKING, NamedTuple
+)
 from urllib.parse import quote as _uriquote
 
 import aiohttp
+from typing_extensions import Self
 
 from . import __version__, utils
 from .embeds import Ark, Embed
 from .error import HTTPException, Forbidden, NotFound, QQServerError, LoginFailure, GatewayNotFound
 from .gateway import QQClientWebSocketResponse
 from .types import user, guild, message, channel, member
-from .types.embed import Ark as ArkPayload, Embed as EmbedPayload
 from .types.message import Message
 from .types.permission import (
     Permission as PermissionPayload,
@@ -49,6 +52,10 @@ from .types.role import (
 )
 from .types.schedule import Schedule as SchedulePayload
 from .utils import MISSING
+
+if TYPE_CHECKING:
+    from .message import MessageReference
+    from .file import File
 
 T = TypeVar('T')
 BE = TypeVar('BE', bound=BaseException)
@@ -91,6 +98,72 @@ async def json_or_text(response: aiohttp.ClientResponse) -> Union[Dict[str, Any]
         pass
 
     return text
+
+
+class MultipartParameters(NamedTuple):
+    direct: bool
+    payload: Optional[Dict[str, Any]]
+    multipart: Optional[Dict[str, Any]]
+    file: Optional[File]
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(
+            self,
+            exc_type: Optional[Type[BE]],
+            exc: Optional[BE],
+            traceback: Optional[TracebackType],
+    ) -> None:
+        if self.file:
+            self.file.close()
+
+
+def handle_message_parameters(
+        content: Optional[str] = MISSING,
+        direct: bool = False,
+        *,
+        msg_id: Optional[str] = MISSING,
+        file: File = MISSING,
+        image: Optional[str] = MISSING,
+        embed: Optional[Embed] = MISSING,
+        ark: Optional[Ark] = MISSING,
+        message_reference: Optional[MessageReference] = MISSING,
+) -> MultipartParameters:
+    payload = {}
+    if msg_id:
+        payload['msg_id'] = msg_id
+
+    if embed:
+        payload['embed'] = embed.to_dict()
+
+    if ark:
+        payload['ark'] = ark
+
+    if image:
+        payload['image'] = image
+
+    if content is not MISSING:
+        if content is not None:
+            payload['content'] = str(content)
+        else:
+            pass
+
+    if content:
+        payload['content'] = content.replace(".", "\ufeff.")
+
+    if message_reference is not MISSING:
+        payload['message_reference'] = message_reference
+
+    multipart = {}
+    if file:
+        for key, value in payload.items():
+            multipart[key] = value
+        payload = None
+        multipart['file_image'] = file.fp
+        print(multipart)
+
+    return MultipartParameters(direct=direct, payload=payload, multipart=multipart, file=file)
 
 
 class MaybeUnlock:
@@ -145,8 +218,8 @@ class HTTPClient:
             self,
             route: Route,
             *,
-            # files: Optional[Sequence[File]] = None,
-            form: Optional[Iterable[Dict[str, Any]]] = None,
+            file: Optional[File] = None,
+            form: Optional[Dict[str, Any]] = None,
             **kwargs: Any,
     ) -> Any:
         bucket = route.bucket
@@ -197,11 +270,13 @@ class HTTPClient:
         await lock.acquire()
         with MaybeUnlock(lock) as maybe_lock:
             for tries in range(5):
+                if file:
+                    file.reset(seek=tries)
 
                 if form:
                     form_data = aiohttp.FormData()
-                    for params in form:
-                        form_data.add_field(**params)
+                    for key, value in form.items():
+                        form_data.add_field(key, value)
                     kwargs['data'] = form_data
                 try:
                     async with self.__session.request(method, url, **kwargs) as response:
@@ -483,46 +558,16 @@ class HTTPClient:
     def send_message(
             self,
             channel_id: int,
-            content: Optional[str],
-            image_url: Optional[str],
-            ark: Optional[Union[Ark, ArkPayload]],
-            embed: Optional[Union[Embed, EmbedPayload]],
             *,
-            tts: bool = False,
-            message_id: str,
-            message_reference: Optional[message.MessageReference] = None,
-            direct=False
+            params: MultipartParameters,
     ) -> Response[message.Message]:
-        r = Route('POST', '/channels/{channel_id}/messages', channel_id=channel_id) if not direct else \
+        r = Route('POST', '/channels/{channel_id}/messages', channel_id=channel_id) if not params.direct else \
             Route('POST', '/dms/{guild_id}/messages', guild_id=channel_id)
-        payload = {}
 
-        if message_reference:
-            payload['message_reference'] = message_reference
-
-        if content:
-            payload['content'] = content.replace(".", "\ufeff.")
-
-        if tts:
-            payload['tts'] = True
-
-        if message_id:
-            payload['msg_id'] = message_id
-
-        if image_url:
-            payload['image'] = image_url
-
-        if ark:
-            if isinstance(ark, Ark):
-                ark = ark.to_dict()
-            payload['ark'] = ark
-
-        if embed:
-            if isinstance(embed, Embed):
-                embed = embed.to_dict()
-            payload['embed'] = embed
-
-        return self.request(r, json=payload)
+        if params.file:
+            return self.request(r, file=params.file, form=params.multipart)
+        else:
+            return self.request(r, json=params.payload)
 
     def get_members(
             self, guild_id: int, limit: int, after: Optional[int] = None

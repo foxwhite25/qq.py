@@ -29,6 +29,7 @@ from typing import (
 
 from .enum import ChannelType
 from .error import InvalidArgument
+from .http import handle_message_parameters
 from .iterators import HistoryIterator
 from .utils import MISSING
 
@@ -43,6 +44,7 @@ if TYPE_CHECKING:
     from .types.channel import (
         Channel as ChannelPayload,
     )
+    from .file import File
 
     PartialMessageableChannel = Union[TextChannel, PartialMessageable, DMChannel]
     MessageableChannel = Union[PartialMessageableChannel]
@@ -105,13 +107,14 @@ class Messageable:
             self,
             content: Optional[str] = ...,
             *,
-            embed: Embed = ...,
-            ark: Ark = ...,
-            delete_after: float = ...,
             image: str = ...,
             msg_id: Union[Message, MessageReference, PartialMessage, str] = ...,
             reference: Union[Message, MessageReference, PartialMessage] = ...,
             mention_author: Member = ...,
+            ark: Ark = ...,
+            embed: Embed = ...,
+            file: File = ...,
+            delete_after: float = ...,
     ) -> Union[Message, str]:
         ...
 
@@ -125,6 +128,7 @@ class Messageable:
             mention_author=None,
             ark=None,
             embed=None,
+            file=None,
             delete_after=None,
     ):
         """|coro|
@@ -158,6 +162,8 @@ class Messageable:
             对你正在回复的 :class:`~qq.Message` 的引用，可以使用 :meth:`~qq.Message.to_reference` 创建或直接作为 :class:`~qq.Message` 传递。
         mention_author: Optional[:class:`qq.Member`]
             如果设置了，将会在消息前面提及该用户。
+        file: Optional[:class:`qq.File`]
+            本地上传的图片文件。
         delete_after: Optional[:class:`float`]
             如果设置了，则等待该秒数之后自动撤回消息。如果删除失败，则它会被静默忽略。
 
@@ -198,16 +204,17 @@ class Messageable:
                 raise InvalidArgument(
                     'reference 参数必须是 Message、 MessageReference 或 PartialMessage') from None
 
-        data = await state.http.send_message(
-            channel.id,
-            content,
-            ark=ark,
-            message_reference=reference,
-            message_id=msg_id,
-            image_url=image,
-            embed=embed,
-            direct=direct
-        )
+        with handle_message_parameters(
+            content=content,
+            direct=direct,
+            msg_id=msg_id,
+            file=file if file is not None else MISSING,
+            image=image if image is not None else MISSING,
+            embed=embed if embed is not None else MISSING,
+            ark=ark if ark is not None else MISSING,
+            message_reference=reference if reference is not None else MISSING,
+        ) as params:
+            data = await state.http.send_message(channel.id, params=params)
 
         # if msg_id is None:
         #     return data['data']['message_audit']['audit_id']
