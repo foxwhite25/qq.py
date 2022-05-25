@@ -426,7 +426,6 @@ class Attachment(Hashable):
             'id': self.id,
             'size': self.size,
             'url': self.url,
-            'spoiler': self.is_spoiler(),
         }
         if self.height:
             result['height'] = self.height
@@ -497,8 +496,6 @@ class Message(Hashable):
 
             提及列表的顺序没有任何特定顺序，因此你不应依赖它。 这是 QQ 的限制，与库无关。
 
-    channel_mentions: List[:class:`abc.GuildChannel`]
-        提到的 :class:`abc.GuildChannel` 的列表。 (官方还没有实现)
     role_mentions: List[:class:`Role`]
         提到的 :class:`Role` 列表。 (官方还没有实现)
     id: :class:`int`

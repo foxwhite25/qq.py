@@ -94,6 +94,15 @@ Coroutines
      user = message.author
      await user.send('Hi', reference = message)
 
+我如何发送本地图片？
+~~~~~~~~~~~~~~~~~~~
+
+获取 :class:`qq.File` 并调用 :meth:`abc.Messageable.send` 。 例如：::
+
+    file = qq.File("./img.png")
+    await channel.send(file=file)
+
+
 如何获取已发送消息的 ID？
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

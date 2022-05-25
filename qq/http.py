@@ -34,7 +34,6 @@ from typing import (
 from urllib.parse import quote as _uriquote
 
 import aiohttp
-from typing_extensions import Self
 
 from . import __version__, utils
 from .embeds import Ark, Embed
@@ -106,7 +105,7 @@ class MultipartParameters(NamedTuple):
     multipart: Optional[Dict[str, Any]]
     file: Optional[File]
 
-    def __enter__(self) -> Self:
+    def __enter__(self) -> MultipartParameters:
         return self
 
     def __exit__(
