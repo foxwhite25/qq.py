@@ -26,12 +26,13 @@ import datetime
 import json
 import re
 import sys
-import unicodedata
 from bisect import bisect_left
 from inspect import isawaitable as _isawaitable, signature as _signature
 from operator import attrgetter
 from typing import Any, Callable, TypeVar, overload, Optional, Iterable, List, TYPE_CHECKING, Generic, Type, Dict, \
     ForwardRef, Literal, Tuple, Union, Iterator, AsyncIterator, Sequence
+
+import unicodedata
 
 T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)
@@ -469,7 +470,7 @@ def escape_mentions(text: str) -> str:
         删除了提及的文本。
     """
 
-    return re.sub(r'@(所有成员|[!&]?[0-9]{17,20})', '@\u200b\\1', text)
+    return re.sub(r'<@(everyone|[!&]?\d{17,20})>', '', text)
 
 
 def find(predicate: Callable[[T], Any], seq: Iterable[T]) -> Optional[T]:

@@ -154,7 +154,7 @@ class ObjectConverter(IDConverter[qq.Object]):
 class MemberConverter(IDConverter[qq.Member]):
     """转换为 :class:`~qq.Member`。
 
-    所有查找都是通过本地频道进行的。如果在 DM  context 中，则查找由全局缓存完成。
+    所有查找都是通过本地频道进行的。如果在 DM context 中，则查找由全局缓存完成。
 
     查找策略如下（按顺序）：
 
@@ -191,7 +191,6 @@ class MemberConverter(IDConverter[qq.Member]):
         bot = ctx.bot
         match = self._get_id_match(argument) or re.match(r'<@!?([0-9]{15,20})>$', argument)
         guild = ctx.guild
-        result = None
         user_id = None
         if match is None:
             # not a mention...

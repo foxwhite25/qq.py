@@ -151,6 +151,7 @@ class Client:
         }
 
         connector: Optional[aiohttp.BaseConnector] = options.pop('connector', None)
+        print(connector)
         proxy: Optional[str] = options.pop('proxy', None)
         proxy_auth: Optional[aiohttp.BasicAuth] = options.pop('proxy_auth', None)
         unsync_clock: bool = options.pop('assume_unsync_clock', True)

@@ -223,7 +223,7 @@ class HTTPClient:
                         #     continue
 
                         # the usual error cases
-                        if response.status in [403, 401]:
+                        if response.status in [404, 403, 401]:
                             raise Forbidden(response, data, route=route)
                         elif response.status == 404:
                             raise NotFound(response, data, route=route)

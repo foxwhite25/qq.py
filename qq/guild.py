@@ -853,7 +853,6 @@ class Guild(Hashable):
         .. note::
 
             该方法是一个 API 调用。对于一般用法，请考虑 :attr:`roles`。
-        .. versionadded:: 1.3
 
         Raises
         -------

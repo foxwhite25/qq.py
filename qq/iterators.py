@@ -393,7 +393,7 @@ class HistoryIterator(_AsyncIterator['Message']):
     async def fill_messages(self):
         if not hasattr(self, 'channel'):
             # do the required set up
-            channel = await self.messageable._get_channel()
+            channel, private = await self.messageable._get_channel()
             self.channel = channel
 
         if self._get_retrieve():
