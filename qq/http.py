@@ -160,7 +160,6 @@ def handle_message_parameters(
             multipart[key] = value
         payload = None
         multipart['file_image'] = file.fp
-        print(multipart)
 
     return MultipartParameters(direct=direct, payload=payload, multipart=multipart, file=file)
 
