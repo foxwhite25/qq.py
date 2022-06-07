@@ -690,7 +690,7 @@ class Client:
         --------
         Any
             不返回任何参数、单个参数或多个参数的元组，
-            这些参数反映在 :ref:`事件指南 <qq-api-events>` 中传递的参数。
+            这些参数反映在 :ref:`事件指南`<qq-api-events> 中传递的参数。
         """
 
         future = self.loop.create_future()

@@ -326,10 +326,9 @@ class Embed:
     @classmethod
     def from_dict(cls: Type[E], data: Mapping[str, Any]) -> E:
         """将 :class:`dict` 转换为 :class:`Embed`，前提是它采用 QQ 期望的格式。
-        你可以在 ``官方 QQ 文档``__ 中找到有关此格式的信息。
+        你可以在 ``官方 QQ 文档`` 中找到有关此格式的信息。
 
-        .. _QQDocs: https://bot.q.qq.com/wiki/develop/api/openapi/message/model.html#messageembed
-        __ QQDocs_
+        https://bot.q.qq.com/wiki/develop/api/openapi/message/model.html#messageembed
 
         Parameters
         -----------

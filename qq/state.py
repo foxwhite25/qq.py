@@ -465,7 +465,7 @@ class ConnectionState:
 
     def parse_at_message_create(self, data) -> None:
         channel, guild = self._get_guild_channel(data)
-        direct = True if 'direct_message' in data else False
+        direct = data['direct_message'] if 'direct_message' in data else False
         # channel would be the correct type here
         message = Message(channel=channel, data=data, state=self, direct=direct)  # type: ignore
         self.dispatch('message', message)

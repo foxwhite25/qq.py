@@ -278,8 +278,11 @@ class HTTPClient:
                     kwargs['data'] = form_data
                 try:
                     async with self.__session.request(method, url, **kwargs) as response:
-                        _log.debug('%s %s 与 %s 已返回 %s Trace ID: %s', method, url, kwargs.get('data'),
-                                   response.status, response.headers['X-Tps-trace-ID'])
+                        _log.debug(
+                            '%s %s 与 %s 已返回 %s Trace ID: %s', method, url, kwargs.get('data'),
+                            response.status,
+                            response.headers['X-Tps-trace-ID'] if 'X-Tps-trace-ID' in response.headers else "Missing"
+                        )
 
                         # even errors have text involved in them so this is safe to call
                         data = await json_or_text(response)
