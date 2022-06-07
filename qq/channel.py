@@ -950,14 +950,15 @@ class CategoryChannel(abc.GuildChannel, Hashable):
 
 
 class PartialMessageable(abc.Messageable, Hashable):
-    def __init__(self, state: ConnectionState, id: int, type: Optional[ChannelType] = None):
+    def __init__(self, state: ConnectionState, id: int, type: Optional[ChannelType] = None, direct: bool = False):
         self._state: ConnectionState = state
         self._channel: Object = Object(id=id)
         self.id: int = id
         self.type: Optional[ChannelType] = type
+        self.direct = direct
 
     async def _get_channel(self) -> Tuple[Object, bool]:
-        return self._channel, True
+        return self._channel, self.direct
 
     def get_partial_message(self, message_id: int, /) -> PartialMessage:
         from .message import PartialMessage

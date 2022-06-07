@@ -300,14 +300,15 @@ class ConnectionState:
 
     def _get_guild_channel(self, data: MessagePayload) -> Tuple[Union[Channel], Optional[Guild]]:
         channel_id = int(data['channel_id'])
-        if 'direct_message' not in data:
+        direct = 'direct_message' in data
+        if not direct:
             guild = self._get_guild(int(data['guild_id']))
             channel = guild and guild._resolve_channel(channel_id)
         else:
             channel = DMChannel._from_message(state=self, channel_id=channel_id, guild_id=int(data['guild_id']))
             self._add_private_channel(channel)
             guild = None
-        return channel or PartialMessageable(state=self, id=channel_id), guild
+        return channel or PartialMessageable(state=self, id=channel_id, direct=direct), guild
 
     def get_reaction_emoji(self, data) -> Union[PartialEmoji]:
         emoji_id = data.get('id')
