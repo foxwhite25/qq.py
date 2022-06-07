@@ -171,12 +171,19 @@ class Guild(Hashable):
         return f'<Guild {inner}>'
 
     async def fill_in(self):
-        channels = await self._state.http.get_guild_channels(self.id)
-        result = await self._state.http.get_member(self.id, self._state.user.id)
+        try:
+            channels = await self._state.http.get_guild_channels(self.id)
+        except HTTPException:
+            channels = []
 
-        member = Member(data=result,
-                        guild=self, state=self._state)
-        self._add_member(member)
+        try:
+            result = await self._state.http.get_member(self.id, self._state.user.id)
+
+            member = Member(data=result,
+                            guild=self, state=self._state)
+            self._add_member(member)
+        except HTTPException:
+            pass
 
         try:
 
