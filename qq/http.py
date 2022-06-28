@@ -36,7 +36,7 @@ from urllib.parse import quote as _uriquote
 import aiohttp
 
 from . import __version__, utils
-from .embeds import Ark, Embed
+from .embeds import Ark, Embed, Markdown
 from .error import HTTPException, Forbidden, NotFound, QQServerError, LoginFailure, GatewayNotFound
 from .gateway import QQClientWebSocketResponse
 from .types import user, guild, message, channel, member
@@ -127,6 +127,7 @@ def handle_message_parameters(
         image: Optional[str] = MISSING,
         embed: Optional[Embed] = MISSING,
         ark: Optional[Ark] = MISSING,
+        markdown: Optional[Markdown] = MISSING,
         message_reference: Optional[MessageReference] = MISSING,
 ) -> MultipartParameters:
     payload = {}
@@ -137,7 +138,10 @@ def handle_message_parameters(
         payload['embed'] = embed.to_dict()
 
     if ark:
-        payload['ark'] = ark
+        payload['ark'] = ark.to_dict()
+
+    if markdown:
+        payload['markdown'] = markdown.to_dict()
 
     if image:
         payload['image'] = image

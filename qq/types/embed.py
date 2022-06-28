@@ -53,3 +53,9 @@ class ArkKv(TypedDict, total=False):
 class Ark(TypedDict, total=False):
     template_id: int
     kv: List[ArkKv]
+
+
+class MarkdownData(TypedDict, total=False):
+    template_id: int
+    params: ArkKv
+    content: str

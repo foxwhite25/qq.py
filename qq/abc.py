@@ -35,7 +35,7 @@ from .utils import MISSING
 
 if TYPE_CHECKING:
     from .user import ClientUser
-    from .embeds import Ark, Embed
+    from .embeds import Ark, Embed, Markdown
     from .member import Member
     from .channel import CategoryChannel, TextChannel, PartialMessageable, DMChannel
     from .guild import Guild
@@ -113,6 +113,7 @@ class Messageable:
             mention_author: Member = ...,
             ark: Ark = ...,
             embed: Embed = ...,
+            markdown: Markdown = ...,
             file: File = ...,
             delete_after: float = ...,
     ) -> Union[Message, str]:
@@ -128,6 +129,7 @@ class Messageable:
             mention_author=None,
             ark=None,
             embed=None,
+            markdown=None,
             file=None,
             delete_after=None,
     ):
@@ -147,6 +149,8 @@ class Messageable:
             要发送的 Ark 类
         embed: Optional[:class:`qq.Embed`]
             要发送的 Embed 类
+        markdown: Optional[:class:`qq.Markdown`]
+            要发送的 Markdown 类
         msg_id: Union[:class:`~qq.Message`, :class:`~qq.MessageReference`, :class:`~qq.PartialMessage`]
             被动消息使用的消息
 
@@ -205,14 +209,15 @@ class Messageable:
                     'reference 参数必须是 Message、 MessageReference 或 PartialMessage') from None
 
         with handle_message_parameters(
-            content=content,
-            direct=direct,
-            msg_id=msg_id,
-            file=file if file is not None else MISSING,
-            image=image if image is not None else MISSING,
-            embed=embed if embed is not None else MISSING,
-            ark=ark if ark is not None else MISSING,
-            message_reference=reference if reference is not None else MISSING,
+                content=content,
+                direct=direct,
+                msg_id=msg_id,
+                file=file if file is not None else MISSING,
+                image=image if image is not None else MISSING,
+                embed=embed if embed is not None else MISSING,
+                ark=ark if ark is not None else MISSING,
+                markdown=markdown if markdown is not None else MISSING,
+                message_reference=reference if reference is not None else MISSING,
         ) as params:
             data = await state.http.send_message(channel.id, params=params)
 

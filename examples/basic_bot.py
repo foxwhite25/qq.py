@@ -1,6 +1,7 @@
+import random
+
 import qq
 from qq.ext import commands
-import random
 
 intents = qq.Intents.default()
 
@@ -27,6 +28,11 @@ async def add(ctx, content: str):
         if num.isnumeric():  # 如果 参数是数字
             result += int(num)  # 加到 result里面
     await ctx.reply(result)  # 发送 result
+
+
+@bot.command()
+async def markdown(ctx: commands.Context, content: str):
+    await ctx.send(markdown=qq.Markdown(content=content))
 
 
 @bot.command()  # 注册指令 '?roll', 参数为 dice

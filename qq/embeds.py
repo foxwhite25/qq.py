@@ -26,7 +26,8 @@ from typing import Any, Dict, Final, List, Mapping, Protocol, TYPE_CHECKING, Typ
 
 __all__ = (
     'Embed',
-    'Ark'
+    'Ark',
+    'Markdown'
 )
 
 from . import utils
@@ -63,9 +64,10 @@ class EmbedProxy:
 
 
 E = TypeVar('E', bound='Embed')
+MD = TypeVar('MD', bound='Markdown')
 
 if TYPE_CHECKING:
-    from .types.embed import Embed as EmbedData
+    from .types.embed import Embed as EmbedData, MarkdownData
 
     T = TypeVar('T')
     MaybeEmpty = Union[T, _EmptyEmbed]
@@ -105,6 +107,89 @@ if TYPE_CHECKING:
         url: MaybeEmpty[str]
         icon_url: MaybeEmpty[str]
         proxy_icon_url: MaybeEmpty[str]
+
+
+class Markdown:
+    """代表一个 QQ Markdown。
+
+    .. container:: operations
+
+        .. describe:: len(x)
+
+            返回嵌入的总大小。用于检查它是否在 6000 个字符限制内。
+
+        .. describe:: bool(b)
+
+            返回嵌入是否有任何数据集。
+
+    Attributes
+    -----------
+    template_id: :class:`str`
+        要使用的模版 ID。
+    content: :class:`str`
+        原生 markdown 内容
+    """
+    __slots__ = (
+        '_fields',
+        'template_id',
+        'content',
+    )
+
+    def __init__(
+            self,
+            *,
+            template_id: int = None,
+            content: str = None,
+    ):
+        self.template_id = template_id
+        self.content = content
+
+    @property
+    def fields(self) -> Dict[str, Any]:
+        return self._fields
+
+    def set_attribute(self: MD, key: Any, value: Any) -> MD:
+        """向 Markdown 对象添加字段。此函数返回类实例以允许流式链接。
+
+        Parameters
+        -----------
+        key: :class:`str`
+            字段的名称。
+        value: :class:`str`
+            字段的值。
+        """
+
+        self._fields[str(key)] = str(value)
+        return self
+
+    def clear_fields(self) -> None:
+        """从此 Markdown 中删除所有字段。"""
+        try:
+            self._fields.clear()
+        except AttributeError:
+            self._fields = {}
+
+    def to_dict(self) -> MarkdownData:
+        """将此 Markdown 对象转换为字典。"""
+
+        if not self.content:
+            result = {"template_id": self.template_id}
+
+            if self._fields:
+                result["params"] = [{"key": k, "values": v} for k, v in self._fields.items()]
+        else:
+            result = {"content": self.content}
+
+        return result  # type: ignore
+
+    @classmethod
+    def from_dict(cls, template_id: int, data=None) -> MD:
+        """从字典创建一个 Markdown 对象。"""
+        if data is None:
+            data = {}
+        self = cls(template_id=template_id)
+        self._fields = [{"key": k, "values": v} for k, v in data.items()]
+        return self
 
 
 class Ark:
