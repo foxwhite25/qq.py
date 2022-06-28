@@ -184,7 +184,7 @@ class Markdown:
         return result  # type: ignore
 
     @classmethod
-    def from_dict(cls, template_id: int, data=None) -> MD:
+    def from_dict(cls, template_id: int, data: Optional[Dict[str, List[str]]] = None) -> MD:
         """从字典创建一个 Markdown 对象。"""
         if data is None:
             data = {}
