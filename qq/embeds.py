@@ -141,6 +141,7 @@ class Markdown:
             template_id: int = None,
             content: str = None,
     ):
+        self._fields = {}
         self.template_id = template_id
         self.content = content
 
