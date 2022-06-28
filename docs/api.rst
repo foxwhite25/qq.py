@@ -844,6 +844,14 @@ Object
 .. autoclass:: Object
     :members:
 
+Markdown
+~~~~~~
+
+.. attributetable:: Markdown
+
+.. autoclass:: Markdown
+    :members:
+
 Ark
 ~~~~~~
 
