@@ -33,6 +33,11 @@ async def add(ctx, content: str):
 @bot.command()
 async def markdown(ctx: commands.Context, content: str):
     await ctx.send(markdown=qq.Markdown(content=content))
+    data = {
+        "text": content,
+    }
+    await ctx.send(markdown=qq.Markdown().from_dict(template_id=1, data=data))
+    await ctx.send(markdown=qq.Markdown(template_id=1).set_attribute("text", content))
 
 
 @bot.command()  # 注册指令 '?roll', 参数为 dice

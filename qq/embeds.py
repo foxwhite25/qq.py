@@ -188,7 +188,7 @@ class Markdown:
         if data is None:
             data = {}
         self = cls(template_id=template_id)
-        self._fields = [{"key": k, "values": v} for k, v in data.items()]
+        self._fields = {k: v for k, v in data.items()}
         return self
 
 
