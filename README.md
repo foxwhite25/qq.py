@@ -1,6 +1,6 @@
 <div align="center">
 
-![[object Object]](https://socialify.git.ci/foxwhite25/qq.py/image?description=1&forks=1&issues=1&language=1&logo=https%3A%2F%2Fcdn.discordapp.com%2Ficons%2F931463860060303380%2F262443cb05319937738132e7fa773eb1.webp&name=1&owner=1&pattern=Circuit%20Board&stargazers=1&theme=Light)
+![[object Object]](https://socialify.git.ci/foxwhite25/qq.py/image?description=1&font=Source%20Code%20Pro&forks=1&issues=1&language=1&name=1&owner=1&stargazers=1&theme=Auto)
 
 [![PyPI - License](https://img.shields.io/pypi/l/qq.py?style=for-the-badge)](https://pypi.org/project/qq.py/)
 [![PyPI - Status](https://img.shields.io/pypi/status/qq.py?style=for-the-badge)](https://pypi.org/project/qq.py/)
