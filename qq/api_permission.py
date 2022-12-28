@@ -71,12 +71,12 @@ class Permission:
     @property
     def enabled(self):
         """:class:`bool`: 是否已经启用。"""
-        return True if self._auth_status == 1 else False
+        return self._auth_status == 1
 
     @property
     def disabled(self):
         """:class:`bool`: 是否已经禁用。"""
-        return True if self._auth_status != 1 else False
+        return self._auth_status != 1
 
     def demand(self, channel: TextChannel, desc=None) -> Coroutine:
         return self._state.http.demand_permission(
