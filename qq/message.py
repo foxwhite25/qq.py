@@ -471,8 +471,8 @@ class Message(Hashable):
 
     Attributes
     -----------
-    author: Union[:class:`Member`, :class:`abc.User`]
-        发送消息的 :class:`Member`。 如果用户离开了频道，那么它是一个 :class:`User` 。
+    author: :class:`User`
+        发送消息的 :class:`User`。
     content: :class:`str`
         消息的实际内容。
     embeds: List[:class:`Embed`]

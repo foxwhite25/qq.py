@@ -205,8 +205,7 @@ class Messageable:
             try:
                 reference = reference.to_message_reference_dict()
             except AttributeError:
-                raise InvalidArgument(
-                    'reference 参数必须是 Message、 MessageReference 或 PartialMessage') from None
+                raise InvalidArgument('reference 参数必须是 Message、 MessageReference 或 PartialMessage') from None
 
         with handle_message_parameters(
                 content=content,
