@@ -9,8 +9,8 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - uses: akaihola/darker@1.4.0
+      - uses: akaihola/darker@1.6.0
         with:
           options: "--check --verbose"
           src: "./qq"
-          version: "1.4.0"
+          version: "1.6.0"
