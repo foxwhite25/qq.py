@@ -153,8 +153,8 @@ def handle_message_parameters(
         else:
             pass
 
-    if content:
-        payload['content'] = content.replace(".", "\ufeff.") if replace_url else content
+    if replace_url:
+        payload['content'] = payload['content'].replace(".", "\ufeff.")
 
     if message_reference is not MISSING:
         payload['message_reference'] = message_reference

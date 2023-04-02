@@ -114,23 +114,22 @@ class Markdown:
 
     .. container:: operations
 
-        .. describe:: len(x)
-
-            返回嵌入的总大小。用于检查它是否在 6000 个字符限制内。
-
         .. describe:: bool(b)
 
-            返回嵌入是否有任何数据集。
+            返回 Markdown 是否有任何数据集。
 
     Attributes
     -----------
-    template_id: :class:`str`
+    template_id: :class:`int`
         要使用的模版 ID。
+    custom_template_id: :class:`str`
+        要使用的自定义模版 ID。
     content: :class:`str`
-        原生 markdown 内容
+        原生 markdown 内容，如果设置了此项，将忽略 template_id 和 custom_template_id。
     """
     __slots__ = (
         '_fields',
+        'custom_template_id',
         'template_id',
         'content',
     )
@@ -139,11 +138,15 @@ class Markdown:
             self,
             *,
             template_id: int = None,
+            custom_template_id: str = None,
             content: str = None,
     ):
         self._fields = {}
         self.template_id = template_id
         self.content = content
+        self.custom_template_id = custom_template_id
+        if not self:
+            raise ValueError('Markdown must have at least one field.')
 
     @property
     def fields(self) -> Dict[str, Any]:
@@ -174,7 +177,7 @@ class Markdown:
         """将此 Markdown 对象转换为字典。"""
 
         if not self.content:
-            result = {"template_id": self.template_id}
+            result = {"template_id": self.template_id, "custom_template_id": self.custom_template_id}
 
             if self._fields:
                 result["params"] = [{"key": k, "values": v} for k, v in self._fields.items()]
@@ -191,6 +194,15 @@ class Markdown:
         self = cls(template_id=template_id)
         self._fields = {k: v for k, v in data.items()}
         return self
+
+    def __bool__(self):
+        return any(
+            (
+                self.template_id is not None,
+                self.content is not None,
+                self.custom_template_id is not None,
+            )
+        )
 
 
 class Ark:
