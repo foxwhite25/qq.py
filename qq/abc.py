@@ -132,6 +132,7 @@ class Messageable:
             markdown=None,
             file=None,
             delete_after=None,
+            replace_url=True,
     ):
         """|coro|
         使用给定的内容向目的地发送消息。
@@ -170,6 +171,8 @@ class Messageable:
             本地上传的图片文件。
         delete_after: Optional[:class:`float`]
             如果设置了，则等待该秒数之后自动撤回消息。如果删除失败，则它会被静默忽略。
+        replace_url: Optional[:class:`bool`]
+            是否添加转义字符来绕过腾讯的链接检测。默认为 ``True`` 。
 
         Raises
         --------
@@ -217,6 +220,7 @@ class Messageable:
                 ark=ark if ark is not None else MISSING,
                 markdown=markdown if markdown is not None else MISSING,
                 message_reference=reference if reference is not None else MISSING,
+                replace_url=replace_url,
         ) as params:
             data = await state.http.send_message(channel.id, params=params)
 

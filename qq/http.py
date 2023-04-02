@@ -129,6 +129,7 @@ def handle_message_parameters(
         ark: Optional[Ark] = MISSING,
         markdown: Optional[Markdown] = MISSING,
         message_reference: Optional[MessageReference] = MISSING,
+        replace_url: bool = True,
 ) -> MultipartParameters:
     payload = {}
     if msg_id:
@@ -153,7 +154,7 @@ def handle_message_parameters(
             pass
 
     if content:
-        payload['content'] = content.replace(".", "\ufeff.")
+        payload['content'] = content.replace(".", "\ufeff.") if replace_url else content
 
     if message_reference is not MISSING:
         payload['message_reference'] = message_reference
