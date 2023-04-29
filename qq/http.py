@@ -448,14 +448,19 @@ class HTTPClient:
             'parent_id',
             'position',
             'private_type',
-            'private_user_ids'
-            'speak_permission'
-            'application_id'
+            'speak_permission',
+            'application_id',
         )
         payload.update({k: str(v) for k, v in options.items() if k in valid_keys and v is not None})
 
-        return self.request(Route('POST', '/guilds/{guild_id}/channels', guild_id=guild_id), json=payload,
-                            reason=reason)
+        if 'private_user_ids' in options:
+            payload['private_user_ids'] = [str(x) for x in options['private_user_ids']]
+
+        return self.request(
+            Route('POST', '/guilds/{guild_id}/channels', guild_id=guild_id),
+            json=payload,
+            reason=reason
+        )
 
     def edit_channel(
             self,
