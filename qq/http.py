@@ -447,6 +447,10 @@ class HTTPClient:
             'name',
             'parent_id',
             'position',
+            'private_type',
+            'private_user_ids'
+            'speak_permission'
+            'application_id'
         )
         payload.update({k: str(v) for k, v in options.items() if k in valid_keys and v is not None})
 
@@ -466,6 +470,8 @@ class HTTPClient:
             'parent_id',
             'position',
             'type',
+            'private_type'
+            'speak_permission'
         )
         payload = {k: v for k, v in options.items() if k in valid_keys}
         return self.request(r, reason=reason, json=payload)
