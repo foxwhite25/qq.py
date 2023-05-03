@@ -153,7 +153,7 @@ def handle_message_parameters(
         else:
             pass
 
-    if replace_url:
+    if replace_url and 'content' in payload:
         payload['content'] = payload['content'].replace(".", "\ufeff.")
 
     if message_reference is not MISSING:
@@ -475,8 +475,8 @@ class HTTPClient:
             'parent_id',
             'position',
             'type',
-            'private_type'
-            'speak_permission'
+            'private_type',
+            'speak_permission',
         )
         payload = {k: v for k, v in options.items() if k in valid_keys}
         return self.request(r, reason=reason, json=payload)

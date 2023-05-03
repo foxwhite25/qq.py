@@ -143,14 +143,7 @@ class Guild(Hashable):
         self.max_members = guild.get('max_members')
         self.description = guild.get('description')
         self.joined_at = guild.get('joined_at')
-        self.unavailable: bool = guild.get('unavailable', False)
-        self._roles: Dict[int, Role] = {}
-        self._permission: List[Permission] = []
-        state = self._state  # speed up attribute access
         self._large: Optional[bool] = None if self._member_count is None else self._member_count >= 250
-        for r in guild.get('roles', []):
-            role = Role(guild=self, data=r, state=state)
-            self._roles[role.id] = role
 
     def _add_channel(self, channel: GuildChannel, /) -> None:
         self._channels[channel.id] = channel
@@ -171,6 +164,9 @@ class Guild(Hashable):
         return f'<Guild {inner}>'
 
     async def fill_in(self):
+        data = await self._state.http.get_guild(self.id)
+        self._from_data(data)
+
         try:
             channels = await self._state.http.get_guild_channels(self.id)
         except HTTPException:

@@ -603,7 +603,7 @@ class Embed:
 
 
         """
-        return EmbedProxy(getattr(self, '_image', {}))  # type: ignore
+        return EmbedProxy(getattr(self, '_thumbnail', {}))  # type: ignore
 
     def set_image(self: E, *, url: MaybeEmpty[Any]) -> E:
         """设置嵌入内容的图像。
@@ -620,11 +620,11 @@ class Embed:
 
         if url is EmptyEmbed:
             try:
-                del self._image
+                del self._thumbnail
             except AttributeError:
                 pass
         else:
-            self._image = {
+            self._thumbnail = {
                 'url': str(url),
             }
 
