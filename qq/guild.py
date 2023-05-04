@@ -184,14 +184,12 @@ class Guild(Hashable):
             pass
 
         try:
-
             permissions = await self._state.http.get_permission(self.id)
             for permission in permissions['apis']:
                 permission = Permission(data=permission, state=self._state, guild=self)
                 self._permission.append(permission)
-
-        except Exception as e:
-            print(e)
+        except HTTPException:
+            pass
 
         try:
             roles = await self._state.http.get_roles(self.id)
@@ -201,6 +199,7 @@ class Guild(Hashable):
                     self._roles[role.id] = role
         except HTTPException:
             pass
+
         for c in channels:
             factory, ch_type = _guild_channel_factory(c['type'])
             if factory:
