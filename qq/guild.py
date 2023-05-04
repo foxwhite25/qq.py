@@ -166,6 +166,8 @@ class Guild(Hashable):
     async def fill_in(self):
         data = await self._state.http.get_guild(self.id)
         self._from_data(data)
+        self._roles: Dict[int, Role] = {}
+        self._permission: List[Permission] = []
 
         try:
             channels = await self._state.http.get_guild_channels(self.id)
