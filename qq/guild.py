@@ -505,7 +505,7 @@ class Guild(Hashable):
         if private_type is not MISSING:
             options['private_type'] = private_type
         if private_type == 2 and private_members is not MISSING:
-            options['private_user_ids'] = [n.id for n in private_members]
+            options['private_user_ids'] = [str(n.id) for n in private_members]
 
         data = await self._create_channel(
             name, channel_type=ChannelType.text, category=category, reason=reason, **options

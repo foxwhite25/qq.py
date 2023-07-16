@@ -865,13 +865,13 @@ class Message(Hashable):
             async def delete(delay: float):
                 await asyncio.sleep(delay)
                 try:
-                    await self._state.http.delete_message(self.channel.id, self.id)
+                    await self._state.http.delete_message(self.channel.id, self.id, hidetip=hidetip)
                 except HTTPException:
                     pass
 
             asyncio.create_task(delete(delay))
         else:
-            await self._state.http.delete_message(self.channel.id, self.id, hidetip)
+            await self._state.http.delete_message(self.channel.id, self.id, hidetip=hidetip)
 
     @property
     def edited_at(self) -> Optional[datetime.datetime]:

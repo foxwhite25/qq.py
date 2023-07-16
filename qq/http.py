@@ -696,7 +696,7 @@ class HTTPClient:
         return self.request(r, json=payload, reason=reason)
 
     def delete_message(
-            self, channel_id: int, message_id: str, hidetip: bool, *, reason: Optional[str] = None,
+            self, channel_id: int, message_id: str, *, reason: Optional[str] = None, hidetip: bool = False
     ) -> Response[None]:
         r = Route('DELETE', '/channels/{channel_id}/messages/{message_id}', channel_id=channel_id,
                   message_id=message_id)

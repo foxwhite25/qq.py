@@ -446,6 +446,9 @@ class GuildChannel:
         return self.guild.get_channel(self.category_id)  # type: ignore
 
     async def delete(self, *, reason: Optional[str] = None) -> None:
+        """|coro|
+        删除频道。
+        """
         await self._state.http.delete_channel(self.id, reason=reason)
 
     async def _clone_impl(
