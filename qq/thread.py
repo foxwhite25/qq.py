@@ -21,10 +21,12 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from qq import ThreadChannel
-from qq.state import ConnectionState
-from .types.forum import Thread as ThreadPayload, ThreadInfo
+if TYPE_CHECKING:
+    from qq.channel import ThreadChannel
+    from qq.state import ConnectionState
+    from .types.forum import Thread as ThreadPayload, ThreadInfo
 
 
 class Thread:
