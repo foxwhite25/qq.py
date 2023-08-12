@@ -40,6 +40,10 @@ from .embeds import Ark, Embed, Markdown
 from .error import HTTPException, Forbidden, NotFound, QQServerError, LoginFailure, GatewayNotFound
 from .gateway import QQClientWebSocketResponse
 from .types import user, guild, message, channel, member
+from .types.forum import (
+    ThreadListResponse,
+    ThreadInfo as ThreadPayload,
+)
 from .types.message import Message
 from .types.permission import (
     Permission as PermissionPayload,
@@ -842,7 +846,7 @@ class HTTPClient:
             self,
             channel_id: int,
             content: str,
-    ):
+    ) -> Response[None]:
         r = Route(
             'POST',
             '/channels/{channel_id}/settingguide',
@@ -850,3 +854,37 @@ class HTTPClient:
         )
         payload = {'content': content}
         return self.request(r, json=payload)
+
+    def get_thread_list(
+            self,
+            channel_id: int,
+    ) -> Response[ThreadListResponse]:
+        return self.request(Route('GET', '/channels/{channel_id}/threads', channel_id=channel_id))
+
+    def get_thread(
+            self,
+            channel_id: int,
+            thread_id: int,
+    ) -> Response[ThreadPayload]:
+        return self.request(Route('GET', '/channels/{channel_id}/threads/{thread_id}', channel_id=channel_id, thread_id=thread_id))
+
+    def create_thread(
+            self,
+            channel_id: int,
+            title: str,
+            content: str,
+            thread_type: int,
+    ) -> Response[ThreadPayload]:
+        payload = {
+            'title': title,
+            'content': content,
+            'format': thread_type,
+        }
+        return self.request(Route('PUT', '/channels/{channel_id}/threads', channel_id=channel_id), json=payload)
+
+    def delete_thread(
+            self,
+            channel_id: int,
+            thread_id: int,
+    ) -> Response[None]:
+        return self.request(Route('DELETE', '/channels/{channel_id}/threads/{thread_id}', channel_id=channel_id, thread_id=thread_id))

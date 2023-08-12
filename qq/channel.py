@@ -43,6 +43,8 @@ __all__ = (
     'DMChannel'
 )
 
+from .thread import Thread
+
 from .utils import MISSING
 
 if TYPE_CHECKING:
@@ -834,6 +836,120 @@ class ThreadChannel(abc.GuildChannel, Hashable):
         ]
         joined = ' '.join('%s=%r' % t for t in attrs)
         return f'<{self.__class__.__name__} {joined}>'
+
+    async def fetch_threads(self) -> List[Thread]:
+        """|coro|
+        获取频道的所有帖子。
+
+        Returns
+        --------
+        List[:class:`Thread`]
+            频道的帖子列表，注意可能不完全。
+        """
+        threads = await self._state.http.get_thread_list(self.id)['threads']
+        return [Thread(data=thread, state=self._state, channel=self) for thread in threads]
+
+    async def create_thread(
+            self,
+            title: str,
+            content: str,
+            thread_type: int,
+    ):
+        """|coro|
+        使用给定的内容向频道发送帖子。
+
+        Parameters
+        -----------
+        title: :class:`str`
+            帖子标题。
+        content: :class:`str`
+            帖子内容。
+        thread_type: :class:`int`
+            帖子类型。
+
+            +---+------------------------------+
+            | 值 | 描述                           |
+            +===+==============================+
+            | 1 | 普通文本                         |
+            | 2 | HTML                         |
+            | 3 | Markdown                     |
+            | 4 | JSON（content参数可参照RichText结构） |
+            +---+------------------------------+
+        """
+        await self._state.http.create_thread(
+            channel_id=self.id,
+            title=title,
+            content=content,
+            thread_type=thread_type
+        )
+
+    async def send_text(
+            self,
+            title: str,
+            content: str,
+    ):
+        """|coro|
+        使用给定的内容向频道发送普通文本帖子。
+
+        Parameters
+        -----------
+        title: :class:`str`
+            帖子标题。
+        content: :class:`str`
+            帖子内容。
+        """
+        await self.create_thread(title, content, 1)
+
+    async def send_html(
+            self,
+            title: str,
+            content: str,
+    ):
+        """|coro|
+        使用给定的内容向频道发送HTML帖子。
+
+        Parameters
+        -----------
+        title: :class:`str`
+            帖子标题。
+        content: :class:`str`
+            帖子内容。
+        """
+        await self.create_thread(title, content, 2)
+
+    async def send_markdown(
+            self,
+            title: str,
+            content: str,
+    ):
+        """|coro|
+        使用给定的内容向频道发送Markdown帖子。
+
+        Parameters
+        -----------
+        title: :class:`str`
+            帖子标题。
+        content: :class:`str`
+            帖子内容。
+        """
+        await self.create_thread(title, content, 3)
+
+    async def send_json(
+            self,
+            title: str,
+            content: str,
+    ):
+        """|coro|
+        使用给定的内容向频道发送JSON帖子。
+
+        Parameters
+        -----------
+        title: :class:`str`
+            帖子标题。
+        content: :class:`str`
+            帖子内容。
+        """
+        await self.create_thread(title, content, 4)
 
 
 class CategoryChannel(abc.GuildChannel, Hashable):

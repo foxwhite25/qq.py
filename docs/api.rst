@@ -800,6 +800,15 @@ ThreadChannel
     :members:
     :inherited-members:
 
+Thread
+~~~~~~~~~~~~~~~~~
+
+.. attributetable:: Thread
+
+.. autoclass:: Thread()
+    :members:
+    :inherited-members:
+
 DMChannel
 ~~~~~~~~~
 
