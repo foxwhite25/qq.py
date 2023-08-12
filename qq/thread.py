@@ -24,9 +24,13 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from qq.channel import ThreadChannel
-    from qq.state import ConnectionState
+    from .channel import ThreadChannel
+    from .state import ConnectionState
     from .types.forum import Thread as ThreadPayload, ThreadInfo
+
+__all__ = (
+    'Thread',
+)
 
 
 class Thread:

@@ -50,6 +50,7 @@ from .reaction import *
 from .role import *
 from .schedule import *
 from .shard import *
+from .thread import *
 from .user import *
 
 
