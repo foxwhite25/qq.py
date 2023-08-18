@@ -41,7 +41,7 @@ from .mention import AllowedMentions
 from .message import Message, MessageAudit
 from .object import Object
 from .partial_emoji import PartialEmoji
-from .raw_models import RawReactionActionEvent, RawReactionClearEvent, RawReactionClearEmojiEvent
+from .raw_models import RawReactionActionEvent, RawReactionClearEvent, RawReactionClearEmojiEvent, RawMessageDeleteEvent
 from .user import User, ClientUser
 
 if TYPE_CHECKING:
@@ -590,6 +590,18 @@ class ConnectionState:
 
             guild._add_member(member)
             _log.debug('GUILD_MEMBER_UPDATE 引用了一个未知的成员 ID：%s。丢弃。', user_id)
+
+    def parse_message_delete(self, data) -> None:
+        raw = RawMessageDeleteEvent(data)
+        found = self._get_message(str(raw.message_id))
+        raw.cached_message = found
+        self.dispatch('raw_message_delete', raw)
+        if self._messages is not None and found is not None:
+            self.dispatch('message_delete', found)
+            self._messages.remove(found)
+
+    def parse_public_message_delete(self, data) -> None:
+        self.parse_at_message_create(data)
 
     def _get_create_guild(self, data):
         return self._add_guild_from_data(data)

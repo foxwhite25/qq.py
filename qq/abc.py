@@ -278,18 +278,19 @@ class Messageable:
         Examples
         ---------
 
-        Usage ::
+        用途 ::
 
             counter = 0
             async for message in channel.history(limit=200):
                 if message.author == client.user:
                     counter += 1
 
-        Flattening into a list: ::
+        扁平化为列表: ::
+
             messages = await channel.history(limit=123).flatten()
             # messages is now a list of Message...
 
-        All parameters are optional.
+        所有参数均为可选参数。
 
         Parameters
         -----------

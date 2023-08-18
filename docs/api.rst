@@ -251,6 +251,29 @@ AutoShardedClient
     :param message: 当前消息。
     :type message: :class:`Message`
 
+.. function:: on_message_delete(message)
+
+    当删除一条信息时调用。如果内部信息缓存中没有该信息，则不会调用此事件。
+    如果消息太旧或客户端参加了高流量频道，则消息可能不在缓存中。
+
+    如果出现这种情况，请增加 :class:`max_messages <Client>` 参数，或改用 :func:`on_raw_message_delete` 事件。
+
+    这需要启用 :attr:`Intents.messages`。
+
+    :param message: 删除的消息
+    :type message: :class:`Message`
+
+.. function:: on_raw_message_delete(payload)
+
+    当删除一条消息时调用。与 :func:`on_message_delete` 不同，无论消息是否在内部消息缓存中，都会调用该函数。
+
+    如果在信息缓存中找到了信息，则可通过 :attr:`RawMessageDeleteEvent.cached_message` 访问该信息。
+
+    这需要启用 :attr:`Intents.messages`。
+
+    :param payload: 原始事件有效载荷数据。
+    :type payload: :class:`RawMessageDeleteEvent`
+
 .. function:: on_message_audit(audit)
 
     在消息审核通过或拒绝时调用。
@@ -830,6 +853,13 @@ Schedule
     :members:
     :inherited-members:
 
+RawMessageDeleteEvent
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. attributetable:: RawMessageDeleteEvent
+
+.. autoclass:: RawMessageDeleteEvent()
+    :members:
 
 .. _qq_api_data:
 
