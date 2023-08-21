@@ -800,7 +800,7 @@ class HTTPClient:
 
     def channel_pin_message(self, channel_id: int, message_id: str, reason: Optional[str] = None):
         r = Route(
-            'POST',
+            'PUT',
             '/channels/{channel_id}/pins/{message_id}',
             channel_id=channel_id,
             message_id=message_id,
