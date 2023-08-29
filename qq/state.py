@@ -601,7 +601,7 @@ class ConnectionState:
             self._messages.remove(found)
 
     def parse_public_message_delete(self, data) -> None:
-        self.parse_at_message_create(data)
+        self.parse_message_delete(data)
 
     def _get_create_guild(self, data):
         return self._add_guild_from_data(data)
