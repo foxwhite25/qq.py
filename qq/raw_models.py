@@ -59,7 +59,7 @@ class RawMessageDeleteEvent(_RawReprMixin):
         发生删除的子频道 ID。
     guild_id: Optional[:class:`int`]
         发生删除的频道 ID（如果适用）。
-    message_id: :class:`int`
+    message_id: :class:`str`
         被删除的消息 ID。
     cached_message: Optional[:class:`Message`]
         缓存的消息（如果在内部消息缓存中找到）。
@@ -68,7 +68,7 @@ class RawMessageDeleteEvent(_RawReprMixin):
     __slots__ = ('message_id', 'channel_id', 'guild_id', 'cached_message')
 
     def __init__(self, data: MessageDeleteEvent) -> None:
-        self.message_id: int = int(data['id'])
+        self.message_id: str = data['id']
         self.channel_id: int = int(data['channel_id'])
         self.cached_message: Optional[Message] = None
         try:
