@@ -592,7 +592,7 @@ class ConnectionState:
             _log.debug('GUILD_MEMBER_UPDATE 引用了一个未知的成员 ID：%s。丢弃。', user_id)
 
     def parse_message_delete(self, data) -> None:
-        raw = RawMessageDeleteEvent(data)
+        raw = RawMessageDeleteEvent(data['message'])
         found = self._get_message(str(raw.message_id))
         raw.cached_message = found
         self.dispatch('raw_message_delete', raw)
