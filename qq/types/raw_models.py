@@ -51,7 +51,7 @@ class MessageUpdateEvent(_MessageEventOptional):
 
 class Target(TypedDict, total=False):
     id: str
-    type: int
+    type: str
 
 
 class ReactionActionEvent(_ReactionActionEventOptional):
