@@ -151,7 +151,6 @@ class Client:
         }
 
         connector: Optional[aiohttp.BaseConnector] = options.pop('connector', None)
-        print(connector)
         proxy: Optional[str] = options.pop('proxy', None)
         proxy_auth: Optional[aiohttp.BasicAuth] = options.pop('proxy_auth', None)
         unsync_clock: bool = options.pop('assume_unsync_clock', True)
@@ -553,7 +552,7 @@ class Client:
                         raise
 
                 retry = backoff.delay()
-                _log.exception("尝试在 %.2fs 中重新连接", retry)
+                _log.exception("尝试在 %.2fs 后重新连接", retry)
                 await asyncio.sleep(retry)
                 # Always try to RESUME the connection
                 # If the connection is not RESUME-able then the gateway will invalidate the session.
