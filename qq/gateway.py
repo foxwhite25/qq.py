@@ -21,6 +21,7 @@
 
 import asyncio
 import concurrent
+import inspect
 import logging
 import sys
 import threading
@@ -432,7 +433,7 @@ class QQWebSocket:
         except KeyError:
             _log.debug('未知事件 %s.', event)
         else:
-            if event == 'READY':
+            if inspect.iscoroutinefunction(func):
                 await func(data)
             else:
                 func(data)

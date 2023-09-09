@@ -631,13 +631,14 @@ class ConnectionState:
         else:
             self.dispatch('guild_join', guild)
 
-    def parse_guild_create(self, data) -> None:
+    async def parse_guild_create(self, data) -> None:
         unavailable = data.get('unavailable')
         if unavailable is True:
             # joined a guild with unavailable == True so..
             return
 
         guild = self._get_create_guild(data)
+        await guild.fill_in()
 
         try:
             # Notify the on_ready state, if any, that this guild is complete.
