@@ -869,7 +869,7 @@ class Guild(Hashable):
             频道中的所有身份组。
         """
         data = await self._state.http.get_roles(self.id)
-        return [Role(guild=self, state=self._state, data=d) for d in data]
+        return [Role(guild=self, state=self._state, data=d) for d in data["roles"]]
 
     @overload
     async def create_role(
