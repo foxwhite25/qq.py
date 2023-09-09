@@ -2,7 +2,7 @@ __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 __title__ = 'qq'
 __author__ = 'Foxwhite'
 __license__ = 'MIT'
-__version__ = '1.3.5'
+__version__ = '1.3.6'
 
 #  The MIT License (MIT)
 #  Copyright (c) 2021-present foxwhite25
@@ -62,4 +62,4 @@ class VersionInfo(NamedTuple):
     serial: int
 
 
-version_info: VersionInfo = VersionInfo(major=1, minor=3, micro=5, releaselevel='final', serial=0)
+version_info: VersionInfo = VersionInfo(major=1, minor=3, micro=6, releaselevel='final', serial=0)
