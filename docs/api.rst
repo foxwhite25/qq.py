@@ -907,6 +907,22 @@ Embed
 .. autoclass:: Embed
     :members:
 
+Keyboard
+~~~~~~
+
+.. attributetable:: Keyboard
+
+.. autoclass:: Keyboard
+    :members:
+
+Button
+~~~~~~
+
+.. attributetable:: Button
+
+.. autoclass:: Button
+    :members:
+
 AllowedMentions
 ~~~~~~~~~~~~~~~~~
 

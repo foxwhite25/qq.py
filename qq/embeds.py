@@ -27,7 +27,9 @@ from typing import Any, Dict, Final, List, Mapping, Protocol, TYPE_CHECKING, Typ
 __all__ = (
     'Embed',
     'Ark',
-    'Markdown'
+    'Markdown',
+    'Keyboard',
+    'Button'
 )
 
 from . import utils
@@ -68,6 +70,8 @@ MD = TypeVar('MD', bound='Markdown')
 
 if TYPE_CHECKING:
     from .types.embed import Embed as EmbedData, MarkdownData
+    from .user import User
+    from .role import Role
 
     T = TypeVar('T')
     MaybeEmpty = Union[T, _EmptyEmbed]
@@ -109,8 +113,222 @@ if TYPE_CHECKING:
         proxy_icon_url: MaybeEmpty[str]
 
 
+class Button:
+    """代表一个 Keyboard 中的按钮"""
+    __slots__ = (
+        "_id",
+        "_label",
+        "_visited_label",
+        "_border",
+        "_action",
+        "_data",
+        "_show_channel_list",
+        "_click_limit",
+        "_permission",
+        "_specified_role_id",
+        "_specified_user_id"
+    )
+
+    def __init__(self, button_id: str):
+        self._id: str = button_id
+        self.allow_everyone() \
+            .label("") \
+            .visited_label("") \
+            .gray_border() \
+            .do_command("set your command via `do_command`", False)
+
+    def label(self, label: str) -> Button:
+        """设定按纽上的文字。此函数返回类实例以允许流式链接。
+
+        Parameters
+        -----------
+        label: :class:`str`
+            按纽上的文字。"""
+        self._label: str = label
+        return self
+
+    def visited_label(self, visited_label: str) -> Button:
+        """设定按纽上的文字。此函数返回类实例以允许流式链接。
+
+        Parameters
+        -----------
+        visited_label: :class:`str`
+            按纽上的文字。"""
+        self._visited_label: str = visited_label
+        return self
+
+    def gray_border(self) -> Button:
+        """设定按纽为灰色边框。此函数返回类实例以允许流式链接。"""
+        self._border: int = 0
+        return self
+
+    def blue_border(self) -> Button:
+        """设定按纽为蓝色边框。此函数返回类实例以允许流式链接。"""
+        self._border: int = 1
+        return self
+
+    def do_http(self, url: str) -> Button:
+        """设定按纽动作为访问 url 或者打开小程序。此函数返回类实例以允许流式链接。
+
+        Parameters
+        -----------
+        url: :class:`str`
+            访问的 Url 或者小程序客户端识别 schem。"""
+        self._action = 0
+        self._data = url
+        return self
+
+    def do_notify_backend(self, data: str) -> Button:
+        """设定按纽动作为回调后台接口, data 传给后台。此函数返回类实例以允许流式链接。
+
+        Parameters
+        -----------
+        data: :class:`str`
+            回调数据。"""
+        self._action = 1
+        self._data = data
+        return self
+
+    def do_command(self, msg: str, show_channel_list: bool) -> Button:
+        """设定按纽动作为输入指令，自动在输入框 @bot data。此函数返回类实例以允许流式链接。
+
+        Parameters
+        -----------
+        msg: :class:`str`
+            要输入的指令。
+        show_channel_list: :class:`bool`
+            是否弹出子频道选择器。"""
+        self._action = 1
+        self._data = msg
+        self._show_channel_list = show_channel_list
+        return self
+
+    def click_limit(self, click_limit: int) -> Button:
+        """可点击的次数, 默认不限。此函数返回类实例以允许流式链接。
+
+        Parameters
+        -----------
+        click_limit: :class:`int`
+            可点击的次数。"""
+        self._click_limit = click_limit
+        return self
+
+    def allow_specific_user(self, users: List[User]) -> Button:
+        """指定用户可操作。此函数返回类实例以允许流式链接。
+
+        Parameters
+        -----------
+        users: List[:class:`User`]
+            指定用户。"""
+
+        self._permission: int = 0
+
+        def _get_id(u: User) -> int:
+            return u.id
+
+        self._specified_user_id: List[int] = list(map(_get_id, users))
+        return self
+
+    def allow_admin(self) -> Button:
+        """仅管理者可操作。此函数返回类实例以允许流式链接。"""
+
+        self._permission: int = 1
+        return self
+
+    def allow_everyone(self) -> Button:
+        """所有人可操作。此函数返回类实例以允许流式链接。"""
+
+        self._permission: int = 2
+        return self
+
+    def allow_specific_role(self, roles: List[Role]) -> Button:
+        """指定身份组可操作。此函数返回类实例以允许流式链接。
+
+        Parameters
+        -----------
+        roles: List[:class:`Role`]
+            指定身份组。"""
+        self._permission: int = 2
+
+        def _get_id(u: Role) -> int:
+            return u.id
+
+        self._specified_role_id: List[int] = list(map(_get_id, roles))
+        return self
+
+    def to_dict(self) -> Dict:
+        render_data = {"label": self._label, "visited_label": self._visited_label, "style": self._border}
+
+        action = {
+            "type": self._action,
+            "permission": {
+                "type": self._permission,
+                "specify_role_ids": self._specified_role_id,
+                "specify_user_ids": self._specified_user_id},
+            "data": self._data,
+            "at_bot_show_channel_list": self._show_channel_list
+        }
+
+        if self._click_limit is not None:
+            action["click_limit"] = self._click_limit
+
+        payload = {"id": self._id, "render_data": render_data, "action": action}
+        return payload
+
+
+class Keyboard:
+    """
+    代表一个 Markdown 的键盘配置
+
+    .. container:: operations
+
+        .. describe:: bool(b)
+
+            返回 Keyboard 是否有任何按钮。
+
+    Attributes
+    -----------
+    buttons: List[List[:class:`Button`]]
+        按钮列表。
+
+    """
+    __slots__ = (
+        "buttons"
+    )
+
+    def __init__(self):
+        self.buttons: List[List[Button]] = []
+
+    def __bool__(self):
+        all([len(n) == 0 for n in self.buttons])
+
+    def add_button(self, row: int, button_id: str) -> Button:
+        """向第 row 行添加一个按钮。此函数返回 :class:`Button` 实例以允许流式链接。
+
+        Parameters
+        -----------
+        row: :class:`int`
+        添加至的行数。
+        button_id: :class:`str`
+        按钮 ID。"""
+
+        button = Button(button_id)
+        self.buttons[row].append(button)
+        return button
+
+    def to_dict(self) -> Dict:
+        def _map_dict(x: List[Button]) -> Dict[str, List[Dict]]:
+            return {"buttons": list(map(Button.to_dict, x))}
+
+        payload = {
+            "rows": list(map(_map_dict, self.buttons))
+        }
+        return payload
+
+
 class Markdown:
-    """代表一个 QQ Markdown。
+    """
+    代表一个 QQ Markdown。
 
     .. container:: operations
 
