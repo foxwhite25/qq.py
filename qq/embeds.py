@@ -22,6 +22,7 @@
 from __future__ import annotations
 
 import datetime
+import logging
 from typing import Any, Dict, Final, List, Mapping, Protocol, TYPE_CHECKING, Type, TypeVar, Union, Optional
 
 __all__ = (
@@ -34,6 +35,8 @@ __all__ = (
 
 from . import utils
 from .colour import Colour
+
+_log = logging.getLogger(__name__)
 
 
 class _EmptyEmbed:
@@ -293,37 +296,53 @@ class Keyboard:
 
     """
     __slots__ = (
-        "buttons"
+        "buttons",
+        "_id"
     )
 
     def __init__(self):
-        self.buttons: List[List[Button]] = []
+        self.buttons: List[List[Button]] = [[] for _ in range(5)]
 
     def __bool__(self):
         all([len(n) == 0 for n in self.buttons])
 
     def add_button(self, row: int, button_id: str) -> Button:
-        """向第 row 行添加一个按钮。此函数返回 :class:`Button` 实例以允许流式链接。
+        """向第 row 行添加一个按钮。如果超出范围该按钮不会被添加至键盘中。
+        此函数返回 :class:`Button` 实例以允许流式链接。
 
         Parameters
         -----------
         row: :class:`int`
-        添加至的行数。
+        添加至的行数。最大只能是 4 ，键盘按钮最多只能有五行。
         button_id: :class:`str`
         按钮 ID。"""
 
         button = Button(button_id)
+        if row > 4 or len(self.buttons[row]) == 4:
+            _log.warning("键盘按钮最多只能有五行五列")
+            return button
         self.buttons[row].append(button)
         return button
 
     def to_dict(self) -> Dict:
+        if self._id:
+            return {"id": self._id}
+
         def _map_dict(x: List[Button]) -> Dict[str, List[Dict]]:
             return {"buttons": list(map(Button.to_dict, x))}
 
-        payload = {
-            "rows": list(map(_map_dict, self.buttons))
-        }
+        payload = {"content": {"rows": list(map(_map_dict, self.buttons))}}
         return payload
+
+    def with_id(self, keyboard_id: str):
+        """设定 keyboard 模板 id，请注意设定了之后按钮设置将失效。
+
+        Parameters
+        -----------
+        keyboard_id: :class:`str`
+        keyboard 模板 id。"""
+
+        self._id = keyboard_id
 
 
 class Markdown:
@@ -347,6 +366,7 @@ class Markdown:
     """
     __slots__ = (
         '_fields',
+        '_keyboard',
         'custom_template_id',
         'template_id',
         'content',
@@ -384,6 +404,12 @@ class Markdown:
         self._fields[str(key)] = str(value)
         return self
 
+    def with_keyboard(self) -> Keyboard:
+        """向此 Markdown 添加一个键盘。此函数返回 Keyboard 实例以允许流式链接。"""
+        keyboard = Keyboard()
+        self._keyboard = keyboard
+        return keyboard
+
     def clear_fields(self) -> None:
         """从此 Markdown 中删除所有字段。"""
         try:
@@ -392,8 +418,6 @@ class Markdown:
             self._fields = {}
 
     def to_dict(self) -> MarkdownData:
-        """将此 Markdown 对象转换为字典。"""
-
         if not self.content:
             result = {"template_id": self.template_id, "custom_template_id": self.custom_template_id}
 

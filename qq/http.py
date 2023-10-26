@@ -147,6 +147,8 @@ def handle_message_parameters(
 
     if markdown:
         payload['markdown'] = markdown.to_dict()
+        if markdown._keyboard is not None:
+            payload['keyboard'] = markdown._keyboard.to_dict()
 
     if image:
         payload['image'] = image
