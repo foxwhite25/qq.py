@@ -313,9 +313,9 @@ class Keyboard:
         Parameters
         -----------
         row: :class:`int`
-        添加至的行数。最大只能是 4 ，键盘按钮最多只能有五行。
+            添加至的行数。最大只能是 4 ，键盘按钮最多只能有五行。
         button_id: :class:`str`
-        按钮 ID。"""
+            按钮 ID。"""
 
         button = Button(button_id)
         if row > 4 or len(self.buttons[row]) == 4:
@@ -340,7 +340,7 @@ class Keyboard:
         Parameters
         -----------
         keyboard_id: :class:`str`
-        keyboard 模板 id。"""
+            keyboard 模板 id。"""
 
         self._id = keyboard_id
 
@@ -405,7 +405,7 @@ class Markdown:
         return self
 
     def with_keyboard(self) -> Keyboard:
-        """向此 Markdown 添加一个键盘。此函数返回 Keyboard 实例以允许流式链接。"""
+        """向此 Markdown 添加一个键盘。此函数返回 :class:`Keyboard` 实例以允许流式链接。"""
         keyboard = Keyboard()
         self._keyboard = keyboard
         return keyboard
