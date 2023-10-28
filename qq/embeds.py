@@ -422,7 +422,7 @@ class Markdown:
             result = {"template_id": self.template_id, "custom_template_id": self.custom_template_id}
 
             if self._fields:
-                result["params"] = [{"key": k, "values": v} for k, v in self._fields.items()]
+                result["params"] = [{"key": k, "values": [v]} for k, v in self._fields.items()]
         else:
             result = {"content": self.content}
 
