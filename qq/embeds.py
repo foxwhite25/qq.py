@@ -134,6 +134,7 @@ class Button:
 
     def __init__(self, button_id: str):
         self._id: str = button_id
+        self._click_limit = None
         self.allow_everyone() \
             .label("") \
             .visited_label("") \
@@ -302,6 +303,7 @@ class Keyboard:
 
     def __init__(self):
         self.buttons: List[List[Button]] = [[] for _ in range(5)]
+        self._id = None
 
     def __bool__(self):
         all([len(n) == 0 for n in self.buttons])
