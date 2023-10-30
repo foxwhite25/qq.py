@@ -454,9 +454,11 @@ class ConnectionState:
 
         result = await self.http.get_guilds()
 
+        futures = []
         for guild_data in result:
             guild = self._add_guild_from_data(guild_data)
-            await guild.fill_in()
+            futures.append(guild.fill_in())
+        await asyncio.gather(*futures)
 
         self.dispatch('connect')
         self._ready_task = asyncio.create_task(self._delay_ready())

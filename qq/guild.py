@@ -163,7 +163,7 @@ class Guild(Hashable):
         inner = ' '.join('%s=%r' % t for t in attrs)
         return f'<Guild {inner}>'
 
-    async def fill_in(self):
+    async def fill_in(self) -> Guild:
         data = await self._state.http.get_guild(self.id)
         self._from_data(data)
         self._roles: Dict[int, Role] = {}
@@ -204,6 +204,7 @@ class Guild(Hashable):
             factory, ch_type = _guild_channel_factory(c['type'])
             if factory:
                 self._add_channel(factory(guild=self, data=c, state=self._state))  # type: ignore
+        return self
 
     @property
     def permissions(self) -> List[Permission]:
