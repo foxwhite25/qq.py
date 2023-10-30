@@ -135,6 +135,8 @@ class Button:
     def __init__(self, button_id: str):
         self._id: str = button_id
         self._click_limit = None
+        self._specified_user_id = None
+        self._specified_role_id = None
         self.allow_everyone() \
             .label("") \
             .visited_label("") \
