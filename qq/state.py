@@ -484,6 +484,9 @@ class ConnectionState:
     def parse_direct_message_create(self, data) -> None:
         self.parse_at_message_create(data)
 
+    def parse_interaction_create(self, data):
+        self.dispatch('raw_interaction', data)
+
     def parse_message_audit_pass(self, data) -> None:
         self.dispatch('message_audit', MessageAudit(state=self, data=data, audit_state=True))
 

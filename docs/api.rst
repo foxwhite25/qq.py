@@ -367,6 +367,15 @@ AutoShardedClient
     :param after: 更新后的公会。
     :type after: :class:`Guild`
 
+.. function:: on_raw_interaction(payload)
+
+    当消息添加了反应时调用。与:func:`on_interaction` 不同，无论内部消息缓存的状态如何，都会调用它。
+
+    这需要启用 :attr:`Intents.interaction`。
+
+    :param payload: 原始事件负载数据。
+    :type payload: :class:`RawInteractionActionEvent`
+
 .. function:: on_reaction_add(reaction, user)
 
     当消息添加了反应时调用。类似于:func:`on_message_edit` ，如果在内部消息缓存中找不到该消息，则不会调用此事件。

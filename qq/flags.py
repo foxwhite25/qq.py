@@ -306,6 +306,16 @@ class Intents(BaseFlags):
         return 1 << 12
 
     @flag_value
+    def interaction(self):
+        """:class:`bool`: 互动事件相关事件是否开启。
+
+        这对应于以下事件：
+
+        - :func:`on_raw_interaction`
+        """
+        return 1 << 26
+
+    @flag_value
     def audit(self):
         """:class:`bool`: 消息审核相关事件是否开启。
 
