@@ -292,7 +292,7 @@ AutoShardedClient
 
     这需要启用 :attr:`Intents.guilds`。
 
-    :param channel: 创建或删除的公会频道。
+    :param channel: 创建或删除的频道频道。
     :type channel: :class:`abc.GuildChannel`
 
 .. function:: on_guild_channel_update(before, after)
@@ -301,9 +301,9 @@ AutoShardedClient
 
     这需要启用 :attr:`Intents.guilds`。
 
-    :param before: 更新公会频道的旧信息。
+    :param before: 更新频道频道的旧信息。
     :type before: :class:`abc.GuildChannel`
-    :param after: 更新公会频道的新信息。
+    :param after: 更新频道频道的新信息。
     :type after: :class:`abc.GuildChannel`
 
 
@@ -330,11 +330,11 @@ AutoShardedClient
 
 .. function:: on_guild_join(guild)
 
-    当 :class:`Guild` 由 :class:`Client` 创建或当:class:`Client` 加入公会时调用。
+    当 :class:`Guild` 由 :class:`Client` 创建或当:class:`Client` 加入频道时调用。
 
     这需要启用 :attr:`Intents.guilds`。
 
-    :param guild: 加入的公会。
+    :param guild: 加入的频道。
     :type guild: :class:`Guild`
 
 .. function:: on_guild_remove(guild)
@@ -343,14 +343,14 @@ AutoShardedClient
 
     这是通过但不限于以下情况发生的：
      - 客户端被踢了。
-     - 客户端离开了公会。
-     - 客户端或公会所有者删除了公会。
+     - 客户端离开了频道。
+     - 客户端或频道所有者删除了频道。
 
-    为了调用这个事件，Client 必须是公会的一部分。 （即它是 :attr:`Client.guilds` 的一部分）
+    为了调用这个事件，Client 必须是频道的一部分。 （即它是 :attr:`Client.guilds` 的一部分）
 
     这需要启用 :attr:`Intents.guilds`。
 
-    :param guild: 被移除的公会。
+    :param guild: 被移除的频道。
     :type guild: :class:`Guild`
 
 .. function:: on_guild_update(before, after)
@@ -362,9 +362,9 @@ AutoShardedClient
 
     这需要启用 :attr:`Intents.guilds` 。
 
-    :param before: 更新前的公会。
+    :param before: 更新前的频道。
     :type before: :class:`Guild`
-    :param after: 更新后的公会。
+    :param after: 更新后的频道。
     :type after: :class:`Guild`
 
 .. function:: on_raw_interaction(payload)
