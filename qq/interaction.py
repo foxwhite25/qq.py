@@ -35,17 +35,6 @@ class Interaction:
 
     你也可以使用 async with 表达式在离开作用域时，如果未曾响应则自动调用 :meth:`Interaction.success` 回复成功。
 
-    .. container:: operations
-
-        .. describe:: x == y
-            检查两个 guild 是否相等。
-        .. describe:: x != y
-            检查两个 guild 是否不相等。
-        .. describe:: hash(x)
-            返回 guild 的哈希值。
-        .. describe:: str(x)
-            返回 guild 的名称。
-
     Attributes
     ----------
     application_id: :class:`str`
@@ -103,6 +92,7 @@ class Interaction:
 
     async def success(self):
         """|coro|
+
         回复操作成功。
         """
 
@@ -110,6 +100,7 @@ class Interaction:
 
     async def failed(self):
         """|coro|
+
         回复操作失败。
         """
 
@@ -117,6 +108,7 @@ class Interaction:
 
     async def too_frequent(self):
         """|coro|
+
         回复操作过于频繁。
         """
 
@@ -124,6 +116,7 @@ class Interaction:
 
     async def duplicated(self):
         """|coro|
+
         回复操作为重复操作。
         """
 
@@ -131,6 +124,7 @@ class Interaction:
 
     async def no_permission(self):
         """|coro|
+
         回复操作权限不足。
         """
 
@@ -138,6 +132,7 @@ class Interaction:
 
     async def only_admin(self):
         """|coro|
+
         回复操作仅能被管理员调用。
         """
 
