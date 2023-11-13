@@ -31,11 +31,12 @@ import os
 from collections import deque, OrderedDict
 from typing import Callable, TYPE_CHECKING, Dict, Any, Optional, List, Union, Deque, Coroutine, TypeVar, Tuple
 
-from . import utils, Interaction
+from . import utils
 from .audio import AudioAction
 from .channel import PartialMessageable, TextChannel, _channel_factory, DMChannel
 from .flags import Intents
 from .guild import Guild
+from .interaction import Interaction
 from .member import Member
 from .mention import AllowedMentions
 from .message import Message, MessageAudit
