@@ -369,12 +369,21 @@ AutoShardedClient
 
 .. function:: on_raw_interaction(payload)
 
-    当消息添加了反应时调用。与:func:`on_interaction` 不同，无论内部消息缓存的状态如何，都会调用它。
+    当触发了互动时调用。与:func:`on_interaction` 不同，无论内部消息缓存的状态如何，以及数据是否标准，都会调用它。
 
     这需要启用 :attr:`Intents.interaction`。
 
     :param payload: 原始事件负载数据。
     :type payload: :class:`RawInteractionActionEvent`
+
+.. function:: on_interaction(payload)
+
+    当触发了互动时调用。如果数据不标准，则不会调用此事件。
+
+    这需要启用 :attr:`Intents.interaction`。
+
+    :param payload: 原始事件负载数据。
+    :type payload: :class:`Interaction`
 
 .. function:: on_reaction_add(reaction, user)
 
@@ -394,7 +403,7 @@ AutoShardedClient
 
 .. function:: on_raw_reaction_add(payload)
 
-    当消息添加了反应时调用。与:func:`on_reaction_add` 不同，无论内部消息缓存的状态如何，都会调用它。
+    当消息添加了反应时调用。与 :func:`on_reaction_add` 不同，无论内部消息缓存的状态如何，都会调用它。
 
     这需要启用 :attr:`Intents.reactions`。
 
@@ -734,6 +743,14 @@ MessageAudit
 .. attributetable:: MessageAudit
 
 .. autoclass:: MessageAudit()
+    :members:
+
+Interaction
+~~~~~~~~~~~
+
+.. attributetable:: Interaction
+
+.. autoclass:: Interaction()
     :members:
 
 Guild

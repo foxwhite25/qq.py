@@ -1,9 +1,3 @@
-__path__ = __import__('pkgutil').extend_path(__path__, __name__)
-__title__ = 'qq'
-__author__ = 'Foxwhite'
-__license__ = 'MIT'
-__version__ = '1.3.10'
-
 #  The MIT License (MIT)
 #  Copyright (c) 2021-present foxwhite25
 #
@@ -25,42 +19,26 @@ __version__ = '1.3.10'
 #  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 #  DEALINGS IN THE SOFTWARE.
 
-from typing import NamedTuple, Literal
+from __future__ import annotations
 
-from . import utils, abc
-from .api_permission import *
-from .asset import *
-from .channel import *
-from .client import *
-from .colour import *
-from .embeds import *
-from .enum import *
-from .error import *
-from .file import *
-from .flags import *
-from .guild import *
-from .interaction import *
-from .member import *
-from .mention import *
-from .message import *
-from .object import *
-from .partial_emoji import *
-from .permissions import *
-from .raw_models import *
-from .reaction import *
-from .role import *
-from .schedule import *
-from .shard import *
-from .thread import *
-from .user import *
+from typing import TypedDict
 
 
-class VersionInfo(NamedTuple):
-    major: int
-    minor: int
-    micro: int
-    releaselevel: Literal["alpha", "beta", "candidate", "final"]
-    serial: int
+class Interaction(TypedDict):
+    application_id: str
+    chat_type: int
+    data: Data
+    id: str
+    type: int
+    version: int
 
 
-version_info: VersionInfo = VersionInfo(major=1, minor=3, micro=10, releaselevel='final', serial=0)
+class Data(TypedDict):
+    resolved: Resolved
+    type: int
+
+
+class Resolved(TypedDict):
+    button_data: str
+    button_id: str
+    user_id: str

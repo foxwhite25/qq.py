@@ -31,7 +31,7 @@ import os
 from collections import deque, OrderedDict
 from typing import Callable, TYPE_CHECKING, Dict, Any, Optional, List, Union, Deque, Coroutine, TypeVar, Tuple
 
-from . import utils
+from . import utils, Interaction
 from .audio import AudioAction
 from .channel import PartialMessageable, TextChannel, _channel_factory, DMChannel
 from .flags import Intents
@@ -458,7 +458,7 @@ class ConnectionState:
         for guild_data in result:
             guild = self._add_guild_from_data(guild_data)
             futures.append(guild.fill_in())
-        await asyncio.gather(*futures, loop=self.loop)
+        await asyncio.gather(*futures)
 
         self.dispatch('connect')
         self._ready_task = asyncio.create_task(self._delay_ready())
@@ -486,6 +486,11 @@ class ConnectionState:
 
     def parse_interaction_create(self, data):
         self.dispatch('raw_interaction', data)
+
+        try:
+            self.dispatch('interaction', Interaction(self, data))
+        except Exception:
+            return
 
     def parse_message_audit_pass(self, data) -> None:
         self.dispatch('message_audit', MessageAudit(state=self, data=data, audit_state=True))

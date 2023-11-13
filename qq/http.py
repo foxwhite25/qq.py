@@ -759,6 +759,20 @@ class HTTPClient:
 
         return self.request(Route('POST', '/guilds/{guild_id}/api_permission/demand', guild_id=guild_id), json=payload)
 
+    def ack_interaction(self, interaction_id: str, code: int):
+        r = Route(
+            'PUT',
+            'interactions/{interaction_id}',
+            interaction_id=interaction_id
+        )
+        payload = {
+            "code": code
+        }
+        return self.request(
+            r,
+            json=payload
+        )
+
     def global_pin_message(
             self,
             guild_id: int,
