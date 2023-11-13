@@ -382,7 +382,7 @@ AutoShardedClient
 
     这需要启用 :attr:`Intents.interaction`。
 
-    :param payload: 原始事件负载数据。
+    :param payload: 互动的信息。
     :type payload: :class:`Interaction`
 
 .. function:: on_reaction_add(reaction, user)
