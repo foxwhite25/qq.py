@@ -28,6 +28,7 @@ class Interaction(TypedDict):
     application_id: str
     chat_type: int
     data: Data
+    guild_id: str
     id: str
     type: int
     version: int

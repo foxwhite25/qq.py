@@ -41,6 +41,10 @@ class Interaction:
         应用名称
     id: :class:`int`
         互动 ID
+    guild: :class:`Guild`
+        互动所发生的频道
+    author: :class:`Member`
+        互动造成的作者
     chat_type: :class:`int`
         聊天类型？
     button_data: :class:`str`
@@ -55,7 +59,8 @@ class Interaction:
         "chat_type",
         "button_data",
         "button_id",
-        "user_id",
+        "_user_id",
+        "_guild_id",
         "type",
         "version",
         "id",
@@ -71,11 +76,22 @@ class Interaction:
             rs = data["data"]["resolved"]
             self.button_data = rs["button_data"]
             self.button_id = rs["button_id"]
-            self.user_id = rs["user_id"]
+            self._user_id = rs["user_id"]
+        self.author = None
+        self.guild = None
         self.type = data["type"]
         self.version = data["version"]
         self.id = data["id"]
         self._responded = False
+
+    async def upgrade(self):
+        self.guild = self._state._get_guild(int(self._guild_id))
+        if self.guild == None:
+            data = await self.http.get_guild(guild_id)
+            self.guild = Guild(data=data, state=self._state)
+        self.author = self.guild.get_member(int(self._user_id))
+        if self.author = None:
+            self.author = await self.guild.fetch_member(int(self._user_id))
 
     async def __aenter__(self):
         return self

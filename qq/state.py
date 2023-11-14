@@ -485,11 +485,13 @@ class ConnectionState:
     def parse_direct_message_create(self, data) -> None:
         self.parse_at_message_create(data)
 
-    def parse_interaction_create(self, data):
+    async def parse_interaction_create(self, data):
         self.dispatch('raw_interaction', data)
 
         try:
-            self.dispatch('interaction', Interaction(self, data))
+            interaction = Interaction(self, data)
+            await interaction.upgrade()
+            self.dispatch('interaction', interaction)
         except Exception:
             return
 
