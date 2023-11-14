@@ -490,7 +490,7 @@ class ConnectionState:
 
         try:
             interaction = Interaction(self, data)
-            await interaction.upgrade()
+            await interaction.upgrade() 
             self.dispatch('interaction', interaction)
         except Exception:
             return
