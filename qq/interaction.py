@@ -23,6 +23,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from . import Guild
+
 if TYPE_CHECKING:
     from .types.interaction import Interaction as InteractionPayload
     from .state import ConnectionState
@@ -61,6 +63,8 @@ class Interaction:
         "button_id",
         "_user_id",
         "_guild_id",
+        "guild",
+        "author",
         "type",
         "version",
         "id",
@@ -86,11 +90,11 @@ class Interaction:
 
     async def upgrade(self):
         self.guild = self._state._get_guild(int(self._guild_id))
-        if self.guild == None:
-            data = await self.http.get_guild(guild_id)
+        if self.guild is None:
+            data = await self._state.http.get_guild(self._guild_id)
             self.guild = Guild(data=data, state=self._state)
         self.author = self.guild.get_member(int(self._user_id))
-        if self.author = None:
+        if self.author is None:
             self.author = await self.guild.fetch_member(int(self._user_id))
 
     async def __aenter__(self):
