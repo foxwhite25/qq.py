@@ -23,7 +23,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from . import Guild
+from .guild import Guild
 
 if TYPE_CHECKING:
     from .types.interaction import Interaction as InteractionPayload
