@@ -312,6 +312,7 @@ class Intents(BaseFlags):
         这对应于以下事件：
 
         - :func:`on_raw_interaction`
+        - :func:`on_interaction`
         """
         return 1 << 26
 
