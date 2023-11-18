@@ -490,9 +490,12 @@ class ConnectionState:
 
         try:
             interaction = Interaction(self, data)
-            await interaction.upgrade() 
+            try:
+                await interaction.upgrade()
+            except Exception:
+                pass
             self.dispatch('interaction', interaction)
-        except Exception:
+        except NameError:
             return
 
     def parse_message_audit_pass(self, data) -> None:
