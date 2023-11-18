@@ -762,7 +762,7 @@ class HTTPClient:
     def ack_interaction(self, interaction_id: str, code: int):
         r = Route(
             'PUT',
-            'interactions/{interaction_id}',
+            '/interactions/{interaction_id}',
             interaction_id=interaction_id
         )
         payload = {
