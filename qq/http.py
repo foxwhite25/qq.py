@@ -380,7 +380,7 @@ class HTTPClient:
     def get_guild_channels(self, guild_id: int) -> Response[guild.Guild]:
         return self.request(Route('GET', '/guilds/{guild_id}/channels', guild_id=guild_id))
 
-    def get_message(self, channel_id: int, message_id: int) -> Response[Message]:
+    def get_message(self, channel_id: int, message_id: str) -> Response[Message]:
         r = Route('GET', '/channels/{channel_id}/messages/{message_id}', channel_id=channel_id, message_id=message_id)
         return self.request(r)
 

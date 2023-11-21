@@ -45,8 +45,12 @@ class Interaction:
         互动 ID
     guild: :class:`Guild`
         互动所发生的频道
+    channel: :class:`Channel`
+        互动所发生的子频道
+    message: :class:`Message`
+        互动所发生的消息
     author: :class:`Member`
-        互动造成的作者
+        互动造成的用户
     chat_type: :class:`int`
         聊天类型？
     button_data: :class:`str`
@@ -63,7 +67,11 @@ class Interaction:
         "button_id",
         "_user_id",
         "_guild_id",
+        "_channel_id",
+        "_message_id",
         "guild",
+        "channel",
+        "message",
         "author",
         "type",
         "version",
@@ -76,26 +84,35 @@ class Interaction:
         self._state = state
         self.application_id = data["application_id"]
         self.chat_type = data["chat_type"]
+        self._channel_id = int(data["channel_id"])
+        self._guild_id = int(data["guild_id"])
         if "data" in data and "resolved" in data["data"]:
             rs = data["data"]["resolved"]
             self.button_data = rs["button_data"]
             self.button_id = rs["button_id"]
-            self._user_id = rs["user_id"]
+            self._user_id = int(rs["user_id"])
+            self._message_id = rs["message_id"]
         self.author = None
         self.guild = None
+        self.channel = None
+        self.message = None
         self.type = data["type"]
         self.version = data["version"]
         self.id = data["id"]
         self._responded = False
 
     async def upgrade(self):
-        self.guild = self._state._get_guild(int(self._guild_id))
+        self.guild = self._state._get_guild(self._guild_id)
         if self.guild is None:
             data = await self._state.http.get_guild(self._guild_id)
             self.guild = Guild(data=data, state=self._state)
-        self.author = self.guild.get_member(int(self._user_id))
+        self.channel = self.guild.get_channel(self._channel_id)
+        if self.channel is None:
+            await self.guild.fetch_channel(self._channel_id)
+        self.author = self.guild.get_member(self._user_id)
         if self.author is None:
-            self.author = await self.guild.fetch_member(int(self._user_id))
+            self.author = await self.guild.fetch_member(self._user_id)
+        self.message = await self.channel.fetch_message(self._message_id)
 
     async def __aenter__(self):
         return self

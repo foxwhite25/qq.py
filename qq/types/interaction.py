@@ -26,6 +26,8 @@ from typing import TypedDict
 
 class Interaction(TypedDict):
     application_id: str
+    channel_id: str
+    guild_id: str
     chat_type: int
     data: Data
     guild_id: str
@@ -43,3 +45,4 @@ class Resolved(TypedDict):
     button_data: str
     button_id: str
     user_id: str
+    message_id: str
