@@ -102,6 +102,7 @@ class Guild(Hashable):
 
     __slots__ = (
         'id',
+        'msg_id',
         'name',
         'icon',
         'owner_id',
@@ -134,6 +135,7 @@ class Guild(Hashable):
 
     def _from_data(self, guild: GuildPayload) -> None:
         self.id = int(guild.get('id'))
+        self.msg_id = guild.get('msg_id')
         self.name = guild.get('name')
         self.icon = guild.get('icon')
         self.owner_id = guild.get('owner_id')

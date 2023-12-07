@@ -65,11 +65,12 @@ class Reaction:
     message: :class:`Message`
         此反应的消息。
     """
-    __slots__ = ('message', 'count', 'emoji', 'me')
+    __slots__ = ('message', 'msg_id', 'count', 'emoji', 'me')
 
     def __init__(self, *, message: Message, data: ReactionPayload,
                  emoji: Optional[Union[PartialEmoji, str]] = None):
         self.message: Message = message
+        self.msg_id = data.get('msg_id')
         self.emoji: Union[PartialEmoji, str] = emoji or message._state.get_reaction_emoji(data['emoji'])
         self.count: int = data.get('count', 1)
         self.me: bool = data.get('me')
@@ -95,3 +96,28 @@ class Reaction:
 
     def __repr__(self) -> str:
         return f'<Reaction emoji={self.emoji!r} me={self.me} count={self.count}>'
+
+    async def reply(self, content: Optional[str] = None, **kwargs) -> Message:
+        """|coro|
+        :meth:`.abc.Messageable.send` 回复 :class:`.Message` 的快捷方法。
+
+
+        Raises
+        --------
+        ~qq.HTTPException
+            发送消息失败。
+        ~qq.Forbidden
+            你没有发送消息的适当权限。
+        ~qq.InvalidArgument
+            ``files`` 列表的大小不合适，或者你同时指定了 ``file`` 和 ``files``。
+
+        Returns
+        ---------
+        :class:`.Message`
+            发送的消息。
+        """
+        return await self.message.channel.send(
+            content,
+            msg_id=self.msg_id,
+            **kwargs
+        )

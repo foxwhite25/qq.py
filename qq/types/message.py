@@ -57,6 +57,7 @@ class _MessageOptional(TypedDict, total=False):
 
 
 class Message(_MessageOptional):
+    msg_id: str
     id: str
     channel_id: str
     author: User
@@ -89,6 +90,7 @@ class MessageReference(TypedDict, total=False):
 
 
 class Reaction(TypedDict):
+    msg_id: str
     count: int
     me: bool
     emoji: PartialEmoji

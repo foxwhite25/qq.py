@@ -52,6 +52,7 @@ class _BaseGuildPreview(UnavailableGuild):
 
 class Guild(_BaseGuildPreview, _GuildOptional):
     owner_id: str
+    msg_id: str
     afk_timeout: int
     roles: List[Role]
 

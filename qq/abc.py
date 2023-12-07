@@ -350,6 +350,7 @@ class GuildChannel:
     __slots__ = ()
 
     id: int
+    msg_id: str
     name: str
     guild: Guild
     type: ChannelType

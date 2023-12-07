@@ -32,6 +32,7 @@ class _BaseChannel(TypedDict):
 
 
 class _BaseGuildChannel(_BaseChannel):
+    msg_id: str
     guild_id: str
     position: int
     parent_id: Optional[str]
