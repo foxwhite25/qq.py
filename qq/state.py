@@ -486,7 +486,7 @@ class ConnectionState:
         self.parse_at_message_create(data)
 
     async def parse_interaction_create(self, data):
-        self.dispatch('raw_interaction', data)
+        self.dispatch('raw_interaction', data, data['msg_id'])
 
         try:
             interaction = Interaction(self, data)
@@ -510,6 +510,7 @@ class ConnectionState:
         if guild is not None:
             channel = guild.get_channel(channel_id)
             if channel is not None:
+                channel.msg_id = data['msg_id']
                 guild._remove_channel(channel)
                 self.dispatch('guild_channel_delete', channel)
 
@@ -575,6 +576,7 @@ class ConnectionState:
             member = guild.get_member(user_id)
             if member is not None:
                 guild._remove_member(member)  # type: ignore
+                member.msg_id = data['msg_id']
                 self.dispatch('member_remove', member)
         else:
             _log.debug('GUILD_MEMBER_REMOVE 引用了一个未知的频道 ID：%s。丢弃。', data['guild_id'])
@@ -611,8 +613,9 @@ class ConnectionState:
         raw = RawMessageDeleteEvent(data['message'])
         found = self._get_message(raw.message_id)
         raw.cached_message = found
-        self.dispatch('raw_message_delete', raw)
+        self.dispatch('raw_message_delete', raw, data['msg_id'])
         if self._messages is not None and found is not None:
+            found.msg_id = data['msg_id']
             self.dispatch('message_delete', found)
             self._messages.remove(found)
 

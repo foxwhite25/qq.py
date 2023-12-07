@@ -21,13 +21,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from .guild import Guild
 
 if TYPE_CHECKING:
     from .types.interaction import Interaction as InteractionPayload
     from .state import ConnectionState
+    from .message import Message
 
 
 class Interaction:
@@ -69,6 +70,7 @@ class Interaction:
         "_guild_id",
         "_channel_id",
         "_message_id",
+        'msg_id',
         "guild",
         "channel",
         "message",
@@ -86,6 +88,7 @@ class Interaction:
         self.chat_type = data["chat_type"]
         self._channel_id = int(data["channel_id"])
         self._guild_id = int(data["guild_id"])
+        self.msg_id = data["msg_id"]
         if "data" in data and "resolved" in data["data"]:
             rs = data["data"]["resolved"]
             self.button_data = rs["button_data"]
@@ -126,6 +129,31 @@ class Interaction:
             return
         self._responded = True
         await self._state.http.ack_interaction(self.id, code)
+
+    async def reply(self, content: Optional[str] = None, **kwargs) -> Message:
+        """|coro|
+        :meth:`.abc.Messageable.send` 回复 :class:`.Message` 的快捷方法。
+
+
+        Raises
+        --------
+        ~qq.HTTPException
+            发送消息失败。
+        ~qq.Forbidden
+            你没有发送消息的适当权限。
+        ~qq.InvalidArgument
+            ``files`` 列表的大小不合适，或者你同时指定了 ``file`` 和 ``files``。
+
+        Returns
+        ---------
+        :class:`.Message`
+            发送的消息。
+        """
+        return await self.channel.send(
+            content,
+            msg_id=self.msg_id,
+            **kwargs
+        )
 
     async def success(self):
         """|coro|

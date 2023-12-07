@@ -35,6 +35,7 @@ class PartialMember(TypedDict):
 
 
 class Member(PartialMember, total=False):
+    msg_id: str
     guild_id: str
     user: User
     nick: str
@@ -46,6 +47,7 @@ class _OptionalMemberWithUser(PartialMember, total=False):
 
 
 class MemberWithUser(_OptionalMemberWithUser):
+    msg_id: str
     user: User
 
 

@@ -25,6 +25,7 @@ from typing import TypedDict
 
 
 class Interaction(TypedDict):
+    msg_id: str
     application_id: str
     channel_id: str
     guild_id: str

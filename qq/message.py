@@ -521,6 +521,7 @@ class Message(Hashable):
         'mention_everyone',
         'embeds',
         'id',
+        'msg_id',
         'mentions',
         'author',
         'attachments',
@@ -552,6 +553,7 @@ class Message(Hashable):
         self._state: ConnectionState = state
         self.created_at = datetime.datetime.now()
         self.id: str = data['id']
+        self.msg_id: str = data["msg_id"]
         self.reactions: List[Reaction] = [Reaction(message=self, data=d) for d in data.get('reactions', [])]
         self.attachments: Optional[List[Attachment]] = \
             [Attachment(data=a, state=self._state) for a in data['attachments']] \
@@ -899,7 +901,7 @@ class Message(Hashable):
         """
         return await self.channel.send(
             content,
-            # msg_id=self,
+            msg_id=self.msg_id,
             **kwargs
         )
 
