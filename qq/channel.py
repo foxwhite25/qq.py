@@ -153,8 +153,7 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
     def _update(self, guild: Guild, data: TextChannelPayload) -> None:
         self.guild: Guild = guild
         self.name: str = data['name']
-        self.msg_id = \
-            data.get("msg_id", self.msg_id)
+        self.msg_id = data.get("msg_id", self.msg_id)
         self.category_id: Optional[int] = int(data.get('parent_id')) if 'parent_id' in data else self.category_id
         self.position: int = data['position'] if 'position' in data else self.position
         self._type: int = data.get('type', self._type)
