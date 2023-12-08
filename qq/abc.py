@@ -125,6 +125,7 @@ class Messageable:
             *,
             image=None,
             msg_id='MESSAGE_CREATE',
+            event_id=None,
             reference=None,
             mention_author=None,
             ark=None,
@@ -152,16 +153,14 @@ class Messageable:
             要发送的 Embed 类
         markdown: Optional[:class:`qq.Markdown`]
             要发送的 Markdown 类
-        msg_id: Union[:class:`~qq.Message`, :class:`~qq.MessageReference`, :class:`~qq.PartialMessage`]
-            被动消息使用的消息
+        msg_id: Optional[:class:`str`]
+            被动消息使用的消息 ID
+        event_id: Optional[:class:`str`]
+            被动消息使用的事件 ID
 
             .. note::
 
                 如果不使用 ``msg_id`` ，系统将判断为主动消息，主动消息默认每天往每个频道可推送的消息数是 20 条，超过会被限制。
-
-            .. note::
-
-                目前官方放宽了被动消息，无视即可。
 
         reference: Union[:class:`~qq.Message`, :class:`~qq.MessageReference`, :class:`~qq.PartialMessage`]
             对你正在回复的 :class:`~qq.Message` 的引用，可以使用 :meth:`~qq.Message.to_reference` 创建或直接作为 :class:`~qq.Message` 传递。
@@ -214,6 +213,7 @@ class Messageable:
                 content=content,
                 direct=direct,
                 msg_id=msg_id,
+                event_id=event_id,
                 file=file if file is not None else MISSING,
                 image=image if image is not None else MISSING,
                 embed=embed if embed is not None else MISSING,

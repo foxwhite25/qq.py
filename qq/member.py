@@ -153,7 +153,7 @@ class Member(Messageable, _UserTag):
     def __init__(self, *, data: MemberWithUserPayload, guild: Guild, state: ConnectionState):
         self._state: ConnectionState = state
         self._user: User = state.store_user(data['user'])
-        self.msg_id = data['msg_id']
+        self.msg_id = data.get("msg_id", "")
         self.guild: Guild = guild
         self.joined_at: Optional[datetime.datetime] = utils.parse_time(data.get('joined_at'))
         self._roles: utils.SnowflakeList = utils.SnowflakeList(map(int, data['roles'])) \
@@ -229,7 +229,7 @@ class Member(Messageable, _UserTag):
         # the nickname change is optional,
         # if it isn't in the payload then it didn't change
         try:
-            self.msg_id = data['msg_id']
+            self.msg_id = data.get("msg_id", self.msg_id)
             self.nick = data['nick']
         except KeyError:
             pass

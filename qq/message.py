@@ -901,7 +901,7 @@ class Message(Hashable):
         """
         return await self.channel.send(
             content,
-            msg_id=self.msg_id,
+            # msg_id=self.msg_id,
             **kwargs
         )
 

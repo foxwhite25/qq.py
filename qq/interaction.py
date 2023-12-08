@@ -88,7 +88,7 @@ class Interaction:
         self.chat_type = data["chat_type"]
         self._channel_id = int(data["channel_id"])
         self._guild_id = int(data["guild_id"])
-        self.msg_id = data["msg_id"]
+        self.msg_id = data.get("msg_id", "")
         if "data" in data and "resolved" in data["data"]:
             rs = data["data"]["resolved"]
             self.button_data = rs["button_data"]
@@ -151,7 +151,7 @@ class Interaction:
         """
         return await self.channel.send(
             content,
-            msg_id=self.msg_id,
+            # msg_id=self.msg_id,
             **kwargs
         )
 
