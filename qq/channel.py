@@ -135,7 +135,7 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
     def __init__(self, *, state: ConnectionState, guild: Guild, data: TextChannelPayload):
         self._state: ConnectionState = state
         self.id: int = int(data['id'])
-        self.msg_id = data['msg_id']
+        self.msg_id = data.get("msg_id", "")
         self._type: int = data['type']
         self.last_message_id: Optional[int] = None
         self._update(guild, data)
@@ -153,7 +153,7 @@ class TextChannel(abc.Messageable, abc.GuildChannel, Hashable):
     def _update(self, guild: Guild, data: TextChannelPayload) -> None:
         self.guild: Guild = guild
         self.name: str = data['name']
-        self.msg_id = data['msg_id']
+        self.msg_id = data.get("msg_id", self.msg_id)
         self.category_id: Optional[int] = int(data.get('parent_id')) if 'parent_id' in data else self.category_id
         self.position: int = data['position'] if 'position' in data else self.position
         self._type: int = data.get('type', self._type)
@@ -473,13 +473,13 @@ class VoiceChannel(abc.GuildChannel, Hashable):
 
     def __init__(self, *, state: ConnectionState, guild: Guild, data: VoiceChannelPayload):
         self._state: ConnectionState = state
-        self.msg_id = data['msg_id']
+        self.msg_id = data.get("msg_id", "")
         self.id: int = int(data['id'])
         self._update(guild, data)
 
     def _update(self, guild: Guild, data: VoiceChannelPayload) -> None:
         self.guild = guild
-        self.msg_id = data['msg_id']
+        self.msg_id = data.get("msg_id", self.msg_id)
         self.name: str = data['name']
         self.category_id: Optional[int] = int(data.get('parent_id'))
         self.position: int = data['position']
@@ -614,14 +614,14 @@ class LiveChannel(abc.GuildChannel, Hashable, abc.Messageable):
 
     def __init__(self, *, state: ConnectionState, guild: Guild, data: LiveChannelPayload):
         self._state: ConnectionState = state
-        self.msg_id = data['msg_id']
+        self.msg_id = data.get("msg_id", "")
         self.id: int = int(data['id'])
         self._update(guild, data)
 
     def _update(self, guild: Guild, data: LiveChannelPayload) -> None:
         self.guild = guild
         self.name: str = data['name']
-        self.msg_id = data['msg_id']
+        self.msg_id = data.get("msg_id", self.msg_id)
         self.category_id: Optional[int] = int(data.get('parent_id'))
         self.position: int = data['position']
         self.private_type: int = data.get('private_type')
@@ -695,14 +695,14 @@ class AppChannel(abc.GuildChannel, Hashable):
 
     def __init__(self, *, state: ConnectionState, guild: Guild, data: AppChannelPayload):
         self._state: ConnectionState = state
-        self.msg_id = data['msg_id']
+        self.msg_id = data.get("msg_id", "")
         self.id: int = int(data['id'])
         self._update(guild, data)
 
     def _update(self, guild: Guild, data: AppChannelPayload) -> None:
         self.guild = guild
         self.name: str = data['name']
-        self.msg_id = data['msg_id']
+        self.msg_id = data.get("msg_id", self.msg_id)
         self.category_id: Optional[int] = int(data.get('parent_id'))
         self.position: int = data['position']
         self.private_type: int = data.get('private_type')
@@ -830,14 +830,14 @@ class ThreadChannel(abc.GuildChannel, Hashable):
 
     def __init__(self, *, state: ConnectionState, guild: Guild, data: ThreadChannelPayload):
         self._state: ConnectionState = state
-        self.msg_id = data['msg_id']
+        self.msg_id = data.get("msg_id", "")
         self.id: int = int(data['id'])
         self._update(guild, data)
 
     def _update(self, guild: Guild, data: ThreadChannelPayload) -> None:
         self.guild = guild
         self.name: str = data['name']
-        self.msg_id = data['msg_id']
+        self.msg_id = data.get("msg_id", self.msg_id)
         self.category_id: Optional[int] = int(data.get('parent_id'))
         self.position: int = data['position']
         self.private_type: int = data.get('private_type')
@@ -1018,7 +1018,7 @@ class CategoryChannel(abc.GuildChannel, Hashable):
 
     def __init__(self, *, state: ConnectionState, guild: Guild, data: CategoryChannelPayload):
         self._state: ConnectionState = state
-        self.msg_id = data['msg_id']
+        self.msg_id = data.get("msg_id", "")
         self.id: int = int(data['id'])
         self._update(guild, data)
 
@@ -1028,7 +1028,7 @@ class CategoryChannel(abc.GuildChannel, Hashable):
     def _update(self, guild: Guild, data: CategoryChannelPayload) -> None:
         self.guild: Guild = guild
         self.name: str = data['name']
-        self.msg_id = data['msg_id']
+        self.msg_id = data.get("msg_id", self.msg_id)
         self.category_id: Optional[int] = int(data.get('parent_id', 0))
         self.position: int = data['position']
         self.private_type: int = data.get('private_type')

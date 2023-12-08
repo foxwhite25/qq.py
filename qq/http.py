@@ -127,6 +127,7 @@ def handle_message_parameters(
         direct: bool = False,
         *,
         msg_id: Optional[str] = MISSING,
+        event_id: Optional[str] = MISSING,
         file: File = MISSING,
         image: Optional[str] = MISSING,
         embed: Optional[Embed] = MISSING,
@@ -138,6 +139,9 @@ def handle_message_parameters(
     payload = {}
     if msg_id:
         payload['msg_id'] = msg_id
+
+    if event_id:
+        payload['event_id'] = event_id
 
     if embed:
         payload['embed'] = embed.to_dict()
