@@ -364,7 +364,8 @@ class QQWebSocket:
         data = msg.get('d')
         seq = msg.get('s')
         msg_id = msg.get('id')
-        data["msg_id"] = msg_id
+        if data is not None:
+            data["msg_id"] = msg_id
 
         if seq is not None:
             self.sequence = seq
