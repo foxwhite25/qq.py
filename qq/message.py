@@ -552,8 +552,8 @@ class Message(Hashable):
         self.direct = direct
         self._state: ConnectionState = state
         self.created_at = datetime.datetime.now()
-        self.id: str = data['id']
-        self.msg_id: str = data["msg_id"]
+        self.id: str = data["id"]
+        self.msg_id: str = data.get("msg_id", None)
         self.reactions: List[Reaction] = [Reaction(message=self, data=d) for d in data.get('reactions', [])]
         self.attachments: Optional[List[Attachment]] = \
             [Attachment(data=a, state=self._state) for a in data['attachments']] \
@@ -679,6 +679,9 @@ class Message(Hashable):
             self.author = Member._from_message(message=self, data=member)
             if isinstance(self.guild, Guild):
                 self.guild._add_member(self.author)
+
+    def _handle_msg_id(self, msg_id: str) -> None:
+        self.msg_id = msg_id
 
     def _handle_mentions(self, mentions: List[UserWithMemberPayload]) -> None:
         self.mentions = r = []
