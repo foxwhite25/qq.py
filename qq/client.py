@@ -359,7 +359,7 @@ class Client:
             来自ID的频道。
         """
         data = await self.http.get_guild(guild_id)
-        return Guild(data=data, state=self._connection)
+        return await Guild(data=data, state=self._connection).fill_in()
 
     async def fetch_guilds(
             self,

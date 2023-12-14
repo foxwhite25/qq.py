@@ -214,7 +214,7 @@ class GuildIterator(_AsyncIterator['Guild']):
                 data = filter(self._filter, data)
 
             for element in data:
-                await self.guilds.put(self.create_guild(element))
+                await self.guilds.put(await self.create_guild(element).fill_in())
 
     async def _retrieve_guilds(self, retrieve) -> List[Guild]:
         """Retrieve guilds and update next parameters."""
