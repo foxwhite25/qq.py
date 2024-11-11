@@ -36,6 +36,7 @@ from urllib.parse import quote as _uriquote
 import aiohttp
 
 from . import __version__, utils
+from .backoff import ExponentialBackoff
 from .embeds import Ark, Embed, Markdown
 from .error import HTTPException, Forbidden, NotFound, QQServerError, LoginFailure, GatewayNotFound
 from .gateway import QQClientWebSocketResponse
@@ -281,6 +282,8 @@ class HTTPClient:
         response: Optional[aiohttp.ClientResponse] = None
         data: Optional[Union[Dict[str, Any], str]] = None
         await lock.acquire()
+        backoff = ExponentialBackoff()
+
         with MaybeUnlock(lock) as maybe_lock:
             for tries in range(5):
                 if file:
@@ -327,12 +330,12 @@ class HTTPClient:
                 except OSError as e:
                     # Connection reset by peer
                     if tries < 4 and e.errno in (54, 10054):
-                        await asyncio.sleep(1 + tries * 2)
+                        await asyncio.sleep(backoff.delay())
                         continue
                     raise
                 except QQServerError as e:
-                    if tries < 4 and e.code in (620006, 100017):
-                        await asyncio.sleep(1 + tries * 2)
+                    if tries < 6 and e.code in (620006, 100017):
+                        await asyncio.sleep(backoff.delay())
                         continue
                     raise e
 
