@@ -134,7 +134,7 @@ class Role(Hashable):
     def _update(self, data: RolePayload):
         self.name: str = data['name']
         self._colour: int = data.get('color', 0)
-        self.hoist: bool = data.get('hoist', False)
+        self.hoist: bool = not not data.get('hoist', False)
 
     def is_default(self) -> bool:
         """:class:`bool`: 检查身份组是否为默认身份组。"""

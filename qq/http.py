@@ -331,7 +331,7 @@ class HTTPClient:
                         continue
                     raise
                 except QQServerError as e:
-                    if tries < 4 and e.code in (620006,):
+                    if tries < 4 and e.code in (620006, 100017):
                         await asyncio.sleep(1 + tries * 2)
                         continue
                     raise e
