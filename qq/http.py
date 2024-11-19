@@ -333,7 +333,7 @@ class HTTPClient:
                         await asyncio.sleep(backoff.delay())
                         continue
                     raise
-                except QQServerError as e:
+                except HTTPException as e:
                     if tries < 6 and e.code in (620006, 100017):
                         await asyncio.sleep(backoff.delay())
                         continue
